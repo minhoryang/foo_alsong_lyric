@@ -1,0 +1,1 @@
+void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter);

@@ -1,0 +1,193 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 한국어 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
+#ifdef _WIN32
+LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
+#pragma code_page(949)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_COMMON_PREF DIALOGEX 0, 0, 316, 180
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "LRC 파일로 저장",IDC_SAVELRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,22,73,10
+    EDITTEXT        IDC_LRCPATH,71,34,156,14,ES_AUTOHSCROLL
+    LTEXT           "LRC 저장 위치",IDC_STATIC,21,36,50,8
+    LTEXT           "(저장 위치를 비워두면 곡과 같은 폴더에 저장됩니다)",IDC_STATIC,71,49,197,29
+    CONTROL         "LRC 파일이 있으면 읽기(알송 가사 무시)",IDC_LOADFROMLRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,63,156,10
+    PUSHBUTTON      "패널 설정",IDC_PANELSET,29,100,50,14
+    PUSHBUTTON      "외부 창 설정",IDC_OUTERSET,88,102,50,14
+END
+
+IDD_UI_PREF DIALOGEX 0, 0, 316, 180
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,205,159,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,159,50,14
+    CONTROL         "",IDC_NLINESPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS,82,22,11,15
+    EDITTEXT        IDC_NLINE,42,23,40,14,ES_AUTOHSCROLL
+    LTEXT           "줄 수",IDC_STATIC,18,26,19,8
+    CONTROL         "",IDC_TRANSPARENCY,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,44,39,100,15,WS_EX_TRANSPARENT
+    LTEXT           "투명도",IDC_TRANSPARENCY_STATIC,17,44,25,8
+    LTEXT           "",IDC_TRANSPARENCY_LABEL,144,42,70,8
+    EDITTEXT        IDC_EDIT1,49,66,40,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,89,66,11,14
+    LTEXT           "줄 간격",IDC_STATIC,19,68,27,8
+END
+
+IDD_LYRIC_MODIFY DIALOGEX 0, 0, 494, 225
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_ARTIST,45,7,147,14,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN
+    EDITTEXT        IDC_TITLE,45,23,147,14,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN
+    PUSHBUTTON      "검색",IDC_SEARCH,195,24,50,14
+    PUSHBUTTON      "초기화",IDC_RESET,195,7,50,14
+    CONTROL         "",IDC_LYRICLIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,59,236,142
+    PUSHBUTTON      "다음",IDC_NEXT,126,203,50,14
+    PUSHBUTTON      "이전",IDC_PREV,50,203,50,14
+    PUSHBUTTON      "등록",IDC_REGISTER,379,203,50,14
+    PUSHBUTTON      "취소",IDC_CANCEL,437,203,50,14
+    LTEXT           "아티스트",IDC_STATIC,10,9,33,8
+    LTEXT           "제목",IDC_STATIC,10,25,17,8
+    EDITTEXT        IDC_LYRIC,248,7,239,194,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
+    CTEXT           "",IDC_STATUS,7,44,234,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_COMMON_PREF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 173
+    END
+
+    IDD_UI_PREF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 173
+    END
+
+    IDD_LYRIC_MODIFY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 487
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 217
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,1,0,0
+ PRODUCTVERSION 0,1,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041204b0"
+        BEGIN
+            VALUE "FileDescription", "Alsong Lyric Plugin for Foobar2000"
+            VALUE "FileVersion", "0, 1, 0, 0"
+            VALUE "InternalName", "foo_alsong_lyric.dll"
+            VALUE "LegalCopyright", "Copyright (C) 2008"
+            VALUE "OriginalFilename", "foo_alsong_lyric.dll"
+            VALUE "ProductName", "Alsong Lyric Plugin for Foobar2000"
+            VALUE "ProductVersion", "0, 1, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x412, 1200
+    END
+END
+
+#endif    // 한국어 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

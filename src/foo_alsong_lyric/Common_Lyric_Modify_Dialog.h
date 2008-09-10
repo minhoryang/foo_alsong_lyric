@@ -1,0 +1,1 @@
+int OpenLyricModifyDialog(HWND hParent, CHAR *Title, CHAR *Artist, CHAR *FileName, double length);
