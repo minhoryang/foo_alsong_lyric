@@ -38,6 +38,7 @@ Common_UI_Base::Common_UI_Base()
 
 	hSleep = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hTime = CreateEvent(NULL, TRUE, FALSE, NULL);
+	hLyricThreadQuit = CreateEvent(NULL, TRUE, FALSE, NULL);//Event to quit lyric thread. 
 }
 
 Common_UI_Base::~Common_UI_Base()
@@ -53,7 +54,8 @@ Common_UI_Base::~Common_UI_Base()
 	}
 
 	std::for_each(WndInfo.begin(), WndInfo.end(), DeleteStub);
-	
+
+	CloseHandle(hLyricThreadQuit);
 	CloseHandle(hSleep);
 	CloseHandle(hTime);
 
@@ -183,7 +185,8 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 	InvalidateAllWindow();
 	if(hLyricThread)
 	{
-		TerminateThread(hLyricThread, 0);//TODO: 쓰지 말란다.
+		SetEvent(hLyricThreadQuit);
+		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
 		hLyricThread = 0;
 	}
@@ -270,7 +273,8 @@ void Common_UI_Base::on_playback_pause(bool p_state)
 	{
 		if(p_state == true)
 		{
-			TerminateThread(hLyricThread, 0);//TODO: 쓰지 말란다.
+			SetEvent(hLyricThreadQuit);
+			WaitForSingleObject(hLyricThread, INFINITE);
 			CloseHandle(hLyricThread);
 			hLyricThread = 0;
 		}
@@ -285,7 +289,8 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 {
 	if(Lyric->GetLyric(0))
 	{
-		TerminateThread(hLyricThread, 0);//TODO: 쓰지 말란다.
+		SetEvent(hLyricThreadQuit);
+		WaitForSingleObject(hLyricThread, INFINTE);
 		CloseHandle(hLyricThread);
 		hLyricThread = 0;
 	}
@@ -350,8 +355,17 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 			if(WaitTime != 0)
 			{
 				int id = timeSetEvent(WaitTime * 10, 0, (LPTIMECALLBACK)_this->hSleep, 0, TIME_CALLBACK_EVENT_SET | TIME_ONESHOT); //정확할까?
-				WaitForSingleObject(_this->hSleep, INFINITE);
+				HANDLE Handles[2] = {_this->hSleep, _this->hLyricThreadQuit};
+				DWORD ret = WaitForMultipleObjects(_2, Handles, FALSE, INFINITE);
 				timeKillEvent(id);
+				if(ret == WAIT_OBJECT_0 + 1)
+				{
+					//Quit Condition
+					ResetEvent(_this->hSleep);
+					ResetEvent(_this->hLyricThreadQuit);
+					_this->InvalidateAllWindow();
+					return 0;
+				}
 			}
 			ResetEvent(_this->hSleep);
 			_this->NowLine = j;
@@ -360,7 +374,13 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 		}
 		i = j - 1; //++되므로 -1;
 
-		WaitForSingleObject(_this->hTime, INFINITE); //1초 간격 될때까지 대기
+		HANDLE Handles[2] = {_this->hTime, _this->hLyricThreadQuit};
+		DWORD res = WaitForMultipleObjects(2, Handles, FALSE, INFINITE);
+		if(res == WAIT_OBJECT_0 + 1)
+		{
+			//Quit Condition
+			return; 0
+		}
 		ResetEvent(_this->hTime);
 	}
 
@@ -384,7 +404,8 @@ void Common_UI_Base::on_playback_seek(double p_time)
 	
 	if(Lyric->GetLyric(0))
 	{
-		TerminateThread(hLyricThread, 0); //TODO: 쓰지 말란다
+		SetEvent(hLyricThreadQuit);
+		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
 		hLyricThread = 0;
 

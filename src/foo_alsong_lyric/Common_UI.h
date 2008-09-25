@@ -109,6 +109,7 @@ public:
 	DWORD NowTime;
 	DWORD NowLine;
 
+	HANDLE hLyricThreadQuit;
 	HANDLE hLyricThread;
 	HANDLE hTime;
 	HANDLE hSleep;
