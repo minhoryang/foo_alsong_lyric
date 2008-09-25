@@ -42,3 +42,6 @@
 #pragma comment(lib, "../debug/pfc/pfc.lib")
 #pragma comment(lib, "../debug/columns_ui_sdk/columns_ui_sdk.lib")
 #endif
+
+using namespace Gdiplus;
+using namespace std;

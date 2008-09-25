@@ -1,13 +1,13 @@
 class Common_Lyric_Manipulation
 {
 private:
-	std::wstring Status;
-	std::vector<std::string> Lyric;
-	std::string Title;
-	std::string Album;
-	std::string Artist;
-	std::string Registrant;
-	std::vector<WORD> Time;
+	wstring Status;
+	vector<string> Lyric;
+	string Title;
+	string Album;
+	string Artist;
+	string Registrant;
+	vector<WORD> Time;
 
 	static DWORD GetFileHash(unsigned char *Data, int Size, CHAR *Hash, CHAR *fmt);
 	DWORD ParseLyric(CHAR *InputLyric, CHAR *Delimiter);
@@ -27,8 +27,8 @@ public:
 	Common_Lyric_Manipulation();
 	~Common_Lyric_Manipulation();
 
-	static DWORD UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, std::string *Lyric, std::string *Title, std::string *Artist, std::string *Album, std::string *Registrant);
-	static DWORD SearchLyricGetNext(CHAR **data, int *nInfo, std::string *Title, std::string *Artist, std::string *Album, std::string *Lyric, std::string *Registrant);
+	static DWORD UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant);
+	static DWORD SearchLyricGetNext(CHAR **data, int *nInfo, string *Title, string *Artist, string *Album, string *Lyric, string *Registrant);
 	static int SearchLyricGetCount(CHAR *Artist, CHAR *Title);
 	static DWORD SearchLyric(CHAR *InArtist, CHAR *InTitle, int nPage, CHAR **Output);
 	DWORD FetchLyric(BYTE *FileHead, int Size, CHAR *fmt);

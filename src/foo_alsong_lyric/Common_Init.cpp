@@ -4,8 +4,6 @@
 #include "Common_Settings.h"
 #include "Common_UI.h"
 
-using namespace Gdiplus;
-
 DECLARE_COMPONENT_VERSION(
 "Alsong lyric plugin",
 "0.1.0",
@@ -20,7 +18,6 @@ class initquit_alsong : public initquit
 {
 	virtual void on_init() 
 	{
-		// Show the window, if it is enabled.
 		WSADATA wd;
 		WSAStartup(MAKEWORD(2, 2), &wd);
 

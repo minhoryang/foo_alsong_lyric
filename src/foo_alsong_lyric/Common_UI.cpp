@@ -15,8 +15,8 @@ using namespace Gdiplus;
 
 Common_UI_Base *Common_UI; 
 
-void DeleteStub(std::pair<HWND, WindowData *> data);
-void InvalidateStub(std::pair<HWND, WindowData *> data);
+void DeleteStub(pair<HWND, WindowData *> data);
+void InvalidateStub(pair<HWND, WindowData *> data);
 
 Common_UI_Base::Common_UI_Base()
 {
@@ -53,7 +53,7 @@ Common_UI_Base::~Common_UI_Base()
 		// play_callback_manager does not exist; something is very wrong.
 	}
 
-	std::for_each(WndInfo.begin(), WndInfo.end(), DeleteStub);
+	for_each(WndInfo.begin(), WndInfo.end(), DeleteStub);
 
 	CloseHandle(hLyricThreadQuit);
 	CloseHandle(hSleep);
@@ -62,19 +62,19 @@ Common_UI_Base::~Common_UI_Base()
 	delete Lyric;
 }
 
-void DeleteStub(std::pair<HWND, WindowData *> data)
+void DeleteStub(pair<HWND, WindowData *> data)
 {
 	delete data.second;
 }
 
-void InvalidateStub(std::pair<HWND, WindowData *> data)
+void InvalidateStub(pair<HWND, WindowData *> data)
 {
 	InvalidateRect(data.first, NULL, TRUE);
 }
 
 void Common_UI_Base::InvalidateAllWindow()
 {
-	std::for_each(WndInfo.begin(), WndInfo.end(), InvalidateStub);
+	for_each(WndInfo.begin(), WndInfo.end(), InvalidateStub);
 }
 
 class save_lrc_callback : public main_thread_callback
@@ -169,7 +169,7 @@ public:
 		m_arg = arg;
 	}
 
-	void operator() (std::pair<HWND, WindowData *> data) const
+	void operator() (pair<HWND, WindowData *> data) const
 	{
 		uSetWindowText(data.first, m_arg);
 	}
@@ -216,7 +216,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 	static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
 	p_track->format_title(NULL, str, to, NULL);
 
-	std::for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub(str.get_ptr()));
+	for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub(str.get_ptr()));
 }
 
 void Common_UI_Base::GetLRCSavePath(WCHAR *path)
@@ -299,7 +299,7 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 
 	InvalidateAllWindow();
 	
-	std::for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub("Alsong Lyric"));
+	for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub("Alsong Lyric"));
 }
 
 UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
@@ -478,7 +478,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 		}
 		WindowData *Data = new WindowData(NowSetting);
 
-		WndInfo.insert(std::make_pair(hWnd, Data));
+		WndInfo.insert(make_pair(hWnd, Data));
 		InvalidateRect(hWnd, NULL, TRUE);
 	}
 

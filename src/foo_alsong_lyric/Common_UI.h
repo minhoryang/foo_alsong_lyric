@@ -102,7 +102,7 @@ private:
 	void GetLRCSavePath(WCHAR *path);
 
 	class Common_Lyric_Manipulation *Lyric;
-	std::map<HWND, WindowData *> WndInfo;
+	map<HWND, WindowData *> WndInfo;
 
 public:
 

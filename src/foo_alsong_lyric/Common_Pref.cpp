@@ -116,8 +116,8 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	{
 	case WM_INITDIALOG:
 		{
-			Setting = ((std::pair<Alsong_Setting *, BOOL> *)lParam)->first;
-			bOuter = ((std::pair<Alsong_Setting *, BOOL> *)lParam)->second;
+			Setting = ((pair<Alsong_Setting *, BOOL> *)lParam)->first;
+			bOuter = ((pair<Alsong_Setting *, BOOL> *)lParam)->second;
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, Setting->nLine);
@@ -180,7 +180,7 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 {
 	Alsong_Setting SettingTemp;
 	memcpy(&SettingTemp, Setting, sizeof(Alsong_Setting));
-	int nRet = DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_UI_PREF), hParent, UIConfigProc, (LPARAM)&(std::make_pair(&SettingTemp, bOuter)));
+	int nRet = DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_UI_PREF), hParent, UIConfigProc, (LPARAM)&(make_pair(&SettingTemp, bOuter)));
 	if(nRet == 0)
 	{
 		//¼º°ø

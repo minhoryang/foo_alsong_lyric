@@ -4,11 +4,11 @@
 
 struct SLyricInfo
 {
-	std::string Title;
-	std::string Album;
-	std::string Registrant;
-	std::string Lyric;
-	std::string Artist;
+	string Title;
+	string Album;
+	string Registrant;
+	string Lyric;
+	string Artist;
 
 	int nInfo;
 };
@@ -93,13 +93,13 @@ void FillLyric(HWND hDialog, int NowPage, SLyricInfo *LyricInfo, int nLyric)
 	for(i = 0; i < min(nLyric, 100); i ++)
 	{
 		Common_Lyric_Manipulation::SearchLyricGetNext(&NowData, &LyricInfo[i].nInfo, &LyricInfo[i].Title, &LyricInfo[i].Artist, &LyricInfo[i].Album, &LyricInfo[i].Lyric, &LyricInfo[i].Registrant);
-		while(LyricInfo[i].Lyric.find("&lt;br&gt;") != std::string::npos)
+		while(LyricInfo[i].Lyric.find("&lt;br&gt;") != string::npos)
 			LyricInfo[i].Lyric.replace(LyricInfo[i].Lyric.find("&lt;br&gt;"), 10, "\r\n");
-		while(LyricInfo[i].Lyric.find("&amp;") != std::string::npos)
+		while(LyricInfo[i].Lyric.find("&amp;") != string::npos)
 			LyricInfo[i].Lyric.replace(LyricInfo[i].Lyric.find("&amp;"), 5, "&");
-		while(LyricInfo[i].Lyric.find("&lt;") != std::string::npos)
+		while(LyricInfo[i].Lyric.find("&lt;") != string::npos)
 			LyricInfo[i].Lyric.replace(LyricInfo[i].Lyric.find("&lt;"), 4, "<");
-		while(LyricInfo[i].Lyric.find("&gt;") != std::string::npos)
+		while(LyricInfo[i].Lyric.find("&gt;") != string::npos)
 			LyricInfo[i].Lyric.replace(LyricInfo[i].Lyric.find("&gt;"), 4, ">");
 	}
 	free(otemp);

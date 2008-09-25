@@ -336,18 +336,18 @@ DWORD Common_Lyric_Manipulation::ParseLyric(CHAR *InputLyric, CHAR *Delimiter)
 		Lyric.push_back(lastpos);
 		lastpos = nowpos + lstrlenA(Delimiter);
 
-		while(Lyric[i].find("&amp;") != std::string::npos)
+		while(Lyric[i].find("&amp;") != string::npos)
 			Lyric[i].replace(Lyric[i].find("&amp;"), 5, "&");
-		while(Lyric[i].find("&lt;") != std::string::npos)
+		while(Lyric[i].find("&lt;") != string::npos)
 			Lyric[i].replace(Lyric[i].find("&lt;"), 4, "<");
-		while(Lyric[i].find("&gt;") != std::string::npos)
+		while(Lyric[i].find("&gt;") != string::npos)
 			Lyric[i].replace(Lyric[i].find("&gt;"), 4, ">");
 	}
 
 	return S_OK;
 }
 
-DWORD Common_Lyric_Manipulation::SearchLyricGetNext(CHAR **data, int *Info, std::string *Title, std::string *Artist, std::string *Album, std::string *Lyric, std::string *Registrant)
+DWORD Common_Lyric_Manipulation::SearchLyricGetNext(CHAR **data, int *Info, string *Title, string *Artist, string *Album, string *Lyric, string *Registrant)
 {
 	__try
 	{
@@ -563,7 +563,7 @@ DWORD Common_Lyric_Manipulation::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 	return FALSE;
 }
 
-DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, std::string *Lyric, std::string *Title, std::string *Artist, std::string *Album, std::string *Registrant)
+DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant)
 {
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 								"Host: lyrics.alsong.co.kr\r\n"
@@ -669,7 +669,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int n
 	GetFileHash((unsigned char *)data, min(0x50000, (size_t)file->get_size(abort_callback)), Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
 	free(data);
 
-	while(Lyric->find("\r\n") != std::string::npos)
+	while(Lyric->find("\r\n") != string::npos)
 		Lyric->replace(Lyric->find("\r\n"), 2, "&lt;br&gt;");
 
 	for(i = 0; i < 23; i ++)
