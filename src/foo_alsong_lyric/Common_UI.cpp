@@ -6,7 +6,7 @@
 
 //TODO: Titleformat 사용해서 출력 formatting.
 
-COLORREF acrCustClr[16] = {RGB(255, 255, 255	), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
+COLORREF acrCustClr[16] = {RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
 RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
 RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
 RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255)};
@@ -20,7 +20,6 @@ void InvalidateStub(pair<HWND, WindowData *> data);
 
 Common_UI_Base::Common_UI_Base()
 {
-	// Register play callback.
 	try 
 	{
 		static_api_ptr_t<play_callback_manager> pcm;
@@ -28,7 +27,7 @@ Common_UI_Base::Common_UI_Base()
 	}
 	catch (const exception_service_not_found &) 
 	{
-		// play_callback_manager does not exist; something is very wrong.
+
 	}
 
 	Lyric = new Common_Lyric_Manipulation();
@@ -221,7 +220,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 
 void Common_UI_Base::GetLRCSavePath(WCHAR *path)
 {
-	core_api::assert_main_thread();
+	core_api::ensure_main_thread();
 	metadb_handle_ptr p_track;
 	static_api_ptr_t<play_control> pc;
 	pc->get_now_playing(p_track);
@@ -239,7 +238,6 @@ void Common_UI_Base::GetLRCSavePath(WCHAR *path)
 	const char *Nowpath = p_track->get_path();
 	
 	if(!cfg_lrc_save_path.get_ptr()[0] && (pfc::strcmp_ex(Nowpath, 6, "file://", 6) == 0))
-	//if(pfc::strcmp_ex(Nowpath, 6, "file://", 6) == 0) //파일이면
 	{
 		Nowpath += 7;
 		pfc::stringcvt::convert_utf8_to_wide(path, 255, Nowpath, lstrlenA(Nowpath));
@@ -259,12 +257,6 @@ void Common_UI_Base::GetLRCSavePath(WCHAR *path)
 		StrCat(path, temp);
 		StrCat(path, L".lrc");
 	}
-
-	//else
-	//{
-	//	pfc::stringcvt::convert_utf8_to_wide(path, 255, cfg_lrc_save_path, lstrlenA(cfg_lrc_save_path));
-	//	StrCat(path, L".lrc");
-	//}
 }
 
 void Common_UI_Base::on_playback_pause(bool p_state)
@@ -282,6 +274,7 @@ void Common_UI_Base::on_playback_pause(bool p_state)
 		{
 			hLyricThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)LyricCountThread, (LPVOID)this, NULL, NULL);
 		}
+		InvalidateAllWindow();
 	}
 }
 
@@ -435,7 +428,7 @@ void Common_UI_Base::on_playback_seek(double p_time)
 //TODO: 정비
 
 HWND hToolTipWindow;
-
+//TODO
 void CreateToolTipWindow(HWND hWnd)
 {
 	TOOLINFO ti;
