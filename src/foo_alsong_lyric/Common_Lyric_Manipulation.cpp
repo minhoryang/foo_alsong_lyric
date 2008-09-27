@@ -565,6 +565,7 @@ DWORD Common_Lyric_Manipulation::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 
 DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant)
 {
+	//너무 많이 지역변수로 지정됨. 
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 								"Host: lyrics.alsong.co.kr\r\n"
 								"User-Agent: gSOAP/2.7\r\n"

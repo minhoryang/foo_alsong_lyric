@@ -283,7 +283,7 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 	if(Lyric->GetLyric(0))
 	{
 		SetEvent(hLyricThreadQuit);
-		WaitForSingleObject(hLyricThread, INFINTE);
+		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
 		hLyricThread = 0;
 	}
@@ -349,7 +349,7 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 			{
 				int id = timeSetEvent(WaitTime * 10, 0, (LPTIMECALLBACK)_this->hSleep, 0, TIME_CALLBACK_EVENT_SET | TIME_ONESHOT); //정확할까?
 				HANDLE Handles[2] = {_this->hSleep, _this->hLyricThreadQuit};
-				DWORD ret = WaitForMultipleObjects(_2, Handles, FALSE, INFINITE);
+				DWORD ret = WaitForMultipleObjects(2, Handles, FALSE, INFINITE);
 				timeKillEvent(id);
 				if(ret == WAIT_OBJECT_0 + 1)
 				{
@@ -372,7 +372,7 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 		if(res == WAIT_OBJECT_0 + 1)
 		{
 			//Quit Condition
-			return; 0
+			return 0;
 		}
 		ResetEvent(_this->hTime);
 	}

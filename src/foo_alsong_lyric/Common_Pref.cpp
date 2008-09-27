@@ -110,7 +110,7 @@ static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences
 //TODO: 줄간격 설정
 static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	static Alsong_Setting *Setting = NULL;
+	static Alsong_Setting *Setting;
 	static BOOL bOuter = FALSE;
 	switch (iMessage)
 	{

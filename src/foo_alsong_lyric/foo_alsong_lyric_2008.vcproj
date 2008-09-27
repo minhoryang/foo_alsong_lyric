@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/Bt"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -95,7 +95,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\foobar2000.exe&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -191,7 +191,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\foobar2000.exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
