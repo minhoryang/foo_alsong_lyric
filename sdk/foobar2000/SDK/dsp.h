@@ -80,7 +80,7 @@ public:
 	virtual void run_v2(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags,abort_callback & p_abort) = 0;
 private:
 	void run(dsp_chunk_list * p_chunk_list,const metadb_handle_ptr & p_cur_file,int p_flags) {
-		run_v2(p_chunk_list,p_cur_file,p_flags,abort_callback_impl());
+		run_v2(p_chunk_list,p_cur_file,p_flags,abort_callback_dummy());
 	}
 
 	FB2K_MAKE_SERVICE_INTERFACE(dsp_v2,dsp);
@@ -398,6 +398,14 @@ public:
 
 	void get_name_list(pfc::string_base & p_out) const;
 };
+
+FB2K_STREAM_READER_OVERLOAD(dsp_chain_config) {
+	value.contents_from_stream(&stream.m_stream, stream.m_abort); return stream;
+}
+
+FB2K_STREAM_WRITER_OVERLOAD(dsp_chain_config) {
+	value.contents_to_stream(&stream.m_stream, stream.m_abort); return stream;
+}
 
 class dsp_chain_config_impl : public dsp_chain_config
 {

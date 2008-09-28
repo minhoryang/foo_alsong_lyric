@@ -471,6 +471,7 @@ public:
 	}
 
 	inline T& get_static_instance() {return g_instance;}
+	inline const T& get_static_instance() const {return g_instance;}
 };
 
 template<typename T>

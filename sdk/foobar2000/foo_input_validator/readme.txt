@@ -1,4 +1,4 @@
-Decoder Validator v1.2 readme
+Decoder Validator v1.2.1 readme
 
 1) Usage.
 Select a single file handled by the decoder you want to test, select "Utils / Decoder Validator", "Utils / Tag Writer Validator" or "Utils / Fuzzer" from the context menu.

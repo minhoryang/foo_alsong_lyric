@@ -110,6 +110,11 @@ class advconfig_checkbox_factory_t : public service_factory_single_t<advconfig_e
 public:
 	advconfig_checkbox_factory_t(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,bool p_initialstate) 
 		: service_factory_single_t<advconfig_entry_checkbox_impl<p_is_radio> >(p_name,p_guid,p_parent,p_priority,p_initialstate) {}
+
+	bool get() const {return get_static_instance().get_state();}
+	void set(bool val) {get_static_instance().set_state(val);}
+	operator bool() const {return get();}
+	bool operator=(bool val) {set(val); return val;}
 };
 
 //! Service factory helper around standard advconfig_entry_checkbox implementation, specialized for checkboxes (rather than radiocheckboxes). See advconfig_checkbox_factory_t<> for more details.
@@ -144,6 +149,9 @@ class advconfig_string_factory : public service_factory_single_t<advconfig_entry
 public:
 	advconfig_string_factory(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,const char * p_initialstate) 
 		: service_factory_single_t<advconfig_entry_string_impl>(p_name,p_guid,p_parent,p_priority,p_initialstate) {}
+
+	void get(pfc::string_base & out) {get_static_instance().get_state(out);}
+	void set(const char * in) {get_static_instance().set_state(in);}
 };
 
 
@@ -158,10 +166,11 @@ public:
 	void reset() {m_state = m_initval;}
 	double get_sort_priority() {return m_priority;}
 	void get_state(pfc::string_base & p_out) {p_out = pfc::format_uint(m_state.get_value());}
-	void set_state(const char * p_string,t_size p_length) {m_state = pfc::clip_t<t_uint64>(pfc::atoui64_ex(p_string,p_length),m_min,m_max);}
+	void set_state(const char * p_string,t_size p_length) {set_state_int(pfc::atoui64_ex(p_string,p_length));}
 	t_uint32 get_flags() {return advconfig_entry_string::flag_is_integer;}
 
 	t_uint64 get_state_int() const {return m_state;}
+	void set_state_int(t_uint64 val) {m_state = pfc::clip_t<t_uint64>(val,m_min,m_max);}
 private:
 	cfg_int_t<t_uint64> m_state;
 	const double m_priority;
@@ -176,6 +185,12 @@ class advconfig_integer_factory : public service_factory_single_t<advconfig_entr
 public:
 	advconfig_integer_factory(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,t_uint64 p_initialstate,t_uint64 p_min,t_uint64 p_max) 
 		: service_factory_single_t<advconfig_entry_integer_impl>(p_name,p_guid,p_parent,p_priority,p_initialstate,p_min,p_max) {}
+
+	t_uint64 get() const {return get_static_instance().get_state_int();}
+	void set(t_uint64 val) {get_static_instance().set_state_int(val);}
+
+	operator t_uint64() const {return get();}
+	t_uint64 operator=(t_uint64 val) {set(val); return val;}
 };
 
 
@@ -228,4 +243,23 @@ class advconfig_string_factory_MT : public service_factory_single_t<advconfig_en
 public:
 	advconfig_string_factory_MT(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,const char * p_initialstate) 
 		: service_factory_single_t<advconfig_entry_string_impl_MT>(p_name,p_guid,p_parent,p_priority,p_initialstate) {}
+
+	void get(pfc::string_base & out) {get_static_instance().get_state(out);}
+	void set(const char * in) {get_static_instance().set_state(in);}
 };
+
+
+
+
+/* 
+  Advanced Preferences variable declaration examples 
+	
+	static advconfig_string_factory mystring("name goes here",myguid,parentguid,0,"asdf");
+	to retrieve state: pfc::string8 val; mystring.get(val);
+
+	static advconfig_checkbox_factory mycheckbox("name goes here",myguid,parentguid,0,false);
+	to retrieve state: mycheckbox.get();
+
+	static advconfig_integer_factory myint("name goes here",myguid,parentguid,0,initialValue,minimumValue,maximumValue);
+	to retrieve state: myint.get();
+*/

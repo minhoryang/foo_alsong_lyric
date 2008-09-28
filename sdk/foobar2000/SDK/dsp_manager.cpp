@@ -134,7 +134,7 @@ void dsp_manager::flush()
 }
 
 
-bool dsp_manager::is_active() {return m_config.get_count()>0;}
+bool dsp_manager::is_active() const {return m_config.get_count()>0;}
 
 void dsp_config_manager::core_enable_dsp(const dsp_preset & preset) {
 	dsp_chain_config_impl cfg;
