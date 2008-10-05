@@ -95,7 +95,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\foobar2000.exe&quot;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\components\&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -191,7 +191,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\foobar2000.exe&quot;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\components\&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
