@@ -5,6 +5,11 @@ public:
 	virtual void get_name(pfc::string_base & out)const;
 	virtual void get_category(pfc::string_base & out)const;
 	unsigned get_type () const;
+	virtual void set_config(stream_reader *p_reader);
+	virtual void set_config(stream_reader * p_reader, t_size p_size, abort_callback & p_abort);
+	virtual void get_config(stream_writer * p_writer, abort_callback & p_abort) const;
+	virtual bool have_config_popup() const;
+	virtual bool show_config_popup(HWND wnd_parent); //TODO: Implement.
 
 private:
 	LRESULT on_message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
