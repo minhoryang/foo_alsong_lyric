@@ -26,7 +26,7 @@ void Common_Lyric_Manipulation::ClearLyric()
 
 const char *Common_Lyric_Manipulation::GetLyric(DWORD Line)
 {
-	if(Line < Lyric.size())
+	if(Line < Lyric.size() && Line >= 0)
 		return Lyric[Line].c_str();
 	else
 		return NULL;
@@ -39,7 +39,7 @@ DWORD Common_Lyric_Manipulation::GetNumberOfLine()
 
 DWORD Common_Lyric_Manipulation::GetLyricTime(DWORD Line)
 {
-	if(Line < Time.size())
+	if(Line < Time.size() && Line >= 0)
 		return Time[Line];
 	else
 		return 4294967295;
