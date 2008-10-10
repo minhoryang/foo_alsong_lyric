@@ -112,7 +112,6 @@ public:
 	HANDLE hLyricThreadQuit;
 	HANDLE hLyricThread;
 	HANDLE hTime;
-	HANDLE hSleep;
 
 	Common_UI_Base();
 	~Common_UI_Base();

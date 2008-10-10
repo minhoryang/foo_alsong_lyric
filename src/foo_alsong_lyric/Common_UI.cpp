@@ -35,7 +35,6 @@ Common_UI_Base::Common_UI_Base()
 	NowPlaying_Path = NULL;
 	hLyricThread = NULL;
 
-	hSleep = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hTime = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLyricThreadQuit = CreateEvent(NULL, TRUE, FALSE, NULL);//Event to quit lyric thread. 
 }
@@ -55,7 +54,6 @@ Common_UI_Base::~Common_UI_Base()
 	for_each(WndInfo.begin(), WndInfo.end(), DeleteStub);
 
 	CloseHandle(hLyricThreadQuit);
-	CloseHandle(hSleep);
 	CloseHandle(hTime);
 
 	delete Lyric;
@@ -187,6 +185,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 		SetEvent(hLyricThreadQuit);
 		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
+		ResetEvent(hLyricThreadQuit);
 		hLyricThread = 0;
 	}
 	
@@ -268,6 +267,7 @@ void Common_UI_Base::on_playback_pause(bool p_state)
 			SetEvent(hLyricThreadQuit);
 			WaitForSingleObject(hLyricThread, INFINITE);
 			CloseHandle(hLyricThread);
+			ResetEvent(hLyricThreadQuit);
 			hLyricThread = 0;
 		}
 		else 
@@ -285,6 +285,7 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 		SetEvent(hLyricThreadQuit);
 		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
+		ResetEvent(hLyricThreadQuit);
 		hLyricThread = 0;
 	}
 
@@ -347,20 +348,15 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 				break;
 			if(WaitTime != 0)
 			{
-				int id = timeSetEvent(WaitTime * 10, 0, (LPTIMECALLBACK)_this->hSleep, 0, TIME_CALLBACK_EVENT_SET | TIME_ONESHOT); //정확할까?
-				HANDLE Handles[2] = {_this->hSleep, _this->hLyricThreadQuit};
-				DWORD ret = WaitForMultipleObjects(2, Handles, FALSE, INFINITE);
-				timeKillEvent(id);
-				if(ret == WAIT_OBJECT_0 + 1)
+				DWORD ret = WaitForSingleObject(_this->hLyricThreadQuit, WaitTime * 10);
+				if(ret == WAIT_OBJECT_0)
 				{
 					//Quit Condition
-					ResetEvent(_this->hSleep);
 					ResetEvent(_this->hLyricThreadQuit);
 					_this->InvalidateAllWindow();
 					return 0;
 				}
 			}
-			ResetEvent(_this->hSleep);
 			_this->NowLine = j;
 			_this->InvalidateAllWindow();
 			NowTime_Local += WaitTime;
@@ -371,6 +367,7 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 		DWORD res = WaitForMultipleObjects(2, Handles, FALSE, INFINITE);
 		if(res == WAIT_OBJECT_0 + 1)
 		{
+			ResetEvent(_this->hLyricThreadQuit);
 			//Quit Condition
 			return 0;
 		}
@@ -400,6 +397,7 @@ void Common_UI_Base::on_playback_seek(double p_time)
 		SetEvent(hLyricThreadQuit);
 		WaitForSingleObject(hLyricThread, INFINITE);
 		CloseHandle(hLyricThread);
+		ResetEvent(hLyricThreadQuit);
 		hLyricThread = 0;
 
 		NowTime = (DWORD)p_time * 100;
