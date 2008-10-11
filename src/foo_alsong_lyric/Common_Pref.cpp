@@ -188,9 +188,15 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 		{
 			//100%투명도 아닐경우에만 적용. 항상위 강제
 			if(cfg_outer_layered == true && cfg_outer_transparency != 100)
+			{
 				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
+				SetWindowPos(hParent, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+			}
 			else
+			{
 				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
+				SetWindowPos(hParent, (cfg_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+			}
 			SetLayeredWindowAttributes(hParent, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 		}
 		memcpy(Setting, &SettingTemp, sizeof(Alsong_Setting));

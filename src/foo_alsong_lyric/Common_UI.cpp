@@ -130,7 +130,7 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 		free(data);
 		return 0;
 	}
-	
+
 	_this->Lyric->FetchLyric(data, min(0x50000, (size_t)file->get_size(abort_callback)), (char *)str.get_ptr() + str.find_last('.') + 1);
 
 	if(cfg_save_to_lrc) //TODO:UI¸¸µé±â
