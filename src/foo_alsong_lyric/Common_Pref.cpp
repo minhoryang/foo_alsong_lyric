@@ -23,20 +23,14 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 		case IDC_LOADFROMLRC:
 			if(HIWORD(wParam) == BN_CLICKED)
 			{
-				if(IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC))
-					cfg_load_from_lrc = true;
-				else
-					cfg_load_from_lrc = false;
+				cfg_load_from_lrc = (IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC) ? true : false);
 				//CheckDlgButton(hWnd, IDC_LOADFROMLRC, !IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC));
 			}
 			break;
 		case IDC_SAVELRC:
 			if(HIWORD(wParam) == BN_CLICKED)
 			{
-				if(IsDlgButtonChecked(hWnd, IDC_SAVELRC))
-					cfg_save_to_lrc = true;
-				else
-					cfg_save_to_lrc = false;
+				cfg_save_to_lrc = (IsDlgButtonChecked(hWnd, IDC_SAVELRC) ? true : false);
 				//CheckDlgButton(hWnd, IDC_SAVELRC, !IsDlgButtonChecked(hWnd, IDC_SAVELRC));
 			}
 			break;
@@ -131,12 +125,15 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				TCHAR temp[255];
 				wsprintf(temp, TEXT("%d%%"), pos);
 				SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
+
+				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
 			}
 			else
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_STATIC), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 			}
 		}
 
@@ -162,7 +159,10 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 		case IDOK:
 			Setting->nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
 			if(bOuter)
+			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
+				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
+			}
 			EndDialog(hWnd, 0);
 			break;
 		case IDCANCEL:
@@ -185,7 +185,14 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 	{
 		//성공
 		if(bOuter == TRUE)
+		{
+			//100%투명도 아닐경우에만 적용. 항상위 강제
+			if(cfg_outer_layered == true && cfg_outer_transparency != 100)
+				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
+			else
+				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
 			SetLayeredWindowAttributes(hParent, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
+		}
 		memcpy(Setting, &SettingTemp, sizeof(Alsong_Setting));
 		InvalidateRect(hParent, NULL, TRUE);
 	}

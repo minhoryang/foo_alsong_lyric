@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Foobar_Plugin.rc
+// Used by foo_alsong_lyric.rc
 //
 #define IDD_PREFS                       9
 #define IDD_COMMON_PREF                 9
@@ -10,6 +10,7 @@
 #define IDC_TRANSPARENCY_LABEL          1001
 #define IDC_CHECK1                      1002
 #define IDC_SAVELRC                     1002
+#define IDC_LAYERED                     1002
 #define IDC_CHECK2                      1003
 #define IDC_LOADFROMLRC                 1003
 #define IDC_CHECK3                      1004

@@ -115,22 +115,19 @@ HWND Outer_Window_Plugin::Create()
 	wc.cbWndExtra = sizeof(Outer_Window_Plugin *);
 	RegisterClass(&wc);
 	
-	DWORD dwExStyle;
-	if(cfg_topmost)
-		dwExStyle = WS_EX_TOPMOST;
-	else
-		dwExStyle = NULL;
 	m_hWnd = CreateWindowEx(
-			dwExStyle | WS_EX_LAYERED,
-			TEXT("AlsongLyricWindow"),
-			TEXT("Alsong Lyric"),
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			500, 200,
-			NULL,
-			0,
-			NULL,
-			this );
+		(cfg_topmost ? WS_EX_TOPMOST : 0) | 
+		(cfg_outer_layered ? WS_EX_TRANSPARENT | WS_EX_TOPMOST : 0) | 
+		WS_EX_LAYERED,
+		TEXT("AlsongLyricWindow"),
+		TEXT("Alsong Lyric"),
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		500, 200,
+		NULL,
+		0,
+		NULL,
+		this );
 	SetLayeredWindowAttributes(m_hWnd, 0, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);//TODO: 어디로 옮길까
 	ShowWindow(m_hWnd, SW_HIDE);
 	HMENU hMenu = GetSystemMenu(m_hWnd, FALSE);
