@@ -36,7 +36,7 @@ class initquit_alsong : public initquit
 		Common_UI = new Common_UI_Base();
 
 		g_OuterWindow.Create();
-		if (cfg_enabled)
+		if (cfg_outer_shown)
 			g_OuterWindow.Show();
 	}
 

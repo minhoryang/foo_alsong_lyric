@@ -64,7 +64,7 @@ class menu_command_alsong : public mainmenu_commands
 	{
 		if (p_index == 0 && core_api::assert_main_thread()) 
 		{
-			if (cfg_enabled)
+			if (cfg_outer_shown)
 			{
 				g_OuterWindow.Hide();
 			}
@@ -90,7 +90,7 @@ class menu_command_alsong : public mainmenu_commands
 	bool is_checked(t_uint32 p_index)
 	{
 		if (p_index == 0)
-			return cfg_enabled;
+			return cfg_outer_shown;
 		return false;
 	}
 };
@@ -116,12 +116,12 @@ HWND Outer_Window_Plugin::Create()
 	RegisterClass(&wc);
 	
 	m_hWnd = CreateWindowEx(
-		(cfg_topmost ? WS_EX_TOPMOST : 0) | 
+		(cfg_outer_topmost ? WS_EX_TOPMOST : 0) | 
 		(cfg_outer_layered ? WS_EX_TRANSPARENT | WS_EX_TOPMOST : 0) | 
 		WS_EX_LAYERED,
 		TEXT("AlsongLyricWindow"),
 		TEXT("Alsong Lyric"),
-		WS_OVERLAPPEDWINDOW,
+		(cfg_outer_border ? WS_POPUP | WS_SYSMENU : WS_OVERLAPPEDWINDOW),
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		500, 200,
 		NULL,
@@ -148,13 +148,13 @@ void Outer_Window_Plugin::Destroy()
 void Outer_Window_Plugin::Show()
 {
 	ShowWindow(m_hWnd, SW_SHOW);
-	cfg_enabled = true;
+	cfg_outer_shown = true;
 }
 
 void Outer_Window_Plugin::Hide()
 {
 	ShowWindow(m_hWnd, SW_HIDE);
-	cfg_enabled = false;
+	cfg_outer_shown = false;
 }
 
 LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -163,7 +163,7 @@ LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARA
 	{
 	case WM_CLOSE:
 		ShowWindow(hWnd, SW_HIDE);
-		cfg_enabled = false;
+		cfg_outer_shown = false;
 		return 0;
 	case WM_CONTEXTMENU:
 	case WM_NCRBUTTONUP:
@@ -184,10 +184,10 @@ LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARA
 	case WM_NCPAINT:
 		break;
 	case WM_DESTROY:
-		cfg_popup_window_placement.on_window_destruction(hWnd);
+		cfg_outer_window_placement.on_window_destruction(hWnd);
 		break;
 	case WM_CREATE:
-		cfg_popup_window_placement.on_window_creation(hWnd);
+		cfg_outer_window_placement.on_window_creation(hWnd);
 		break;
 	case WM_MOVE:
 	case WM_SIZE:
@@ -258,7 +258,7 @@ void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom)
 
 	// Add our "Choose font..." command.
 	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("폰트 선택..."));
-	if(cfg_topmost)
+	if(cfg_outer_topmost)
 		AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_TOPMOST, TEXT("항상 위에 보이기"));
 	else
 		AppendMenu(hMenu, MF_STRING, ID_TOPMOST, TEXT("항상 위에 보이기"));
@@ -319,21 +319,10 @@ void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom)
 		} 
 		else if(cmd == ID_TOPMOST)
 		{
-			DWORD dwStyle;
-			if(cfg_topmost)
-			{
-				cfg_topmost = false;
-				dwStyle = GetWindowLong(hWndFrom, GWL_EXSTYLE);
-				SetWindowLong(hWndFrom, GWL_EXSTYLE, dwStyle ^ WS_EX_TOPMOST);
-				SetWindowPos(hWndFrom, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
-			}
-			else
-			{
-				cfg_topmost = true;
-				dwStyle = GetWindowLong(hWndFrom, GWL_EXSTYLE);
-				SetWindowLong(hWndFrom, GWL_EXSTYLE, dwStyle | WS_EX_TOPMOST);
-				SetWindowPos(hWndFrom, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE);
-			}
+			cfg_outer_topmost = !cfg_outer_topmost;
+
+			SetWindowLong(hWndFrom, GWL_EXSTYLE, (cfg_outer_topmost ? GetWindowLong(hWndFrom, GWL_EXSTYLE) | WS_EX_TOPMOST : GetWindowLong(hWndFrom, GWL_EXSTYLE) & ~WS_EX_TOPMOST));
+			SetWindowPos(hWndFrom, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 		}
 		else if(cmd == ID_BKCOLOR)
 		{			

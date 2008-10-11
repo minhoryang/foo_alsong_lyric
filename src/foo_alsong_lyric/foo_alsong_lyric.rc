@@ -82,6 +82,7 @@ BEGIN
     CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,87,41,11,14
     LTEXT           "줄 간격",IDC_STATIC,17,44,27,8
     CONTROL         "레이어드 윈도우(마우스 클릭이 창 아래로 전달됩니다)",IDC_LAYERED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,85,207,10
+    CONTROL         "창틀 숨기기",IDC_BORDER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,101,58,10
 END
 
 IDD_LYRIC_MODIFY DIALOGEX 0, 0, 494, 225

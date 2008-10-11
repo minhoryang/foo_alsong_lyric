@@ -127,6 +127,7 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
 
 				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
+				CheckDlgButton(hWnd, IDC_BORDER, cfg_outer_border);
 			}
 			else
 			{
@@ -134,6 +135,7 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_STATIC), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
 			}
 		}
 
@@ -162,6 +164,7 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
+				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 			}
 			EndDialog(hWnd, 0);
 			break;
@@ -186,6 +189,8 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 		//성공
 		if(bOuter == TRUE)
 		{
+			SetWindowLong(hParent, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU : WS_OVERLAPPEDWINDOW));
+
 			//100%투명도 아닐경우에만 적용. 항상위 강제
 			if(cfg_outer_layered == true && cfg_outer_transparency != 100)
 			{
@@ -194,8 +199,8 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 			}
 			else
 			{
-				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
-				SetWindowPos(hParent, (cfg_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
+				SetWindowPos(hParent, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 			}
 			SetLayeredWindowAttributes(hParent, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 		}

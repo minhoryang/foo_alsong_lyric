@@ -13,6 +13,8 @@
 #define IDC_LAYERED                     1002
 #define IDC_CHECK2                      1003
 #define IDC_LOADFROMLRC                 1003
+#define IDC_SHOWBORDER                  1003
+#define IDC_BORDER                      1003
 #define IDC_CHECK3                      1004
 #define IDC_NLINESPIN                   1005
 #define IDC_NLINE                       1006
