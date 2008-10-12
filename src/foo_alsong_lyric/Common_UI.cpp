@@ -618,7 +618,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 
 						pfc::stringcvt::convert_utf8_to_wide(OutLine, 1024, Lyric->GetLyric(i), lstrlenA(Lyric->GetLyric(i)));
 
-						if(Lyric->GetLyricTime(i) == Lyric->GetLyricTime(NowLine)) //현재줄은 굵게
+						if(Lyric->GetLyricTime(i) == Lyric->GetLyricTime(NowLine) && Lyric->GetLyricTime(i) != 0) //현재줄은 굵게
 						{
 							t_font_description font = NowSetting->font;
 							font.m_weight = FW_BOLD;

@@ -7,7 +7,7 @@ private:
 	string Album;
 	string Artist;
 	string Registrant;
-	vector<WORD> Time;
+	vector<DWORD> Time;
 
 	static DWORD GetFileHash(unsigned char *Data, int Size, CHAR *Hash, CHAR *fmt);
 	DWORD ParseLyric(CHAR *InputLyric, CHAR *Delimiter);
