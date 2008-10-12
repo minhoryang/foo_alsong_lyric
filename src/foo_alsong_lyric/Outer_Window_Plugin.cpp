@@ -121,7 +121,7 @@ HWND Outer_Window_Plugin::Create()
 		WS_EX_LAYERED,
 		TEXT("AlsongLyricWindow"),
 		TEXT("Alsong Lyric"),
-		(cfg_outer_border ? WS_POPUP | WS_SYSMENU : WS_OVERLAPPEDWINDOW),
+		(cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX),
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		500, 200,
 		NULL,

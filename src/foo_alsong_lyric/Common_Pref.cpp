@@ -189,7 +189,8 @@ void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
 		//성공
 		if(bOuter == TRUE)
 		{
-			SetWindowLong(hParent, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU : WS_OVERLAPPEDWINDOW));
+			SetWindowLong(hParent, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
+			//TODO: 작업 표시줄, Alt+Tab에서 없애기
 
 			//100%투명도 아닐경우에만 적용. 항상위 강제
 			if(cfg_outer_layered == true && cfg_outer_transparency != 100)

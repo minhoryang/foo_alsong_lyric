@@ -15,9 +15,6 @@ using namespace Gdiplus;
 
 Common_UI_Base *Common_UI; 
 
-void DeleteStub(pair<HWND, WindowData *> data);
-void InvalidateStub(pair<HWND, WindowData *> data);
-
 Common_UI_Base::Common_UI_Base()
 {
 	try 
@@ -51,7 +48,10 @@ Common_UI_Base::~Common_UI_Base()
 		// play_callback_manager does not exist; something is very wrong.
 	}
 
-	for_each(WndInfo.begin(), WndInfo.end(), DeleteStub);
+	for each(pair<HWND, WindowData *> i in WndInfo)
+	{
+		delete i.second;
+	}
 
 	CloseHandle(hLyricThreadQuit);
 	CloseHandle(hTime);
@@ -59,19 +59,12 @@ Common_UI_Base::~Common_UI_Base()
 	delete Lyric;
 }
 
-void DeleteStub(pair<HWND, WindowData *> data)
-{
-	delete data.second;
-}
-
-void InvalidateStub(pair<HWND, WindowData *> data)
-{
-	InvalidateRect(data.first, NULL, TRUE);
-}
-
 void Common_UI_Base::InvalidateAllWindow()
 {
-	for_each(WndInfo.begin(), WndInfo.end(), InvalidateStub);
+	for each(pair<HWND, WindowData *> i in WndInfo)
+	{
+		InvalidateRect(i.first, NULL, TRUE);
+	}
 }
 
 class save_lrc_callback : public main_thread_callback
@@ -155,22 +148,6 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 	return 0;
 }
 
-class uSetWindowTextStub
-{
-private:
-	const char *m_arg;
-public:
-
-	uSetWindowTextStub(const char *arg)
-	{
-		m_arg = arg;
-	}
-
-	void operator() (pair<HWND, WindowData *> data) const
-	{
-		uSetWindowText(data.first, m_arg);
-	}
-};
 //TODO: 가사등록 성공시 가사 가져오기
 void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 {
@@ -214,7 +191,10 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 	static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
 	p_track->format_title(NULL, str, to, NULL);
 
-	for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub(str.get_ptr()));
+	for each(pair<HWND, WindowData *> i in WndInfo)
+	{
+		uSetWindowText(i.first, str.get_ptr());
+	}
 }
 
 void Common_UI_Base::GetLRCSavePath(WCHAR *path)
@@ -293,7 +273,10 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 
 	InvalidateAllWindow();
 	
-	for_each(WndInfo.begin(), WndInfo.end(), uSetWindowTextStub("Alsong Lyric"));
+	for each(pair<HWND, WindowData *> i in WndInfo)
+	{
+		uSetWindowText(i.first, "Alsong Lyric");
+	}
 }
 
 UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
