@@ -40,11 +40,11 @@ cfg_bool cfg_outer_border(guid_cfg_outer_border, false);
 
 const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
-cfg_struct_t<Alsong_Setting> cfg_outer(guid_cfg_outer, NULL); //NULL로 채운다
+cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL); //NULL로 채운다
 
 const GUID guid_cfg_panel = // {EDB8E8E8-42F7-4d1e-8DE5-CC2CBA3769CC}
 { 0xedb8e8e8, 0x42f7, 0x4d1e, { 0x8d, 0xe5, 0xcc, 0x2c, 0xba, 0x37, 0x69, 0xcc } };
-cfg_struct_t<Alsong_Setting> cfg_panel(guid_cfg_panel, NULL); //NULL로 채운다
+cfg_struct_t<Window_Setting> cfg_panel(guid_cfg_panel, NULL); //NULL로 채운다
 
 inline t_font_description get_def_font()
 {

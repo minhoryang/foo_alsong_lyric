@@ -1,7 +1,127 @@
 #include "stdafx.h"
 #include "Common_Settings.h"
+#include "Outer_Window_Plugin.h"
 #include "resource.h"
 #include "Common_Pref.h"
+
+static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static BOOL CALLBACK UITitleFormatConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
+{
+	switch (message)
+	{
+	case PSCB_PRECREATE:
+		{
+			LPDLGTEMPLATE lpTemplate = (LPDLGTEMPLATE)lParam;
+			DWORD dwOldProtect;
+			VirtualProtect(lpTemplate, sizeof(DLGTEMPLATE), PAGE_READWRITE, &dwOldProtect);
+
+			lpTemplate->style = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU | WS_VISIBLE | DS_3DLOOK;
+
+			lpTemplate->dwExtendedStyle = 0;
+			return TRUE;
+		}
+	case PSCB_INITIALIZED:
+		{
+			ShowWindow(GetDlgItem(hWnd, 0x00000001), SW_HIDE);
+			ShowWindow(GetDlgItem(hWnd, 0x00000002), SW_HIDE);
+			ShowWindow(GetDlgItem(hWnd, 0x00003021), SW_HIDE);
+		}
+	}
+
+	return 0;
+}
+
+static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	static HWND hProp;
+	switch(iMessage)
+	{
+	case WM_INITDIALOG:
+		{
+			PROPSHEETPAGE pages[5];
+			pages[0].dwSize = sizeof(PROPSHEETPAGE);
+			pages[0].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+			pages[0].hInstance = core_api::get_my_instance();
+			pages[0].pszTemplate = MAKEINTRESOURCE(IDD_COMMON_PREF);
+			pages[0].pfnDlgProc = ConfigProc;
+			pages[0].pszTitle = TEXT("공통 설정");
+			pages[0].lParam = NULL;
+
+			pages[1].dwSize = sizeof(PROPSHEETPAGE);
+			pages[1].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+			pages[1].hInstance = core_api::get_my_instance();
+			pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
+			pages[1].pfnDlgProc = UICommonConfigProc;
+			pages[1].pszTitle = TEXT("외부 창 설정");
+			pages[1].lParam = (LPARAM)
+				(new pair<Window_Setting *, pair<BOOL, HWND> *>
+				(&(cfg_outer.get_value()), 
+				new pair<BOOL, HWND>(TRUE, g_OuterWindow.GetHWND())));
+
+			pages[2].dwSize = sizeof(PROPSHEETPAGE);
+			pages[2].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+			pages[2].hInstance = core_api::get_my_instance();
+			pages[2].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_TITLEFORMAT);
+			pages[2].pfnDlgProc = UITitleFormatConfigProc;
+			pages[2].pszTitle = TEXT("외부 창 출력 형식");
+			pages[2].lParam = (LPARAM)
+				(new pair<Window_Setting *, pair<BOOL, HWND> *>
+				(&(cfg_outer.get_value()), 
+				new pair<BOOL, HWND>(TRUE, g_OuterWindow.GetHWND())));
+
+			pages[3].dwSize = sizeof(PROPSHEETPAGE);
+			pages[3].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+			pages[3].hInstance = core_api::get_my_instance();
+			pages[3].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
+			pages[3].pfnDlgProc = UICommonConfigProc;
+			pages[3].pszTitle = TEXT("패널 설정");
+			pages[3].lParam = (LPARAM)
+				(new pair<Window_Setting *, pair<BOOL, HWND> *>
+				(&(cfg_outer.get_value()), 
+				new pair<BOOL, HWND>(FALSE, NULL)));
+
+			pages[4].dwSize = sizeof(PROPSHEETPAGE);
+			pages[4].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+			pages[4].hInstance = core_api::get_my_instance();
+			pages[4].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_TITLEFORMAT);
+			pages[4].pfnDlgProc = UITitleFormatConfigProc;
+			pages[4].pszTitle = TEXT("패널 출력 형식");
+			pages[4].lParam = (LPARAM)
+				(new pair<Window_Setting *, pair<BOOL, HWND> *>
+				(&(cfg_outer.get_value()), 
+				new pair<BOOL, HWND>(FALSE, NULL)));
+
+			PROPSHEETHEADER psh;
+			psh.dwSize = sizeof(psh);
+			psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_MODELESS;
+			psh.hwndParent = hWnd;
+			psh.hInstance = core_api::get_my_instance();
+			psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
+			psh.pszCaption = TEXT("알송 가사 설정");
+			psh.nPages = 5;
+			psh.nStartPage = 0;
+			psh.pfnCallback = PropCallback;
+			psh.ppsp = pages;
+
+			hProp = (HWND)PropertySheet(&psh);
+		}
+		break;
+	case WM_SIZE:
+		{
+			RECT rt;
+			GetWindowRect(hWnd, &rt);
+			HWND hTab = (HWND)SendMessage(hProp, PSM_GETTABCONTROL, 0, 0);
+			MoveWindow(hProp, 0, 0, rt.right - rt.left, rt.bottom - rt.top, TRUE);
+			MoveWindow(hTab, 10, 3, rt.right - rt.left - 15, rt.bottom - rt.top - 5, TRUE);
+		}
+	default:
+		return FALSE;
+	}
+	return TRUE;
+}
 
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
@@ -40,22 +160,8 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_lrc_save_path = uGetDlgItemText(hWnd, IDC_LRCPATH).get_ptr();
 			}
 			break;
-		case IDC_PANELSET:
-			if(HIWORD(wParam) == BN_CLICKED)
-			{
-				StartUIConfigDialog(&cfg_panel.get_value(), hWnd, FALSE);
-			}
-			break;
-		case IDC_OUTERSET:
-			if(HIWORD(wParam) == BN_CLICKED)
-			{
-				StartUIConfigDialog(&cfg_outer.get_value(), hWnd, TRUE);
-			}
-			break;
-		}
-
 		break;
-
+		}
 	default:
 		return FALSE;
 	}
@@ -95,23 +201,59 @@ public:
 
 	virtual HWND create(HWND parent)
 	{
-		return uCreateDialog(IDD_COMMON_PREF, parent, ConfigProc, 0);
+		return uCreateDialog(IDD_PREF, parent, PrefConfigProc, 0);
 	}
 };
 
 static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences_page_alsong_lyric;
 
-//TODO: 줄간격 설정
-static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+void UpdateOuterWindowStyle(HWND hWnd)
 {
-	static Alsong_Setting *Setting;
+	SetWindowLong(hWnd, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
+	//TODO: 작업 표시줄, Alt+Tab에서 없애기
+
+	//100%투명도 아닐경우에만 적용. 항상위 강제
+	if(cfg_outer_layered == true && cfg_outer_transparency != 100)
+	{
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
+		SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+	}
+	else
+	{
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
+		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+	}
+	SetLayeredWindowAttributes(hWnd, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
+
+	InvalidateRect(hWnd, NULL, TRUE);
+}
+
+//TODO: 줄간격 설정
+static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	static Window_Setting *Setting;
+	static Window_Setting OldSetting;
 	static BOOL bOuter = FALSE;
+	static HWND hParent;
+
+	static int old_transparency;
+	static bool old_layered, old_border;
+
 	switch (iMessage)
 	{
 	case WM_INITDIALOG:
 		{
-			Setting = ((pair<Alsong_Setting *, BOOL> *)lParam)->first;
-			bOuter = ((pair<Alsong_Setting *, BOOL> *)lParam)->second;
+			Setting = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->first;
+			bOuter = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->second->first;
+			hParent = ((pair<Window_Setting *, pair<BOOL, HWND>* > *)(((PROPSHEETPAGE *)lParam)->lParam))->second->second;
+			memcpy(&OldSetting, Setting, sizeof(Window_Setting));
+			old_transparency = cfg_outer_transparency;
+			old_layered = cfg_outer_layered;
+			old_border = cfg_outer_border;
+
+			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam)->second;
+			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam);
+
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, Setting->nLine);
@@ -136,6 +278,7 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_OUTERNOTIFY_STATIC), WM_CLOSE, 0, 0);
 			}
 		}
 
@@ -148,17 +291,16 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 			TCHAR temp[255];
 			wsprintf(temp, TEXT("%d%%"), pos);
 			SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
+			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
 		}
 		break;
-	case WM_CLOSE:
-		EndDialog(hWnd, 1);
+	case WM_COMMAND:
+		if(HIWORD(wParam) == EN_CHANGE || HIWORD(wParam) == BN_CLICKED)
+			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
 		break;
 	case WM_NOTIFY:
-		break;
-	case WM_COMMAND:
-		switch(LOWORD(wParam))
+		if(((LPNMHDR)lParam)->code == PSN_APPLY)
 		{
-		case IDOK:
 			Setting->nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
 			if(bOuter)
 			{
@@ -166,11 +308,23 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 			}
-			EndDialog(hWnd, 0);
-			break;
-		case IDCANCEL:
-			EndDialog(hWnd, 1);
-			break;
+			
+			UpdateOuterWindowStyle(hParent);
+
+			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
+		}
+		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
+		{
+			SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
+		}
+		else if(((LPNMHDR)lParam)->code == PSN_RESET)
+		{
+			memcpy(Setting, &OldSetting, sizeof(Window_Setting));
+			cfg_outer_transparency = old_transparency;
+			cfg_outer_layered = old_layered;
+			cfg_outer_border = old_border;
+
+			UpdateOuterWindowStyle(hParent);
 		}
 		break;
 	default:
@@ -179,33 +333,75 @@ static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	return TRUE;
 }
 
-void StartUIConfigDialog(Alsong_Setting *Setting, HWND hParent, BOOL bOuter)
+static BOOL CALLBACK UITitleFormatConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	Alsong_Setting SettingTemp;
-	memcpy(&SettingTemp, Setting, sizeof(Alsong_Setting));
-	int nRet = DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_UI_PREF), hParent, UIConfigProc, (LPARAM)&(make_pair(&SettingTemp, bOuter)));
-	if(nRet == 0)
-	{
-		//성공
-		if(bOuter == TRUE)
-		{
-			SetWindowLong(hParent, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
-			//TODO: 작업 표시줄, Alt+Tab에서 없애기
+	static Window_Setting *Setting;
+	static Window_Setting OldSetting;
+	static BOOL bOuter = FALSE;
+	static HWND hParent;
 
-			//100%투명도 아닐경우에만 적용. 항상위 강제
-			if(cfg_outer_layered == true && cfg_outer_transparency != 100)
-			{
-				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
-				SetWindowPos(hParent, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
-			}
-			else
-			{
-				SetWindowLong(hParent, GWL_EXSTYLE, GetWindowLong(hParent, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
-				SetWindowPos(hParent, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
-			}
-			SetLayeredWindowAttributes(hParent, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
+	switch (iMessage)
+	{
+	case WM_INITDIALOG:
+		{
+			Setting = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->first;
+			bOuter = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->second->first;
+			hParent = ((pair<Window_Setting *, pair<BOOL, HWND>* > *)(((PROPSHEETPAGE *)lParam)->lParam))->second->second;
+			memcpy(&OldSetting, Setting, sizeof(Window_Setting));
+			
+
+			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam)->second;
+			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam);
 		}
-		memcpy(Setting, &SettingTemp, sizeof(Alsong_Setting));
-		InvalidateRect(hParent, NULL, TRUE);
+
+		break;
+	case WM_COMMAND:
+		if(HIWORD(wParam) == EN_CHANGE || HIWORD(wParam) == BN_CLICKED)
+			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
+		break;
+	case WM_NOTIFY:
+		if(((LPNMHDR)lParam)->code == PSN_APPLY)
+		{
+			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
+		}
+		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
+		{
+			SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
+		}
+		break;
+	default:
+		return FALSE;
 	}
+	return TRUE;
+}
+
+void StartUIConfigDialog(Window_Setting *Setting, HWND hParent, BOOL bOuter)
+{
+	PROPSHEETPAGE pages[2];
+	pages[0].dwSize = sizeof(PROPSHEETPAGE);
+	pages[0].dwFlags = PSP_DEFAULT;
+	pages[0].hInstance = core_api::get_my_instance();
+	pages[0].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
+	pages[0].pfnDlgProc = UICommonConfigProc;
+	pages[0].lParam = (LPARAM)&(make_pair(Setting, make_pair(bOuter, hParent)));
+
+	pages[1].dwSize = sizeof(PROPSHEETPAGE);
+	pages[1].dwFlags = PSP_DEFAULT;
+	pages[1].hInstance = core_api::get_my_instance();
+	pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_TITLEFORMAT);
+	pages[1].pfnDlgProc = UITitleFormatConfigProc;
+	pages[1].lParam = (LPARAM)&(make_pair(Setting, make_pair(bOuter, hParent)));
+
+	PROPSHEETHEADER psh;
+	psh.dwSize = sizeof(psh);
+	psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_PROPSHEETPAGE;
+	psh.hwndParent = hParent;
+	psh.hInstance = core_api::get_my_instance();
+	psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
+	psh.pszCaption = TEXT("고급 설정");
+	psh.nPages = 2;
+	psh.nStartPage = 0;
+	psh.ppsp = pages;
+
+	int nRet = PropertySheet(&psh);
 }

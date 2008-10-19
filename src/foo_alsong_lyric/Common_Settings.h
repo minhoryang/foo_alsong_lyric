@@ -11,7 +11,7 @@ extern cfg_int cfg_outer_transparency;
 extern cfg_bool cfg_outer_layered;
 extern cfg_bool cfg_outer_border;
 
-struct Alsong_Setting
+struct Window_Setting
 {
 	t_font_description font;
 	COLORREF bkColor;
@@ -26,5 +26,5 @@ struct Alsong_Setting
 	BYTE bReserved[1024]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
 
-extern cfg_struct_t<Alsong_Setting> cfg_outer;
-extern cfg_struct_t<Alsong_Setting> cfg_panel;
+extern cfg_struct_t<Window_Setting> cfg_outer;
+extern cfg_struct_t<Window_Setting> cfg_panel;

@@ -3,7 +3,7 @@ class WindowData //각 윈도우마다 저장될 데이터
 private:
 	Gdiplus::Bitmap *CachedBitmap;
 	Gdiplus::Bitmap *bmp;
-	Alsong_Setting Setting;
+	Window_Setting Setting;
 	HBITMAP BackBuffer;
 
 	void UpdateCache(int x, int y, int width, int height)
@@ -40,14 +40,14 @@ public:
 		UpdateCache(x, y, width, height);
 	}
 
-	WindowData(Alsong_Setting *NowSetting) //Setting으로부터 내용을 채운다.
+	WindowData(Window_Setting *NowSetting) //Setting으로부터 내용을 채운다.
 	{
 		if(NowSetting->bgType && NowSetting->bgImage[0])
 			bmp = new Gdiplus::Bitmap(NowSetting->bgImage);
 		else
 			bmp = NULL;
 
-		CopyMemory(&Setting, NowSetting, sizeof(Alsong_Setting));
+		CopyMemory(&Setting, NowSetting, sizeof(Window_Setting));
 
 		CachedBitmap = NULL;
 		BackBuffer = NULL;
@@ -59,7 +59,7 @@ public:
 		CachedBitmap = NULL;
 	}
 
-	DWORD UpdateData(Alsong_Setting *NowSetting) //바뀌면 TRUE
+	DWORD UpdateData(Window_Setting *NowSetting) //바뀌면 TRUE
 	{
 		DWORD bRet = FALSE;
 		if(NowSetting->bgType != Setting.bgType) //다르면
@@ -71,7 +71,7 @@ public:
 				delete bmp;
 			bmp = new Gdiplus::Bitmap(NowSetting->bgImage);
 		}
-		CopyMemory(&Setting, NowSetting, sizeof(Alsong_Setting));
+		CopyMemory(&Setting, NowSetting, sizeof(Window_Setting));
 
 		return bRet;
 	}
@@ -120,7 +120,7 @@ public:
 	const char *LRCSave_Path;
 
 	void InvalidateAllWindow();
-	LRESULT Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, Alsong_Setting *NowSetting, BOOL isOuter);
+	LRESULT Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, Window_Setting *NowSetting, BOOL isOuter);
 
 	static UINT CALLBACK LyricFetchThread(LPVOID lpParameter);
 	static UINT CALLBACK LyricCountThread(LPVOID lpParameter);

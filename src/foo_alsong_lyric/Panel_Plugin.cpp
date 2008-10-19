@@ -221,8 +221,8 @@ void Alsong_Panel::get_menu_items (uie::menu_hook_t & p_hook)
 
 void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_callback & p_abort)
 {
-	Alsong_Setting setting;
-	if(p_size == sizeof(Alsong_Setting))
+	Window_Setting setting;
+	if(p_size == sizeof(Window_Setting))
 		p_reader->read(&setting, p_size, p_abort);
 	else
 		return;
@@ -231,7 +231,7 @@ void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_cal
 
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const
 {
-	p_writer->write(&cfg_panel.get_value(), sizeof(Alsong_Setting), p_abort);
+	p_writer->write(&cfg_panel.get_value(), sizeof(Window_Setting), p_abort);
 }
 
 bool Alsong_Panel::have_config_popup() const

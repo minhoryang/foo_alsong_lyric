@@ -430,7 +430,7 @@ void CreateToolTipWindow(HWND hWnd)
 
 }
 
-LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, Alsong_Setting *NowSetting, BOOL isOuter)
+LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, Window_Setting *NowSetting, BOOL isOuter)
 {
 	if(core_api::is_shutting_down() || core_api::is_initializing())
 	{
