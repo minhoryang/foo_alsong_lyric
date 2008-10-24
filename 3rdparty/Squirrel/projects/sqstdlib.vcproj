@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+﻿<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
@@ -165,7 +165,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug - Unicode|Win32"
+			Name="Debug|Win32"
 			OutputDirectory="..\sqstdlib\$(ConfigurationName)"
 			IntermediateDirectory="..\sqstdlib\$(ConfigurationName)"
 			ConfigurationType="4"
@@ -239,7 +239,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release - Unicode|Win32"
+			Name="Release|Win32"
 			OutputDirectory="..\sqstdlib\$(ConfigurationName)"
 			IntermediateDirectory="..\sqstdlib\$(ConfigurationName)"
 			ConfigurationType="4"
@@ -353,7 +353,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -364,7 +364,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -399,7 +399,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -410,7 +410,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -445,7 +445,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -456,7 +456,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -491,7 +491,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -502,7 +502,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -541,7 +541,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -552,7 +552,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -587,7 +587,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -598,7 +598,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -633,7 +633,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug - Unicode|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -644,7 +644,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release - Unicode|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

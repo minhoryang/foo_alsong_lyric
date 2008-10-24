@@ -35,6 +35,8 @@ to the following restrictions:
 extern "C" {
 #endif
 
+#include <stdio.h>
+
 #ifndef SQUIRREL_API
 #define SQUIRREL_API extern
 #endif
@@ -428,4 +430,6 @@ SQUIRREL_API void sq_setdebughook(HSQUIRRELVM v);
 } /*extern "C"*/
 #endif
 
+inline void sq_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc) { sq_setprintfunc(v, printfunc, printfunc); }
+//changed in 3.x
 #endif /*_SQUIRREL_H_*/
