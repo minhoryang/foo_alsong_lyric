@@ -27,6 +27,10 @@ int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
 			ShowWindow(GetDlgItem(hWnd, 0x00000001), SW_HIDE);
 			ShowWindow(GetDlgItem(hWnd, 0x00000002), SW_HIDE);
 			ShowWindow(GetDlgItem(hWnd, 0x00003021), SW_HIDE);
+
+			//Property sheet bug. See http://support.microsoft.com/kb/149501
+			SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_CONTROLPARENT);
+			SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 		}
 	}
 
@@ -40,7 +44,8 @@ static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 	{
 	case WM_INITDIALOG:
 		{
-			PROPSHEETPAGE pages[3];
+			PROPSHEETPAGE pages[2];
+			HPROPSHEETPAGE hpages[2];
 			pages[0].dwSize = sizeof(PROPSHEETPAGE);
 			pages[0].dwFlags = PSP_DEFAULT | PSP_USETITLE;
 			pages[0].hInstance = core_api::get_my_instance();
@@ -60,9 +65,12 @@ static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 				(&(cfg_outer.get_value()), 
 				new pair<BOOL, HWND>(TRUE, g_OuterWindow.GetHWND())));
 
+			hpages[0] = CreatePropertySheetPage(&pages[0]);
+			hpages[1] = CreatePropertySheetPage(&pages[1]);
+
 			PROPSHEETHEADER psh;
 			psh.dwSize = sizeof(psh);
-			psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_USECALLBACK | PSH_MODELESS;
+			psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_USECALLBACK | PSH_MODELESS;
 			psh.hwndParent = hWnd;
 			psh.hInstance = core_api::get_my_instance();
 			psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
@@ -70,7 +78,7 @@ static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 			psh.nPages = 2;
 			psh.nStartPage = 0;
 			psh.pfnCallback = PropCallback;
-			psh.ppsp = pages;
+			psh.phpage = hpages;
 
 			hProp = (HWND)PropertySheet(&psh);
 		}
@@ -103,9 +111,6 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			CheckDlgButton(hWnd, IDC_LOADFROMLRC, TRUE);
 		if(cfg_lrc_save_path)
 			uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
-		//Property sheet bug. See http://support.microsoft.com/kb/149501
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_CONTROLPARENT);
-		SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 		break;
 
 	case WM_NOTIFY:
@@ -242,10 +247,6 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
 			}
-
-			//Property sheet bug. See http://support.microsoft.com/kb/149501
-			SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_CONTROLPARENT);
-			SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 		}
 
 		break;
@@ -303,27 +304,29 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 
 void StartUIConfigDialog(Window_Setting *Setting, HWND hParent, BOOL bOuter)
 {
-	PROPSHEETPAGE pages[2];
-	pages[0].dwSize = sizeof(PROPSHEETPAGE);
-	pages[0].dwFlags = PSP_DEFAULT;
-	pages[0].hInstance = core_api::get_my_instance();
-	pages[0].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
-	pages[0].pfnDlgProc = UICommonConfigProc;
-	pages[0].lParam = (LPARAM)
+	HPROPSHEETPAGE pages[1];
+	PROPSHEETPAGE page;
+	page.dwSize = sizeof(PROPSHEETPAGE);
+	page.dwFlags = PSP_DEFAULT;
+	page.hInstance = core_api::get_my_instance();
+	page.pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
+	page.pfnDlgProc = UICommonConfigProc;
+	page.lParam = (LPARAM)
 				(new pair<Window_Setting *, pair<BOOL, HWND> *>
 				(Setting, 
 				new pair<BOOL, HWND>(bOuter, hParent)));
+	pages[0] = CreatePropertySheetPage(&page);
 
 	PROPSHEETHEADER psh;
 	psh.dwSize = sizeof(psh);
-	psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_PROPSHEETPAGE;
+	psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON;
 	psh.hwndParent = hParent;
 	psh.hInstance = core_api::get_my_instance();
 	psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
 	psh.pszCaption = TEXT("고급 설정");
 	psh.nPages = 1;
 	psh.nStartPage = 0;
-	psh.ppsp = pages;
+	psh.phpage = pages;
 
 	int nRet = PropertySheet(&psh);
 }
