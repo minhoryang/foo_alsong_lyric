@@ -437,6 +437,10 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 		{
 			CreateToolTipWindow(hWnd);
 		}
+		else if(iMessage == WM_PAINT)
+		{
+			SetTimer(hWnd, 0, 0, NULL); //fix for weird bug that panel doesn't receive WM_PAINT.
+		}
 		return DefWindowProc(hWnd, iMessage, wParam, lParam);
 	}
 	

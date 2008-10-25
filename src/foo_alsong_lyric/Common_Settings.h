@@ -20,10 +20,14 @@ struct Window_Setting
 	BOOL bgType; //false: 색, true: 이미지
 
 	DWORD nLine;
-
 	DWORD LineMargin;//%단위
 
-	BYTE bReserved[1024]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+	DWORD ScriptLen;
+	pfc::string8 *Script;
+
+	BYTE bReserved[1016]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
+
+extern cfg_string cfg_outer_script;
 
 extern cfg_struct_t<Window_Setting> cfg_outer;

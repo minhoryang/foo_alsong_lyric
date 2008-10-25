@@ -17,6 +17,7 @@
 #define IDC_LOADFROMLRC                 1003
 #define IDC_BORDER                      1003
 #define IDC_CHECK3                      1004
+#define IDC_MANUALSCRIPT                1004
 #define IDC_NLINESPIN                   1005
 #define IDC_NLINE                       1006
 #define IDC_TRANSPARENCY                1012
@@ -40,6 +41,7 @@
 #define IDC_BUTTON2                     1040
 #define IDC_OUTERSET                    1040
 #define IDC_OUTERNOTIFY_STATIC          1042
+#define IDC_UISCRIPT                    1043
 
 // Next default values for new objects
 // 
@@ -47,7 +49,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -34,6 +34,8 @@ class initquit_alsong : public initquit
 
 		Common_UI = new Common_UI_Base();
 
+		cfg_outer.get_value().Script = &cfg_outer_script;
+
 		g_OuterWindow.Create();
 		if (cfg_outer_shown)
 			g_OuterWindow.Show();

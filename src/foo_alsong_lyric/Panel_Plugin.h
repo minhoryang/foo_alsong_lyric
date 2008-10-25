@@ -20,4 +20,5 @@ private:
 	void OnContextMenu(HWND hParent);
 
 	Window_Setting Setting;
+	pfc::string8 Script;
 };

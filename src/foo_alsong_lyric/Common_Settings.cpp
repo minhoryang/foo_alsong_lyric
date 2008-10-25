@@ -38,6 +38,10 @@ const GUID guid_cfg_outer_border = // {425D9FC1-06DD-4ba8-9366-D47D142A066E}
 { 0x425d9fc1, 0x6dd, 0x4ba8, { 0x93, 0x66, 0xd4, 0x7d, 0x14, 0x2a, 0x6, 0x6e } };
 cfg_bool cfg_outer_border(guid_cfg_outer_border, false);
 
+const GUID guid_cfg_outer_script = // {11F4AB00-D59F-4ded-B84B-6AD6751EAB13}
+{ 0x11f4ab00, 0xd59f, 0x4ded, { 0xb8, 0x4b, 0x6a, 0xd6, 0x75, 0x1e, 0xab, 0x13 } };
+cfg_string cfg_outer_script(guid_cfg_outer_script, "");
+
 const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
 cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL); //NULL로 채운다

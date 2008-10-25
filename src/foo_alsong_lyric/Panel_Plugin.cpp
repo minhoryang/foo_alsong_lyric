@@ -222,10 +222,18 @@ void Alsong_Panel::get_menu_items (uie::menu_hook_t & p_hook)
 
 void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_callback & p_abort)
 {
-	if(p_size == sizeof(Window_Setting))
-		p_reader->read(&Setting, p_size, p_abort);
+	Window_Setting Setting_temp;
+	if(p_size >= sizeof(Window_Setting))
+	{
+		p_reader->read(&Setting_temp, sizeof(Window_Setting), p_abort);
+		if(p_size == Setting_temp.ScriptLen + sizeof(Window_Setting) && Setting_temp.ScriptLen)
+			p_reader->read_string(Script, p_abort);
+		
+		memcpy(&Setting, &Setting_temp, sizeof(Window_Setting));
+		Setting.Script = &Script;
+	}
 	else
-		return;
+		memset(&Setting, 0, sizeof(Window_Setting));
 }
 
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const
