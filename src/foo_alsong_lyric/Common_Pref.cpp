@@ -225,6 +225,7 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, Setting->nLine);
+			uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
 			if(bOuter)
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
@@ -276,6 +277,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 				UpdateOuterWindowStyle(hParent);
 			}
+
+			uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 		}

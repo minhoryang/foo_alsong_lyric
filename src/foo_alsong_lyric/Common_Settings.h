@@ -22,10 +22,9 @@ struct Window_Setting
 	DWORD nLine;
 	DWORD LineMargin;//%단위
 
-	DWORD ScriptLen;
 	pfc::string8 *Script;
 
-	BYTE bReserved[1016]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+	BYTE bReserved[1020]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
 
 extern cfg_string cfg_outer_script;

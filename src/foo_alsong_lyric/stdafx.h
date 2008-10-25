@@ -10,11 +10,11 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <algorithm>
 
 #include "../../foobar2000/foobar2000/SDK/foobar2000.h"
 #include "../../foobar2000/foobar2000/helpers/helpers.h"
 #include "../../foobar2000/foobar2000/columns_ui_sdk/ui_extension.h"
+#include "../../Squirrel/sqplus/sqplus.h"
 
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "kernel32.lib")
@@ -34,6 +34,9 @@
 #pragma comment(lib, "../release/foobar2000_sdk_helpers/foobar2000_sdk_helpers.lib")
 #pragma comment(lib, "../release/pfc/pfc.lib")
 #pragma comment(lib, "../release/columns_ui_sdk/columns_ui_sdk.lib")
+#pragma comment(lib, "../../Squirrel/lib/sqplusU.lib")
+#pragma comment(lib, "../../Squirrel/lib/sqstdlibU.lib")
+#pragma comment(lib, "../../Squirrel/lib/squirrelU.lib")
 #else
 #pragma comment(lib, "../../foobar2000/foobar2000/shared/shared.lib")
 #pragma comment(lib, "../debug/foobar2000_component_client/foobar2000_component_client.lib")
@@ -41,6 +44,9 @@
 #pragma comment(lib, "../debug/foobar2000_sdk_helpers/foobar2000_sdk_helpers.lib")
 #pragma comment(lib, "../debug/pfc/pfc.lib")
 #pragma comment(lib, "../debug/columns_ui_sdk/columns_ui_sdk.lib")
+#pragma comment(lib, "../../Squirrel/lib/sqplusDU.lib")
+#pragma comment(lib, "../../Squirrel/lib/sqstdlibDU.lib")
+#pragma comment(lib, "../../Squirrel/lib/squirrelDU.lib")
 #endif
 
 using namespace Gdiplus;
