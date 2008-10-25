@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Panel_Plugin.h"
 #include "Outer_Window_Plugin.h"
 #include "Common_Settings.h"
 #include "Common_UI.h"

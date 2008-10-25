@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
 #include "resource.h"
-#include "Panel_Plugin.h"
 #include "Common_Settings.h"
+#include "Panel_Plugin.h"
 #include "Common_UI.h"
 #include "Common_Pref.h"
 #include "Common_Lyric_Modify_Dialog.h"
@@ -107,9 +107,9 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 		// was chosen.
 		if (cmd == ID_FONT) {
 			// Show font configuration.
-			t_font_description font = cfg_panel.get_value().font;
+			t_font_description font = Setting.font;
 			if (font.popup_dialog(hParent)) {
-				cfg_panel.get_value().font = font;
+				Setting.font = font;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
@@ -121,11 +121,11 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 			choosecolor.Flags = CC_ANYCOLOR | CC_FULLOPEN | CC_RGBINIT ;
 			choosecolor.hwndOwner = hParent;
 			choosecolor.lpCustColors = (LPDWORD)acrCustClr;
-			choosecolor.rgbResult = cfg_panel.get_value().bkColor;
+			choosecolor.rgbResult = Setting.bkColor;
 			if(ChooseColor(&choosecolor))
 			{
-				cfg_panel.get_value().bgType = false;
-				cfg_panel.get_value().bkColor = choosecolor.rgbResult;
+				Setting.bgType = false;
+				Setting.bkColor = choosecolor.rgbResult;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
@@ -137,10 +137,10 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 			choosecolor.Flags = CC_ANYCOLOR | CC_FULLOPEN | CC_RGBINIT ;
 			choosecolor.hwndOwner = hParent;
 			choosecolor.lpCustColors = (LPDWORD)acrCustClr;
-			choosecolor.rgbResult = cfg_panel.get_value().fgColor;
+			choosecolor.rgbResult = Setting.fgColor;
 			if(ChooseColor(&choosecolor))
 			{
-				cfg_panel.get_value().fgColor = choosecolor.rgbResult;
+				Setting.fgColor = choosecolor.rgbResult;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
@@ -149,20 +149,21 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 			OPENFILENAME ofn;
 			ZeroMemory(&ofn, sizeof(ofn));
 			ofn.lStructSize = sizeof(ofn);
-			ofn.lpstrFile = cfg_panel.get_value().bgImage;
+			ofn.lpstrFile = Setting.bgImage;
 			ofn.lpstrFilter = TEXT("그림 파일(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
 			ofn.nMaxFile = 255;
 
 			if(GetOpenFileName(&ofn))
 			{
-				cfg_panel.get_value().bgType = true;
+				Setting.bgType = true;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
 		else if(cmd == ID_ADVSET)
 		{
-			StartUIConfigDialog(&(cfg_panel.get_value()), hParent, FALSE);
+			StartUIConfigDialog(&(Setting), hParent, FALSE);
+			InvalidateRect(hParent, NULL, TRUE);
 		}
 		else if(cmd == ID_MODLRC)
 		{
@@ -205,7 +206,7 @@ LRESULT Alsong_Panel::on_message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 			OnContextMenu(hWnd);
 			return 0;
 	}
-	return Common_UI->Process_Message(hWnd, iMessage, wParam, lParam, &(cfg_panel.get_value()), FALSE);
+	return Common_UI->Process_Message(hWnd, iMessage, wParam, lParam, &(Setting), FALSE);
 }
 
 // {E859B366-AF66-45f6-9BE1-234FD363825F}
@@ -221,17 +222,15 @@ void Alsong_Panel::get_menu_items (uie::menu_hook_t & p_hook)
 
 void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_callback & p_abort)
 {
-	Window_Setting setting;
 	if(p_size == sizeof(Window_Setting))
-		p_reader->read(&setting, p_size, p_abort);
+		p_reader->read(&Setting, p_size, p_abort);
 	else
 		return;
-	cfg_panel = setting;
 }
 
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const
 {
-	p_writer->write(&cfg_panel.get_value(), sizeof(Window_Setting), p_abort);
+	p_writer->write(&Setting, sizeof(Window_Setting), p_abort);
 }
 
 bool Alsong_Panel::have_config_popup() const
@@ -241,6 +240,6 @@ bool Alsong_Panel::have_config_popup() const
 
 bool Alsong_Panel::show_config_popup(HWND wnd_parent)
 {
-	StartUIConfigDialog(&cfg_panel.get_value(), wnd_parent, FALSE);
+	StartUIConfigDialog(&Setting, wnd_parent, FALSE);
 	return true;
 }

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Panel_Plugin.h"
 #include "Common_Settings.h"
 #include "Common_Lyric_Manipulation.h"
 #include "Common_UI.h"

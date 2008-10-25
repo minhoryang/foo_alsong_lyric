@@ -18,4 +18,6 @@ private:
 
 	static const GUID g_extension_guid;
 	void OnContextMenu(HWND hParent);
+
+	Window_Setting Setting;
 };

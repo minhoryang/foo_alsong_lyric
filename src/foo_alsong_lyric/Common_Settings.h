@@ -27,4 +27,3 @@ struct Window_Setting
 };
 
 extern cfg_struct_t<Window_Setting> cfg_outer;
-extern cfg_struct_t<Window_Setting> cfg_panel;

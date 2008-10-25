@@ -7,7 +7,6 @@
 #define IDD_UI_PREF                     102
 #define IDD_UI_PREF_COMMON              102
 #define IDD_LYRIC_MODIFY                103
-#define IDD_UI_PREF_TITLEFORMAT         104
 #define IDD_PREF                        105
 #define IDC_TAB1                        1001
 #define IDC_TRANSPARENCY_LABEL          1001
