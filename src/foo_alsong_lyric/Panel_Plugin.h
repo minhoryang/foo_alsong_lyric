@@ -1,6 +1,9 @@
 class Alsong_Panel : public uie::container_ui_extension
 {
 public:
+	Alsong_Panel();
+	~Alsong_Panel();
+
 	virtual const GUID & get_extension_guid() const;
 	virtual void get_name(pfc::string_base & out)const;
 	virtual void get_category(pfc::string_base & out)const;

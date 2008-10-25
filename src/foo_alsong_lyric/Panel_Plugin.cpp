@@ -11,9 +11,19 @@
 
 using namespace Gdiplus;
 
+Alsong_Panel::Alsong_Panel()
+{
+	memset(&Setting, 0, sizeof(Setting));
+}
+
+Alsong_Panel::~Alsong_Panel()
+{
+
+}
+
 Alsong_Panel::class_data & Alsong_Panel::get_class_data() const 
 {
-	__implement_get_class_data_ex(_T("{E859B366-AF66-45f6-9BE1-234FD363825F}"), _T("Alsong Live Lyric"), true, 0, WS_CHILD | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT, CS_DBLCLKS);
+	__implement_get_class_data_ex(_T("{E859B366-AF66-45f6-9BE1-234FD363825F}"), _T("Alsong Live Lyric"), true, 0, WS_CHILD | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT, CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW);
 }
 
 const GUID &Alsong_Panel::get_extension_guid() const
@@ -232,8 +242,6 @@ void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_cal
 		memcpy(&Setting, &Setting_temp, sizeof(Window_Setting));
 		Setting.Script = &Script;
 	}
-	else
-		memset(&Setting, 0, sizeof(Window_Setting));
 }
 
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const

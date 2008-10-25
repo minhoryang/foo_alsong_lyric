@@ -47,20 +47,21 @@ Common_UI_Base::~Common_UI_Base()
 		// play_callback_manager does not exist; something is very wrong.
 	}
 
-	for each(pair<HWND, WindowData *> i in WndInfo)
-	{
-		delete i.second;
-	}
-
 	CloseHandle(hLyricThreadQuit);
 	CloseHandle(hTime);
+
+	for each(pair<HWND, WindowInfo *> i in WndInfo)
+	{
+		UnInitializeScript(&(i.second->vm));
+		delete i.second;
+	}
 
 	delete Lyric;
 }
 
 void Common_UI_Base::InvalidateAllWindow()
 {
-	for each(pair<HWND, WindowData *> i in WndInfo)
+	for each(pair<HWND, WindowInfo *> i in WndInfo)
 	{
 		InvalidateRect(i.first, NULL, TRUE);
 	}
@@ -190,7 +191,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 	static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
 	p_track->format_title(NULL, str, to, NULL);
 
-	for each(pair<HWND, WindowData *> i in WndInfo)
+	for each(pair<HWND, WindowInfo *> i in WndInfo)
 	{
 		uSetWindowText(i.first, str.get_ptr());
 	}
@@ -272,7 +273,7 @@ void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 
 	InvalidateAllWindow();
 	
-	for each(pair<HWND, WindowData *> i in WndInfo)
+	for each(pair<HWND, WindowInfo *> i in WndInfo)
 	{
 		uSetWindowText(i.first, "Alsong Lyric");
 	}
@@ -453,22 +454,17 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 			NowSetting->bgType = false;
 			NowSetting->bkColor = RGB(255, 255, 255);
 		}
-		WindowData *Data = new WindowData(NowSetting);
 
-		WndInfo.insert(make_pair(hWnd, Data));
+		WindowInfo *Info = new WindowInfo;
+		SquirrelVM::Init();
+		Info->vm = InitializeScript();
+		Info->BackImage = NULL;
+		Info->BackImageCache = NULL;
+
+		WndInfo.insert(make_pair(hWnd, Info));
 		InvalidateRect(hWnd, NULL, TRUE);
 	}
 
-	if(WndInfo[hWnd]->UpdateData(NowSetting) == TRUE)
-	{
-		RECT rt;
-		GetClientRect(hWnd, &rt);
-
-		WndInfo[hWnd]->ForceUpdateCache(rt.left, rt.top, rt.right - rt.left, rt.bottom - rt.top);
-
-		InvalidateRect(hWnd, NULL, TRUE);
-	}
-	
 	switch(iMessage)
 	{
 	case WM_NOTIFY:
@@ -497,16 +493,21 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 	case WM_SIZE:
 		KillTimer(hWnd, 0);
 		SetTimer(hWnd, 0, 100, NULL); //0.1초간 기다렸다가 안움직이면 업데이트
-		DeleteObject(WndInfo[hWnd]->GetBackBuffer());
-		WndInfo[hWnd]->SetBackBuffer(NULL);
 		return 0;
 
 	case WM_TIMER:
 		{
 			RECT rt;
 			GetClientRect(hWnd, &rt);
+			
+			if(NowSetting->bgType == FALSE || WndInfo[hWnd]->BackImage == NULL)
+				return 0;
 
-			WndInfo[hWnd]->ForceUpdateCache(rt.left, rt.top, rt.right - rt.left, rt.bottom - rt.top);
+			if(WndInfo[hWnd]->BackImageCache)
+				delete WndInfo[hWnd]->BackImageCache;
+			WndInfo[hWnd]->BackImageCache = new Bitmap(rt.right, rt.bottom);
+			Graphics g(WndInfo[hWnd]->BackImageCache);
+			g.DrawImage(WndInfo[hWnd]->BackImage, 0, 0, rt.right, rt.bottom);
 
 			InvalidateRect(hWnd, NULL, TRUE);
 
@@ -519,169 +520,204 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 			PAINTSTRUCT ps;
 			if(BeginPaint(hWnd, &ps) != NULL) 
 			{
-				RECT ClientRect;
-				GetClientRect(hWnd, &ClientRect);
-				//TODO:Gdiplus로
-				HDC hMemDC = CreateCompatibleDC(ps.hdc); //따블 버퍼링
-				if(WndInfo[hWnd]->GetBackBuffer() == NULL)
-					WndInfo[hWnd]->SetBackBuffer(CreateCompatibleBitmap(ps.hdc, ClientRect.right, ClientRect.bottom));
-
-				HBITMAP OldBitMap = (HBITMAP)SelectObject(hMemDC, WndInfo[hWnd]->GetBackBuffer());
-
-				if(NowSetting->bgType && NowSetting->bgImage[0])
-				{
-					if(WndInfo[hWnd]->DrawImage(hMemDC, ClientRect.left, ClientRect.top, ClientRect.right, ClientRect.bottom) != Gdiplus::Ok)
-					{
-						//실패시
-						HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 255));
-						FillRect(hMemDC, &ClientRect, hBrush);
-						DeleteObject(hBrush);
-					}
-				}
-				else
-				{ //TODO:브러시 없음도 될까? 투명 배경
-					HBRUSH hBrush = CreateSolidBrush(NowSetting->bkColor);
-					FillRect(hMemDC, &ClientRect, hBrush);
-					DeleteObject(hBrush);
-				}
-
-				HFONT OldFont;
-				HFONT hFont = NowSetting->font.create();
-				OldFont = (HFONT)SelectObject(hMemDC, hFont);
-				SetBkMode(hMemDC, TRANSPARENT);
-				SetTextColor(hMemDC, NowSetting->fgColor);
-			
-				if(Lyric->GetLyric(0) != NULL && static_api_ptr_t<play_control>()->is_playing()) // 가사 있음
-				{
-					TEXTMETRIC tm;
-					GetTextMetrics(hMemDC, &tm);
-					int i, emptycnt;
-					int start;
-					int end;
-					if(Lyric->GetLyricTime(NowLine) == Lyric->GetLyricTime(NowLine + 1)) //동시에 표시되는게 두 줄 이상일 때
-					{
-						int nSameLine;
-						//줄 수 세기
-						for(i = NowLine; ; i ++)
-							if(Lyric->GetLyricTime(NowLine) != Lyric->GetLyricTime(i))
-								break;
-
-						nSameLine = i - NowLine;
-						start = NowLine - (int)(NowSetting->nLine - nSameLine) / 2;
-						end = min(start + NowSetting->nLine, (int)Lyric->GetNumberOfLine());
-					}
-					else //한줄일때는 가운데에 출력
-					{
-						start = (int)NowLine - (int)floor((double)NowSetting->nLine / 2);
-						end = min(start + NowSetting->nLine, (int)Lyric->GetNumberOfLine());
-					}
-					if(start < 0) //곡의 첫부분에서는 시작이 음수부분이다
-					{
-						emptycnt = -start;
-						end = min(start + NowSetting->nLine, (int)Lyric->GetNumberOfLine());
-						start = 0; //처음 위치부터 시작한다
-					}
-					else
-						emptycnt = 0;
-
-					WCHAR OutLine[1024]; //크게
-					RECT rt;
-					GetClientRect(hWnd, &rt);
-#ifdef _DEBUG
-					rt.left = 50;
-#endif
-					rt.top = emptycnt * tm.tmHeight;
-					int LineMargin = (int)(tm.tmHeight * 0.2);
-					for(i = start; i < end; i ++)
-					{
-						RECT trt = {0,};
-						memcpy(&trt, &rt, sizeof rt);
-#ifdef _DEBUG
-						TCHAR temp[10];
-						wsprintf(temp, L"%d", Lyric->GetLyricTime(i));
-						TextOut(hMemDC, 0, rt.top, temp, lstrlen(temp)); //시간
-#endif
-
-						pfc::stringcvt::convert_utf8_to_wide(OutLine, 1024, Lyric->GetLyric(i), lstrlenA(Lyric->GetLyric(i)));
-
-						if(Lyric->GetLyricTime(i) == Lyric->GetLyricTime(NowLine)) //현재줄은 굵게
-						{
-							t_font_description font = NowSetting->font;
-							font.m_weight = FW_BOLD;
-							HFONT hBoldFont = font.create();
-							HFONT hOldFont = (HFONT)SelectObject(hMemDC, hBoldFont);
-
-							//DrawText로 Clipping
-							//Bold일 때는 크기가 달라지기 때문에 같은 코드를 두 번 쓴다.
-							DrawText(hMemDC, OutLine, lstrlenW(OutLine), &rt, DT_TOP | DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX);
-							DrawText(hMemDC, OutLine, lstrlenW(OutLine), &trt, DT_TOP | DT_LEFT | DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX); //크기재기
-
-							DeleteObject(SelectObject(hMemDC, hOldFont));
-
-						}
-						else
-						{
-							//DrawText로 Clipping
-							DrawText(hMemDC, OutLine, lstrlenW(OutLine), &rt, DT_TOP | DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX);
-							DrawText(hMemDC, OutLine, lstrlenW(OutLine), &trt, DT_TOP | DT_LEFT | DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX); //크기재기
-						}
-						if(trt.bottom - trt.top == 0)
-							rt.top += tm.tmHeight + LineMargin;
-						else
-							rt.top += (trt.bottom - trt.top) + LineMargin;
-					}
-					/*
-					album_art_manager_instance_ptr aami =
-						static_api_ptr_t<album_art_manager>()->instantiate();
-					try
-					{
-						foobar2000_io::abort_callback_impl abort;
-						aami->open(NowPlaying_Path, abort);
-						album_art_data_ptr pdata =    
-							aami->query(album_art_ids::cover_front, abort);    
-						
-					}
-					catch (...) {}*/
-				}
-				else
-				{
-					metadb_handle_ptr p_track;
-					static_api_ptr_t<play_control> pc;
-					pc->get_now_playing(p_track);
-
-					if(p_track != NULL)
-					{/*
-						file_info_impl file;
-						p_track->get_info(file);
-						const char *temp = file.meta_get("TITLE", 0);
-						*/
-						
-						service_ptr_t<titleformat_object> to;
-						pfc::string8 str;
-						
-						static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
-						p_track->format_title(NULL, str, to, NULL);
-
-						uExtTextOut(hMemDC, 0, 0, NULL, NULL, str, str.length(), NULL);
-
-						ExtTextOut(hMemDC, 0, 30, NULL, NULL, Lyric->GetStatus(), lstrlen(Lyric->GetStatus()), NULL);
-					}
-				}
-
-				BitBlt(ps.hdc, 0, 0, ClientRect.right, ClientRect.bottom, hMemDC, 0, 0, SRCCOPY);
-
-				SelectObject(hMemDC, OldBitMap);
-				DeleteDC(hMemDC);
-				DeleteObject(hFont);
+				RenderScreen(hWnd, ps.hdc, NowSetting);
 				EndPaint(hWnd, &ps);
-
-				return 0;
 			}
 			return 0;
 		}		
 
 	}
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
+}
+
+void Common_UI_Base::RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting)
+{
+	static BOOL bGlobalExec = FALSE;
+	if(bGlobalExec == FALSE)
+	{
+		RunGlobalScript(hWnd, hdc, NowSetting);
+	}
+
+	RunRenderScript(hWnd, hdc, NowSetting);
+}
+
+
+
+SquirrelVMSys Common_UI_Base::InitializeScript()
+{
+	SquirrelVMSys v;
+	SquirrelVM::Init();
+	SquirrelVM::GetVMSys(v);
+	return v;
+}
+
+void Common_UI_Base::UnInitializeScript(SquirrelVMSys *vm)
+{
+	SquirrelVM::SetVMSys(*vm);
+	SquirrelVM::Shutdown();
+}
+
+void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
+{
+	if(Setting->bgType == TRUE && Setting->bgImage[0])
+	{
+		WndInfo[hWnd]->BackImage = new Bitmap(Setting->bgImage);
+	}
+}
+
+void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
+{
+	//TODO:이걸 스크립트로
+	RECT ClientRect;
+	GetClientRect(hWnd, &ClientRect);
+	//TODO:Gdiplus로
+	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
+	Graphics g(&Backbuffer);
+	g.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
+
+	if(Setting->bgType && Setting->bgImage[0])
+	{
+		if(g.DrawImage(WndInfo[hWnd]->BackImage, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
+		{
+			//실패시
+			g.FillRectangle(&(SolidBrush(Color(255, 255, 255))), 0, 0, ClientRect.right, ClientRect.bottom);
+		}
+	}
+	else
+	{ //TODO:브러시 없음도 될까? 투명 배경
+		g.FillRectangle(&(SolidBrush(Color(GetRValue(Setting->bkColor), GetGValue(Setting->bkColor), GetBValue(Setting->bkColor)))), 
+			0, 0, ClientRect.right, ClientRect.bottom);
+	}
+
+	HFONT hFont = Setting->font.create();
+	Font font(hdc, hFont);
+
+	t_font_description boldfont = Setting->font;
+	boldfont.m_weight = FW_BOLD;
+	HFONT hBoldFont = boldfont.create();
+	Font BoldFont(hdc, hBoldFont);
+	SolidBrush fontbrush(Color(GetRValue(Setting->fgColor), GetGValue(Setting->fgColor), GetBValue(Setting->fgColor)));
+
+	StringFormat format;
+	format.GenericDefault();
+	format.SetAlignment(StringAlignmentNear);
+	format.SetLineAlignment(StringAlignmentNear);
+	format.SetTrimming(StringTrimmingNone);
+
+	if(Lyric->GetLyric(0) != NULL && static_api_ptr_t<play_control>()->is_playing()) // 가사 있음
+	{
+		REAL fontHeight = font.GetHeight(&g);
+
+		int i, emptycnt;
+		int start;
+		int end;
+		if(Lyric->GetLyricTime(NowLine) == Lyric->GetLyricTime(NowLine + 1)) //동시에 표시되는게 두 줄 이상일 때
+		{
+			int nSameLine;
+			//줄 수 세기
+			for(i = NowLine; ; i ++)
+				if(Lyric->GetLyricTime(NowLine) != Lyric->GetLyricTime(i))
+					break;
+
+			nSameLine = i - NowLine;
+			start = NowLine - (int)(Setting->nLine - nSameLine) / 2;
+			end = min(start + Setting->nLine, (int)Lyric->GetNumberOfLine());
+		}
+		else //한줄일때는 가운데에 출력
+		{
+			start = (int)NowLine - (int)floor((double)Setting->nLine / 2);
+			end = min(start + Setting->nLine, (int)Lyric->GetNumberOfLine());
+		}
+		if(start < 0) //곡의 첫부분에서는 시작이 음수부분이다
+		{
+			emptycnt = -start;
+			end = min(start + Setting->nLine, (int)Lyric->GetNumberOfLine());
+			start = 0; //처음 위치부터 시작한다
+		}
+		else
+			emptycnt = 0;
+
+		WCHAR OutLine[1024]; //크게
+		RectF rt;
+#ifdef _DEBUG
+		rt.X = 50;
+#endif
+		rt.Y = (REAL)(emptycnt * fontHeight);
+		rt.Width = ClientRect.right - rt.X;
+		rt.Height = ClientRect.bottom - rt.Y;
+		int LineMargin = 0;
+		for(i = start; i < end; i ++)
+		{
+			RectF trt = rt;
+#ifdef _DEBUG
+			TCHAR temp[10];
+			wsprintf(temp, L"%d", Lyric->GetLyricTime(i));
+			g.DrawString(temp, -1, &font, PointF(0, rt.Y), &fontbrush);
+#endif
+
+			pfc::stringcvt::convert_utf8_to_wide(OutLine, 1024, Lyric->GetLyric(i), lstrlenA(Lyric->GetLyric(i)));
+
+			if(Lyric->GetLyricTime(i) == Lyric->GetLyricTime(NowLine)) //현재줄은 굵게
+			{
+				g.MeasureString(OutLine, -1, &BoldFont, rt, &format, &trt);
+				g.DrawString(OutLine, -1, &BoldFont, rt, &format, &fontbrush);
+			}
+			else
+			{
+				g.MeasureString(OutLine, -1, &font, rt, &format, &trt);
+				g.DrawString(OutLine, -1, &font, rt, &format, &fontbrush);
+			}
+			if(trt.Height == 0)
+				rt.Y += (LONG)(fontHeight + LineMargin);
+			else
+				rt.Y += (LONG)(trt.Height + LineMargin);
+		}
+		/*
+		album_art_manager_instance_ptr aami =
+			static_api_ptr_t<album_art_manager>()->instantiate();
+		try
+		{
+			foobar2000_io::abort_callback_impl abort;
+			aami->open(NowPlaying_Path, abort);
+			album_art_data_ptr pdata =    
+				aami->query(album_art_ids::cover_front, abort);    
+			
+		}
+		catch (...) {}*/
+	}
+	else
+	{
+		metadb_handle_ptr p_track;
+		static_api_ptr_t<play_control> pc;
+		pc->get_now_playing(p_track);
+
+		if(p_track != NULL)
+		{/*
+			file_info_impl file;
+			p_track->get_info(file);
+			const char *temp = file.meta_get("TITLE", 0);
+			*/
+
+			TCHAR out[255];
+			
+			service_ptr_t<titleformat_object> to;
+			pfc::string8 str;
+			
+			static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
+			p_track->format_title(NULL, str, to, NULL);
+
+			pfc::stringcvt::convert_utf8_to_wide_unchecked(out, str.get_ptr());
+
+			g.DrawString(out, -1, &font, RectF(0, 0, (REAL)ClientRect.right, (REAL)ClientRect.bottom), &format, &fontbrush);
+
+			g.DrawString(Lyric->GetStatus(), -1, &font, RectF(0, 25, (REAL)ClientRect.right, (REAL)ClientRect.bottom), &format, &fontbrush);
+		}
+	}
+
+	DeleteObject(hBoldFont);
+	DeleteObject(hFont);
+	Graphics out(hdc);
+	out.DrawImage(&Backbuffer, 0, 0, Backbuffer.GetWidth(), Backbuffer.GetHeight());
 }
 
 bool Common_UI_Base::on_keydown(WPARAM wParam) 

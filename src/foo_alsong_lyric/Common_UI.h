@@ -1,96 +1,9 @@
-class WindowData //각 윈도우마다 저장될 데이터
+
+struct WindowInfo
 {
-private:
-	Gdiplus::Bitmap *CachedBitmap;
-	Gdiplus::Bitmap *bmp;
-	Window_Setting Setting;
-	HBITMAP BackBuffer;
-
-	void UpdateCache(int x, int y, int width, int height)
-	{
-		if(CachedBitmap)
-			delete CachedBitmap;
-		CachedBitmap = new Gdiplus::Bitmap(width, height);
-
-		Gdiplus::Graphics g(CachedBitmap);
-		if(height == 0)
-			height = 5; 
-		g.DrawImage(bmp, x, y, width, height);
-
-	}
-public:
-	void SetBackBuffer(HBITMAP hBuffer)
-	{
-		BackBuffer = hBuffer;
-	}
-
-	HBITMAP GetBackBuffer()
-	{
-		return BackBuffer;
-	}
-
-	void ForceUpdateCache(int x, int y, int width, int height)
-	{
-		if(!bmp)
-			return;
-		if(CachedBitmap)
-			delete CachedBitmap;
-		CachedBitmap = NULL;
-
-		UpdateCache(x, y, width, height);
-	}
-
-	WindowData(Window_Setting *NowSetting) //Setting으로부터 내용을 채운다.
-	{
-		if(NowSetting->bgType && NowSetting->bgImage[0])
-			bmp = new Gdiplus::Bitmap(NowSetting->bgImage);
-		else
-			bmp = NULL;
-
-		CopyMemory(&Setting, NowSetting, sizeof(Window_Setting));
-
-		CachedBitmap = NULL;
-		BackBuffer = NULL;
-	}
-
-	~WindowData()
-	{
-		DeleteObject(CachedBitmap);
-		CachedBitmap = NULL;
-	}
-
-	DWORD UpdateData(Window_Setting *NowSetting) //바뀌면 TRUE
-	{
-		DWORD bRet = FALSE;
-		if(NowSetting->bgType != Setting.bgType) //다르면
-			bRet = TRUE;
-		if(((NowSetting->bgType != Setting.bgType) && NowSetting->bgImage[0]) || lstrcmp(NowSetting->bgImage, Setting.bgImage))
-			//바뀌면 업데이트
-		{
-			if(bmp)
-				delete bmp;
-			bmp = new Gdiplus::Bitmap(NowSetting->bgImage);
-		}
-		CopyMemory(&Setting, NowSetting, sizeof(Window_Setting));
-
-		return bRet;
-	}
-
-	Gdiplus::Status DrawImage(HDC hdc, int x, int y, int width, int height) 
-	{
-		try
-		{
-			if(!CachedBitmap)
-				UpdateCache(x, y, width, height);
-
-			Gdiplus::Graphics g(hdc);
-			return g.DrawImage(CachedBitmap, x, y, width, height);
-		}
-		catch(...)
-		{
-			return Gdiplus::GenericError;
-		}
-	}
+	Bitmap *BackImage;
+	Bitmap *BackImageCache;
+	SquirrelVMSys vm;
 };
 
 class Common_UI_Base : public play_callback
@@ -100,9 +13,16 @@ private:
 	bool on_keydown(WPARAM wParam);
 	void on_contextmenu(HWND hWndFrom);
 	void GetLRCSavePath(WCHAR *path);
+	void RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting);
+	
+	void UnInitializeScript(SquirrelVMSys *vm);
+	SquirrelVMSys InitializeScript();
+	void RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting);
+	void RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting);
 
 	class Common_Lyric_Manipulation *Lyric;
-	map<HWND, WindowData *> WndInfo;
+
+	map<HWND, WindowInfo *> WndInfo;
 
 public:
 
