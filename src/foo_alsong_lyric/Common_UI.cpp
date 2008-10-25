@@ -165,7 +165,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 		hLyricThread = 0;
 	}
 	
-	if(cfg_load_from_lrc) //TODO: UI
+	if(cfg_load_from_lrc)
 	{
 		WCHAR wctemp[255];
 
@@ -288,7 +288,7 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 	if(_this->NowTime != 0) //처음부터 시작한 것이 아닐 때
 	{
 		int temp;
-		WaitTime = 2147483647;
+		WaitTime = INT_MAX;
 		temp = 0;
 		i = 0;
 		for(i = 0; i < (int)_this->Lyric->GetNumberOfLine(); i ++) //가장 작은 차이 찾기
@@ -371,7 +371,7 @@ void Common_UI_Base::on_playback_time(double p_time)
 void Common_UI_Base::on_playback_seek(double p_time)
 {
 	int i = 0;
-	int MinTime = 2147483647;
+	int MinTime = INT_MAX;
 	int temp;
 	
 	if(Lyric->GetLyric(0))
@@ -395,7 +395,7 @@ void Common_UI_Base::on_playback_seek(double p_time)
 				temp = i;
 			}
 		}
-		if(MinTime == 2147483647)
+		if(MinTime == INT_MAX)
 			NowLine = 0;
 		else
 			NowLine = temp;

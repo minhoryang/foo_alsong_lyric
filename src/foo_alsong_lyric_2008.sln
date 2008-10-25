@@ -1,11 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0CA88AE6-DF3E-4DEE-A248-9480646EB987}"
-	ProjectSection(SolutionItems) = preProject
-		Changes.txt = Changes.txt
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "foo_alsong_lyric", "foo_alsong_lyric\foo_alsong_lyric_2008.vcproj", "{8A8E4CFD-AB61-4866-8CF3-280E22DE4B44}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E8091321-D79D-4575-86EF-064EA1A4A20D} = {E8091321-D79D-4575-86EF-064EA1A4A20D}
