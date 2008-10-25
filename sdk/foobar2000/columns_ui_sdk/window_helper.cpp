@@ -120,7 +120,7 @@ LRESULT WINAPI container_window::window_proc(HWND wnd,UINT msg,WPARAM wp,LPARAM 
 		}
 		else if (msg==WM_MOVE || msg==WM_SIZE)
 		{
-			RedrawWindow(wnd, 0, 0, RDW_ERASE|RDW_INVALIDATE|RDW_ALLCHILDREN);
+			//RedrawWindow(wnd, 0, 0, RDW_ERASE|RDW_INVALIDATE|RDW_ALLCHILDREN);
 		}
 	}
 
