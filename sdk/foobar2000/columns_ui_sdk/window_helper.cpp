@@ -103,7 +103,7 @@ LRESULT WINAPI container_window::window_proc(HWND wnd,UINT msg,WPARAM wp,LPARAM 
 		}
 	}
 	
-	if (p_this && p_this->get_class_data().want_transparent_background)
+	/*if (p_this && p_this->get_class_data().want_transparent_background)
 	{
 		if (msg == WM_ERASEBKGND)
 		{			
@@ -122,7 +122,7 @@ LRESULT WINAPI container_window::window_proc(HWND wnd,UINT msg,WPARAM wp,LPARAM 
 		{
 			//RedrawWindow(wnd, 0, 0, RDW_ERASE|RDW_INVALIDATE|RDW_ALLCHILDREN);
 		}
-	}
+	}*/
 
 	if ( msg == WM_SETTINGCHANGE && p_this && p_this->get_class_data().forward_system_settings_change)
 	{
