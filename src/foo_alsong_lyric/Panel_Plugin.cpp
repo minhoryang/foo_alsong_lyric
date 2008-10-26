@@ -47,7 +47,7 @@ unsigned Alsong_Panel::get_type() const
 }
 
 void Alsong_Panel::OnContextMenu(HWND hParent)
-{
+{//TODO:메뉴 다 지우고 설정만
 	// We need some IDs for the context menu.
 	enum 
 	{

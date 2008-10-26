@@ -14,6 +14,8 @@ using namespace Gdiplus;
 
 Common_UI_Base *Common_UI; 
 
+pair<HWND, WindowInfo *> Common_UI_Base::ScriptingInfo;
+
 Common_UI_Base::Common_UI_Base()
 {
 	try 
@@ -548,6 +550,8 @@ SquirrelVMSys Common_UI_Base::InitializeScript()
 	SquirrelVMSys v;
 	SquirrelVM::Init();
 	SquirrelVM::GetVMSys(v);
+
+	SqPlus::RegisterGlobal(Common_UI_Base::SetBackgroundImage, TEXT("SetBackgroundImage"));
 	return v;
 }
 
@@ -559,10 +563,41 @@ void Common_UI_Base::UnInitializeScript(SquirrelVMSys *vm)
 
 void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
 {
-	if(Setting->bgType == TRUE && Setting->bgImage[0])
+	ScriptingInfo = *(WndInfo.find(hWnd));
+
+	SquirrelVM::SetVMSys(WndInfo[hWnd]->vm);
+	try
 	{
-		WndInfo[hWnd]->BackImage = new Bitmap(Setting->bgImage);
+		SquirrelObject obj = SquirrelVM::CompileBuffer(TEXT("SetBackgroundImage(\"D:\\\\겨울.jpg\");"));
+		SquirrelVM::RunScript(obj);
 	}
+	catch(SquirrelError e)
+	{
+		e;
+	}
+	catch(...)
+	{
+
+	}
+
+	ScriptingInfo = make_pair((HWND)NULL, (WindowInfo *)NULL);
+}
+
+void Common_UI_Base::SetBackgroundImage(const TCHAR *Filename)
+{
+	if(ScriptingInfo.second->BackImage)
+		delete ScriptingInfo.second->BackImage;
+	ScriptingInfo.second->BackImage = new Bitmap(Filename);
+		
+	RECT rt;
+	GetClientRect(ScriptingInfo.first, &rt);
+
+	if(ScriptingInfo.second->BackImageCache)
+		delete ScriptingInfo.second->BackImageCache;
+
+	ScriptingInfo.second->BackImageCache = new Bitmap(rt.right, rt.bottom);
+	Graphics g(ScriptingInfo.second->BackImageCache);
+	g.DrawImage(ScriptingInfo.second->BackImage, 0, 0, rt.right, rt.bottom);
 }
 
 void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
@@ -570,12 +605,11 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	//TODO:이걸 스크립트로
 	RECT ClientRect;
 	GetClientRect(hWnd, &ClientRect);
-	//TODO:Gdiplus로
 	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
 	Graphics g(&Backbuffer);
 	g.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
 
-	if(Setting->bgType && Setting->bgImage[0])
+	if(WndInfo[hWnd]->BackImage)
 	{
 		if(g.DrawImage(WndInfo[hWnd]->BackImageCache, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
 		{

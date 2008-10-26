@@ -235,7 +235,7 @@ LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARA
 }
 
 void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom) 
-{
+{ //TODO:메뉴 다 지우고 설정만
 	// We need some IDs for the context menu.
 	enum 
 	{

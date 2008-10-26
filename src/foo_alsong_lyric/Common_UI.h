@@ -58,6 +58,11 @@ public:
 	virtual void on_playback_edited(metadb_handle_ptr p_track) {}
 	virtual void on_playback_dynamic_info(const file_info & p_info) {}
 	virtual void on_volume_change(float p_new_val) {}
+
+	//Script Functions & Variables
+
+	static pair<HWND, WindowInfo *> ScriptingInfo;
+	static void SetBackgroundImage(const TCHAR *Filename);
 };
 
 extern Common_UI_Base *Common_UI; 
