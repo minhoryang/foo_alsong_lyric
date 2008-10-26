@@ -3,7 +3,7 @@
 #include "Common_Lyric_Manipulation.h"
 #include "Common_UI.h"
 
-//TODO: Titleformat 사용해서 출력 formatting.
+//TODO: DropSource
 
 COLORREF acrCustClr[16] = {RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
 RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 

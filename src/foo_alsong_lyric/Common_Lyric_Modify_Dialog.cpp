@@ -2,6 +2,8 @@
 #include "Common_Lyric_Manipulation.h"
 #include "resource.h"
 
+//TODO:멀티스레드
+
 struct SLyricInfo
 {
 	string Title;
