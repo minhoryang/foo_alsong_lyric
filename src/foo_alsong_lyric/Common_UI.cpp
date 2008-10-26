@@ -577,7 +577,7 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 
 	if(Setting->bgType && Setting->bgImage[0])
 	{
-		if(g.DrawImage(WndInfo[hWnd]->BackImage, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
+		if(g.DrawImage(WndInfo[hWnd]->BackImageCache, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
 		{
 			//½ÇÆÐ½Ã
 			g.FillRectangle(&(SolidBrush(Color(255, 255, 255))), 0, 0, ClientRect.right, ClientRect.bottom);
