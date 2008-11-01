@@ -7,6 +7,9 @@
 #include <shlwapi.h>
 #include <IPHlpApi.h>
 
+#include <uxtheme.h>
+#include <vssym32.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -27,6 +30,7 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "uxtheme.lib")
 
 #ifndef _DEBUG
 #pragma comment(lib, "../../foobar2000/foobar2000/shared/shared.lib")

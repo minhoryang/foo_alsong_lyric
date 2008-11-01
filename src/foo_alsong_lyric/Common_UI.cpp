@@ -623,6 +623,9 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 			0, 0, ClientRect.right, ClientRect.bottom);
 	}
 
+	HTHEME theme = OpenThemeData(hWnd, L"WINDOW");
+	DrawThemeBackground(theme, hdc, WP_CAPTION, CS_ACTIVE, &ClientRect, NULL);
+
 	HFONT hFont = Setting->font.create();
 	Font font(hdc, hFont);
 
