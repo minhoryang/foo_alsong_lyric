@@ -5,6 +5,8 @@
 #include "Common_Pref.h"
 #include "Common_Lyric_Modify_Dialog.h"
 
+//TODO:UpdateLayeredWindow() 사용. http://msdn.microsoft.com/en-us/library/bb773289(VS.85).aspx 로 직접 창틀 그리기
+
 Outer_Window_Plugin g_OuterWindow; //외부 윈도우는 하나다.
 
 class menu_command_alsong : public mainmenu_commands 
