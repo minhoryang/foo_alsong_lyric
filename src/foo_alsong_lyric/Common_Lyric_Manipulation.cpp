@@ -50,16 +50,17 @@ WCHAR *Common_Lyric_Manipulation::GetStatus()
 	return (WCHAR *)Status.c_str();
 }
 
-DWORD Common_Lyric_Manipulation::GetFileHash(unsigned char *Data, int Size, CHAR *Hash, CHAR *fmt)
+DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Hash, CHAR *fmt)
 {	
 	int i;
 	int tmp;
 	DWORD Start; //Start Address
 	BYTE MD5[16];
+	abort_callback_impl abort_callback;
+	BYTE temp[255];
 
-	__try
+	try
 	{
-
 		if(!StrCmpIA(fmt, "mp3"))
 		{ //MP3	
 			tmp = 0;
@@ -67,23 +68,32 @@ DWORD Common_Lyric_Manipulation::GetFileHash(unsigned char *Data, int Size, CHAR
 
 			while(1) //ID3가 여러개 있을수도 있음
 			{ //ID3는 보통 맨 처음에 있음
-				Start += tmp;
-				if(Data[Start] == 'I' && Data[Start + 1] == 'D' && Data[Start + 2] == '3')
+				(*file)->seek(tmp, abort_callback);
+				(*file)->read(temp, 3, abort_callback);
+				if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
 				{
+					int tmp;
+					(*file)->read(temp, 7, abort_callback);
 					//ID3 Tag
-					tmp = Data[Start + 9]; //Decode Tag Size
-					tmp |= Data[Start + 8] << 7;
-					tmp |= Data[Start + 7] << 14;
-					tmp |= Data[Start + 6] << 21;
+					tmp = temp[6]; //Decode Tag Size
+					tmp |= temp[5] << 7;
+					tmp |= temp[4] << 14;
+					tmp |= temp[3] << 21;
 					tmp += 10; //Header Size
+					Start += tmp;
 				}
 				else
 					break;
+				tmp ++;
 			}
-			if(Start != 0)
-				for(;;Start ++)
-					if(Data[Start] == 0xFF) //MP3 Header까지
-						break;
+			(*file)->seek(Start, abort_callback);
+			for(;;Start ++)
+			{
+				BYTE temp;
+				(*file)->read_lendian_t(temp, abort_callback);
+				if(temp == 0xFF) //MP3 Header까지
+					break;
+			}
 		}
 		else if(!StrCmpIA(fmt, "ogg"))
 		{
@@ -94,9 +104,13 @@ DWORD Common_Lyric_Manipulation::GetFileHash(unsigned char *Data, int Size, CHAR
 			CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
 			while(1)
 			{
-				if(!memcmp(Data + i, SetupHeader, 7))
+				(*file)->seek(i, abort_callback);
+				(*file)->read(temp, 7, abort_callback);
+				if(!memcmp(temp, SetupHeader, 7))
 				{
-					if(!memcmp(Data + i + 7 + 1, BCV, 3)) //Setup Header와 BCV 사이에 뭔가 바이트가 하나 더 있다.
+					(*file)->seek(i + 7 + 1, abort_callback);
+					(*file)->read(temp, 3, abort_callback);
+					if(!memcmp(temp, BCV, 3)) //Setup Header와 BCV 사이에 뭔가 바이트가 하나 더 있다.
 					{
 						//여기부터다
 						Start = i + 7 + 1 + 3;
@@ -104,7 +118,7 @@ DWORD Common_Lyric_Manipulation::GetFileHash(unsigned char *Data, int Size, CHAR
 					}
 				}
 				i ++;
-				if(i > Size)
+				if(i > (*file)->get_size(abort_callback))
 					return ERROR_UNSUPPORTED_EXTENSION; //에러
 			}
 
@@ -118,12 +132,26 @@ DWORD Common_Lyric_Manipulation::GetFileHash(unsigned char *Data, int Size, CHAR
 			return ERROR_UNSUPPORTED_EXTENSION;
 		}
 	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
+	catch(...)
 	{
 		Start = 0;
+		return ERROR_UNKNOWN;
 	}
 
-	md5(Data + Start, min(0x28000, Size - Start), MD5); //FileSize < 0x28000 일수도
+	BYTE *buf = (BYTE *)malloc(0x28000);
+
+	try
+	{
+		(*file)->seek(Start, abort_callback);
+		(*file)->read(buf, 0x28000, abort_callback);
+	}
+	catch(...)
+	{
+		free(buf);
+		return ERROR_UNKNOWN;
+	}
+
+	md5(buf, min(0x28000, (size_t)(*file)->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
 
 	CHAR HexArray[] = "0123456789abcdef";
 
@@ -279,7 +307,7 @@ DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
 	return S_OK;
 }
 
-DWORD Common_Lyric_Manipulation::FetchLyric(BYTE *FileHead, int Size, CHAR *fmt)
+DWORD Common_Lyric_Manipulation::FetchLyric(service_ptr_t<file> *file, CHAR *fmt)
 {
 	CHAR Hash[33];
 	DWORD nRet;
@@ -291,10 +319,16 @@ DWORD Common_Lyric_Manipulation::FetchLyric(BYTE *FileHead, int Size, CHAR *fmt)
 	Status = TEXT("파일 정보 처리중...");
 	Common_UI->InvalidateAllWindow();
 
-	nRet = GetFileHash(FileHead, Size, Hash, fmt);
+	nRet = GetFileHash(file, Hash, fmt);
 	if(nRet == ERROR_UNSUPPORTED_EXTENSION)
 	{
 		Status = TEXT("지원하지 않는 파일 형식입니다.");
+		Common_UI->InvalidateAllWindow();
+		return S_OK;
+	}
+	else if(nRet == ERROR_UNKNOWN)
+	{
+		Status = TEXT("내부 오류가 발생했습니다.");
 		Common_UI->InvalidateAllWindow();
 		return S_OK;
 	}
@@ -667,7 +701,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int n
 	data = (CHAR *)malloc(min(0x50000, (size_t)file->get_size(abort_callback)));
 	//다 읽지 말고 처음 부분만 읽자
 	file->read(data, min(0x50000, (size_t)file->get_size(abort_callback)), abort_callback);
-	GetFileHash((unsigned char *)data, min(0x50000, (size_t)file->get_size(abort_callback)), Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
+//	GetFileHash((unsigned char *)data, min(0x50000, (size_t)file->get_size(abort_callback)), Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
 	free(data);
 
 	while(Lyric->find("\r\n") != string::npos)

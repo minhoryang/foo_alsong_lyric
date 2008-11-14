@@ -99,7 +99,6 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 {
 	Common_UI_Base *_this = (Common_UI_Base *)lpParameter;
 	pfc::string8 str;
-	unsigned char *data = NULL;
 	str = _this->NowPlaying_Path;
 	_this->LRCSave_Path = _this->NowPlaying_Path;
 	service_ptr_t<file> file;
@@ -109,24 +108,18 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 	{
 		archive_impl::g_open(file, _this->NowPlaying_Path, foobar2000_io::filesystem::open_mode_read, abort_callback);
 		//TODO:cue일때 특별 처리(subsong_index가 있을 때)
-		data = (unsigned char *)malloc(min(0x50000, (size_t)file->get_size(abort_callback)));
-		//다 읽지 말고 처음 부분만 읽자
-		file->read(data, min(0x50000, (size_t)file->get_size(abort_callback)), abort_callback);
+	
+		if(str.find_last('.') == 0)
+		{
+			return 0;
+		}
+
+		_this->Lyric->FetchLyric(&file, (char *)str.get_ptr() + str.find_last('.') + 1);
 	}
 	catch(...)
 	{
-		if(data)
-			free(data);
 		return 0;
 	}
-
-	if(str.find_last('.') == 0)
-	{
-		free(data);
-		return 0;
-	}
-
-	_this->Lyric->FetchLyric(data, min(0x50000, (size_t)file->get_size(abort_callback)), (char *)str.get_ptr() + str.find_last('.') + 1);
 
 	if(cfg_save_to_lrc) //TODO:UI만들기
 	{
@@ -138,11 +131,8 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 	if(lstrcmpA(str.get_ptr(), _this->NowPlaying_Path) != 0)
 	{
 		_this->Lyric->ClearLyric();
-		free(data);
 		return 0; //곡이 바뀌면 무시
 	}
-
-	free(data);
 
 	_this->hLyricThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)LyricCountThread, (LPVOID)_this, NULL, NULL);
 
