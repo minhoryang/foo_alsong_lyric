@@ -247,7 +247,8 @@ void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_cal
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const
 {
 	p_writer->write(&Setting, sizeof(Window_Setting), p_abort);
-	p_writer->write_string(Setting.Script->get_ptr(), p_abort);
+	if(Setting.Script)
+		p_writer->write_string(Setting.Script->get_ptr(), p_abort);
 }
 
 bool Alsong_Panel::have_config_popup() const

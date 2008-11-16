@@ -524,8 +524,8 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 
 void Common_UI_Base::RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting)
 {
-	static BOOL bGlobalExec = FALSE;
-	if(bGlobalExec == FALSE)
+	//static BOOL bGlobalExec = FALSE;
+	//if(bGlobalExec == FALSE)
 	{
 		RunGlobalScript(hWnd, hdc, NowSetting);
 	}
@@ -554,7 +554,7 @@ void Common_UI_Base::UnInitializeScript(SquirrelVMSys *vm)
 void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
 {
 	ScriptingInfo = *(WndInfo.find(hWnd));
-
+/*
 	SquirrelVM::SetVMSys(WndInfo[hWnd]->vm);
 	try
 	{
@@ -569,7 +569,9 @@ void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	{
 
 	}
-
+*/
+	if(Setting->bgType)
+		SetBackgroundImage(Setting->bgImage);
 	ScriptingInfo = make_pair((HWND)NULL, (WindowInfo *)NULL);
 }
 

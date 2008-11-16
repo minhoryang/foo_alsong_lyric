@@ -248,6 +248,9 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
 			}
+
+			SendMessage(GetDlgItem(hWnd, IDC_MANUALSCRIPT), WM_CLOSE, 0, 0);
+			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
 		}
 
 		break;
