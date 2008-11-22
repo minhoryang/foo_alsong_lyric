@@ -131,6 +131,7 @@ UINT CALLBACK Common_UI_Base::LyricFetchThread(LPVOID lpParameter)
 	if(lstrcmpA(str.get_ptr(), _this->NowPlaying_Path) != 0)
 	{
 		_this->Lyric->ClearLyric();
+		_this->InvalidateAllWindow();
 		return 0; //°îÀÌ ¹Ù²î¸é ¹«½Ã
 	}
 
