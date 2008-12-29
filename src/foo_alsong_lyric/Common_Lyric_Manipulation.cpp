@@ -123,7 +123,7 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 			}
 
 		}
-		else if(!StrCmpIA(fmt, "wav"))
+		else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
 			Start = 0;
 		else
 		{
