@@ -229,6 +229,10 @@ void Common_UI_Base::GetLRCSavePath(WCHAR *path)
 		StrCat(path, temp);
 		StrCat(path, L".lrc");
 	}
+	else //저장안함
+	{
+		path[0] = 0;
+	}
 }
 
 void Common_UI_Base::on_playback_pause(bool p_state)
