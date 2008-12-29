@@ -12,6 +12,8 @@ private:
 	static DWORD GetFileHash(service_ptr_t<file> *file, CHAR *Hash, CHAR *fmt);
 	DWORD ParseLyric(CHAR *InputLyric, CHAR *Delimiter);
 	DWORD DownloadLyric(CHAR *Hash);
+	static string *FromHTTP(string *str);
+	static string *ToHTTP(string *str);
 	
 	static SOCKET InitateConnect(CHAR *Address, int port);
 
@@ -27,10 +29,10 @@ public:
 	Common_Lyric_Manipulation();
 	~Common_Lyric_Manipulation();
 
-	static DWORD UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant);
+	static DWORD UploadLyric(service_ptr_t<file> *file, string *Filename, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant);
 	static DWORD SearchLyricGetNext(CHAR **data, int *nInfo, string *Title, string *Artist, string *Album, string *Lyric, string *Registrant);
-	static int SearchLyricGetCount(CHAR *Artist, CHAR *Title);
-	static DWORD SearchLyric(CHAR *InArtist, CHAR *InTitle, int nPage, CHAR **Output);
+	static int SearchLyricGetCount(string *Artist, string *Title);
+	static DWORD SearchLyric(string *InArtist, string *InTitle, int nPage, CHAR **Output);
 	DWORD FetchLyric(service_ptr_t<file> *file, CHAR *fmt);
 	WCHAR *GetStatus();
 	const char *GetLyric(DWORD Line); //Line번째 줄의 가사 얻어오기

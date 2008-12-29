@@ -370,12 +370,7 @@ DWORD Common_Lyric_Manipulation::ParseLyric(CHAR *InputLyric, CHAR *Delimiter)
 		Lyric.push_back(lastpos);
 		lastpos = nowpos + lstrlenA(Delimiter);
 
-		while(Lyric[i].find("&amp;") != string::npos)
-			Lyric[i].replace(Lyric[i].find("&amp;"), 5, "&");
-		while(Lyric[i].find("&lt;") != string::npos)
-			Lyric[i].replace(Lyric[i].find("&lt;"), 4, "<");
-		while(Lyric[i].find("&gt;") != string::npos)
-			Lyric[i].replace(Lyric[i].find("&gt;"), 4, ">");
+		FromHTTP(&Lyric[i]);
 	}
 
 	return S_OK;
@@ -394,6 +389,14 @@ DWORD Common_Lyric_Manipulation::SearchLyricGetNext(CHAR **data, int *Info, stri
 		GET_XML_DATA(*data, "strInfoID", temp);
 		*Info = StrToIntA(temp);
 		*data = GET_XML_POS(*data, "ST_GET_RESEMBLELYRIC2_RETURN");
+		FromHTTP(Title);
+		FromHTTP(Artist);
+		FromHTTP(Album);
+		FromHTTP(Registrant);
+		FromHTTP(Lyric);
+
+		while(Lyric->find("<br>") != string::npos)
+			Lyric->replace(Lyric->find("<br>"), 4, "\r\n");
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
@@ -403,7 +406,7 @@ DWORD Common_Lyric_Manipulation::SearchLyricGetNext(CHAR **data, int *Info, stri
 	return S_OK;
 }
 
-DWORD Common_Lyric_Manipulation::SearchLyric(CHAR *InArtist, CHAR *InTitle, int nPage, CHAR **Output)
+DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, int nPage, CHAR **Output)
 {
 	CHAR GetLyricHeader[512] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
@@ -428,6 +431,9 @@ DWORD Common_Lyric_Manipulation::SearchLyric(CHAR *InArtist, CHAR *InTitle, int 
 	int nUse = 0;
 	int nRecv;
 
+	ToHTTP(InArtist);
+	ToHTTP(InTitle);
+
 	*Output = (CHAR *)malloc(sizeof(CHAR) * 600);
 
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
@@ -436,7 +442,7 @@ DWORD Common_Lyric_Manipulation::SearchLyric(CHAR *InArtist, CHAR *InTitle, int 
 		free(Output);
 		return ERROR_CONNECTION;
 	}
-	len = lstrlenA(GetLyricData1) + lstrlenA(GetLyricData2) + lstrlenA(GetLyricData3) + lstrlenA(GetLyricData4) + lstrlenA(InArtist) + lstrlenA(InTitle);
+	len = lstrlenA(GetLyricData1) + lstrlenA(GetLyricData2) + lstrlenA(GetLyricData3) + lstrlenA(GetLyricData4) + lstrlenA(InArtist->c_str()) + lstrlenA(InTitle->c_str());
 	if(nPage != 0)
 		len += (int)log10((float)nPage) + 1;
 	else
@@ -445,9 +451,9 @@ DWORD Common_Lyric_Manipulation::SearchLyric(CHAR *InArtist, CHAR *InTitle, int 
 
 	send(s, buf, lstrlenA(buf), 0);
 	send(s, GetLyricData1, lstrlenA(GetLyricData1), 0);
-	send(s, InTitle, lstrlenA(InTitle), 0);
+	send(s, InTitle->c_str(), lstrlenA(InTitle->c_str()), 0);
 	send(s, GetLyricData2, lstrlenA(GetLyricData2), 0);
-	send(s, InArtist, lstrlenA(InArtist), 0);
+	send(s, InArtist->c_str(), lstrlenA(InArtist->c_str()), 0);
 	send(s, GetLyricData3, lstrlenA(GetLyricData3), 0);
 	wsprintfA(buf, "%d", nPage);
 	send(s, buf, lstrlenA(buf), 0);
@@ -478,7 +484,7 @@ DWORD Common_Lyric_Manipulation::SearchLyric(CHAR *InArtist, CHAR *InTitle, int 
 	return S_OK;
 }
 
-int Common_Lyric_Manipulation::SearchLyricGetCount(CHAR *Artist, CHAR *Title)
+int Common_Lyric_Manipulation::SearchLyricGetCount(string *Artist, string *Title)
 {
 	CHAR GetCountHeader[] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
@@ -506,14 +512,17 @@ int Common_Lyric_Manipulation::SearchLyricGetCount(CHAR *Artist, CHAR *Title)
 		return 0;
 	}
 
-	len = lstrlenA(GetCountData1) + lstrlenA(GetCountData2) + lstrlenA(GetCountData3) + lstrlenA(Artist) + lstrlenA(Title);
+	ToHTTP(Artist);
+	ToHTTP(Title);
+
+	len = lstrlenA(GetCountData1) + lstrlenA(GetCountData2) + lstrlenA(GetCountData3) + lstrlenA(Artist->c_str()) + lstrlenA(Title->c_str());
 	wsprintfA(buf, GetCountHeader, len);
 
 	send(s, buf, lstrlenA(buf), 0);
 	send(s, GetCountData1, lstrlenA(GetCountData1), 0);
-	send(s, Title, lstrlenA(Title), 0);
+	send(s, Title->c_str(), lstrlenA(Title->c_str()), 0);
 	send(s, GetCountData2, lstrlenA(GetCountData2), 0);
-	send(s, Artist, lstrlenA(Artist), 0);
+	send(s, Artist->c_str(), lstrlenA(Artist->c_str()), 0);
 	send(s, GetCountData3, lstrlenA(GetCountData3), 0);
 
 	while(nRecv = recv(s, buf, 255, 0))
@@ -597,7 +606,7 @@ DWORD Common_Lyric_Manipulation::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 	return FALSE;
 }
 
-DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant)
+DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *Filename, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant)
 {
 	//너무 많이 지역변수로 지정됨. 
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
@@ -691,21 +700,20 @@ DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int n
 		return ERROR_CONNECTION;
 	}
 
-	pfc::string8 str;
-	str = FileName;
+	ToHTTP(Filename);
 
-	service_ptr_t<file> file;
-	abort_callback_impl abort_callback;
-	archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
-	//TODO:cue일때 특별 처리(subsong_index가 있을 때)
-	data = (CHAR *)malloc(min(0x50000, (size_t)file->get_size(abort_callback)));
-	//다 읽지 말고 처음 부분만 읽자
-	file->read(data, min(0x50000, (size_t)file->get_size(abort_callback)), abort_callback);
-//	GetFileHash((unsigned char *)data, min(0x50000, (size_t)file->get_size(abort_callback)), Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
-	free(data);
+	pfc::string8 str = Filename->c_str();
+
+	GetFileHash(file, Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
 
 	while(Lyric->find("\r\n") != string::npos)
 		Lyric->replace(Lyric->find("\r\n"), 2, "&lt;br&gt;");
+	
+	Lyric = ToHTTP(Lyric);
+	Artist = ToHTTP(Artist);
+	Album = ToHTTP(Album);
+	Title = ToHTTP(Title);
+	Registrant = ToHTTP(Registrant);	
 
 	for(i = 0; i < 23; i ++)
 		len += lstrlenA(UploadLyricData[i]);
@@ -795,6 +803,34 @@ DWORD Common_Lyric_Manipulation::UploadLyric(CHAR *FileName, int PlayTime, int n
 	free(data);
 	
 	return S_OK;
+}
+
+string *Common_Lyric_Manipulation::FromHTTP(string *str)
+{
+	while(str->find("&amp;") != string::npos)
+		str->replace(str->find("&amp;"), 5, "&");
+	while(str->find("&lt;") != string::npos)
+		str->replace(str->find("&lt;"), 4, "<");
+	while(str->find("&gt;") != string::npos)
+		str->replace(str->find("&gt;"), 4, ">");
+
+	return str;
+}
+
+string *Common_Lyric_Manipulation::ToHTTP(string *str)
+{
+	int off = 0;
+	while(str->find_first_of("&", off) != string::npos)
+	{
+		str->replace(str->find_first_of("&", off), 1, "&amp;");
+		off = str->find_first_of("&", off) + 1;
+	}
+	while(str->find("<") != string::npos)
+		str->replace(str->find("<"), 1, "&lt;");
+	while(str->find(">") != string::npos)
+		str->replace(str->find(">"), 1, "&gt;");
+
+	return str;
 }
 
 void Common_Lyric_Manipulation::SaveToFile(WCHAR *SaveTo, CHAR *fmt)

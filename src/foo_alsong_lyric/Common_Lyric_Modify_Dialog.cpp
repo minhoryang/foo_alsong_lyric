@@ -88,7 +88,7 @@ void FillLyric(HWND hDialog, int NowPage, SLyricInfo *LyricInfo, int nLyric)
 	WideCharToMultiByte(CP_UTF8, NULL, ArtistW, 255, ArtistU, 255, NULL, NULL);
 	WideCharToMultiByte(CP_UTF8, NULL, TitleW, 255, TitleU, 255, NULL, NULL);
 
-	Common_Lyric_Manipulation::SearchLyric(ArtistU, TitleU, NowPage, &NowData);
+	Common_Lyric_Manipulation::SearchLyric(&string(ArtistU), &string(TitleU), NowPage, &NowData);
 	CHAR *otemp;
 	otemp = NowData;
 	int i;
@@ -131,7 +131,7 @@ int GetNumberOfLyric(HWND hDialog)
 	WideCharToMultiByte(CP_UTF8, NULL, ArtistW, 255, ArtistU, 255, NULL, NULL);
 	WideCharToMultiByte(CP_UTF8, NULL, TitleW, 255, TitleU, 255, NULL, NULL);
 	
-	return Common_Lyric_Manipulation::SearchLyricGetCount(ArtistU, TitleU);
+	return Common_Lyric_Manipulation::SearchLyricGetCount(&string(ArtistU), &string(TitleU));
 }
 
 struct FileInfo
@@ -228,21 +228,26 @@ BOOL CALLBACK LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 			FillLyric(hWnd, NowPage, LyricInfo, nLyric);
 			break;
 		case IDC_REGISTER:
-			int nSel;
-			nSel = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTIONMARK, 0, 0);
-			int nRet;
-			nRet = Common_Lyric_Manipulation::UploadLyric(FileName, (int)(length * 1000), LyricInfo[nSel].nInfo, 1, &LyricInfo[nSel].Lyric, &LyricInfo[nSel].Title, &LyricInfo[nSel].Artist, &LyricInfo[nSel].Album, &LyricInfo[nSel].Registrant);
-			if(nRet == S_OK)
 			{
-				MessageBox(hWnd, L"등록 성공", L"안내", MB_OK);
-				EndDialog(hWnd, 1);
+				int nSel;
+				nSel = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTIONMARK, 0, 0);
+				int nRet;
+				service_ptr_t<file> file;
+				abort_callback_impl abort_callback;
+				archive_impl::g_open(file, FileName, foobar2000_io::filesystem::open_mode_read, abort_callback);
+				nRet = Common_Lyric_Manipulation::UploadLyric(&file, &string(FileName), (int)(length * 1000), LyricInfo[nSel].nInfo, 1, &LyricInfo[nSel].Lyric, &LyricInfo[nSel].Title, &LyricInfo[nSel].Artist, &LyricInfo[nSel].Album, &LyricInfo[nSel].Registrant);
+				if(nRet == S_OK)
+				{
+					MessageBox(hWnd, L"등록 성공", L"안내", MB_OK);
+					EndDialog(hWnd, 1);
+				}
+				else
+				{
+					MessageBox(hWnd, L"등록 실패", L"안내", MB_OK);
+					EndDialog(hWnd, 0);
+				}
+				break;
 			}
-			else
-			{
-				MessageBox(hWnd, L"등록 실패", L"안내", MB_OK);
-				EndDialog(hWnd, 0);
-			}
-			break;
 		case IDC_CANCEL:
 			EndDialog(hWnd, 0);
 		}
