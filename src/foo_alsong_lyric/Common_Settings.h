@@ -22,9 +22,12 @@ struct Window_Setting
 	DWORD nLine;
 	DWORD LineMargin;//%단위
 
+	BYTE VerticalAlign; //상하정렬. 1:위 2:가운데 3:아래
+	BYTE HorizentalAlign; //좌우정렬. 1:왼쪽 2:가운데 3:오른쪽
+
 	pfc::string8 *Script;
 
-	BYTE bReserved[1020]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+	BYTE bReserved[1018]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
 
 extern cfg_string cfg_outer_script;

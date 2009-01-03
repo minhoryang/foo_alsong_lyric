@@ -146,7 +146,7 @@ void Common_UI_Base::on_playback_new_track(metadb_handle_ptr p_track)
 {
 	NowPlaying_Path = p_track->get_path();
 
-	NowLine = 0;
+	NowLine = -1;
 	NowTime = 0;
 	Lyric->ClearLyric();
 	InvalidateAllWindow();
@@ -604,7 +604,7 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	GetClientRect(hWnd, &ClientRect);
 	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
 	Graphics g(&Backbuffer);
-	g.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
+	g.SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
 
 	if(WndInfo[hWnd]->BackImage)
 	{
@@ -630,9 +630,15 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	SolidBrush fontbrush(Color(GetRValue(Setting->fgColor), GetGValue(Setting->fgColor), GetBValue(Setting->fgColor)));
 
 	StringFormat format;
+
 	format.GenericDefault();
-	format.SetAlignment(StringAlignmentNear);
 	format.SetLineAlignment(StringAlignmentNear);
+	if(Setting->HorizentalAlign == 0) //왼쪽
+		format.SetAlignment(StringAlignmentNear);
+	else if(Setting->HorizentalAlign == 1) //가운데
+		format.SetAlignment(StringAlignmentCenter);
+	else //오른쪽
+		format.SetAlignment(StringAlignmentFar);
 	format.SetTrimming(StringTrimmingNone);
 
 	if(Lyric->GetLyric(0) != NULL && static_api_ptr_t<play_control>()->is_playing()) // 가사 있음
@@ -677,31 +683,48 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 		rt.Width = ClientRect.right - rt.X;
 		rt.Height = ClientRect.bottom - rt.Y;
 		int LineMargin = 0;
+		bool bMesaure = true;
+drawloop: //먼저 위아래 길이를 재고 다시 그린다. 귀찮아서 goto....
 		for(i = start; i < end; i ++)
 		{
 			RectF trt = rt;
 #ifdef _DEBUG
 			TCHAR temp[10];
 			wsprintf(temp, L"%d", Lyric->GetLyricTime(i));
-			g.DrawString(temp, -1, &font, PointF(0, rt.Y), &fontbrush);
+			if(!bMesaure)
+				g.DrawString(temp, -1, &font, PointF(0, rt.Y), &fontbrush);
 #endif
 
 			pfc::stringcvt::convert_utf8_to_wide(OutLine, 1024, Lyric->GetLyric(i), lstrlenA(Lyric->GetLyric(i)));
 
+			rt.Y = (REAL)((int)(rt.Y + 0.5)); //반올림. 실수면 조금 잘리거나 할수있다.
 			if(Lyric->GetLyricTime(i) == Lyric->GetLyricTime(NowLine)) //현재줄은 굵게
 			{
 				g.MeasureString(OutLine, -1, &BoldFont, rt, &format, &trt);
-				g.DrawString(OutLine, -1, &BoldFont, rt, &format, &fontbrush);
+				if(!bMesaure)
+					g.DrawString(OutLine, -1, &BoldFont, rt, &format, &fontbrush);
 			}
 			else
 			{
 				g.MeasureString(OutLine, -1, &font, rt, &format, &trt);
-				g.DrawString(OutLine, -1, &font, rt, &format, &fontbrush);
+				if(!bMesaure)
+					g.DrawString(OutLine, -1, &font, rt, &format, &fontbrush);
 			}
-			if(trt.Height == 0)
-				rt.Y += (LONG)(fontHeight + LineMargin);
+			if(trt.Height == 0)//가끔씩 Height가 0이다. 왜그럴까
+				rt.Y += (REAL)(fontHeight + LineMargin);
 			else
-				rt.Y += (LONG)(trt.Height + LineMargin);
+				rt.Y += (REAL)(trt.Height + LineMargin);
+		}
+		if(bMesaure == true)
+		{
+			if(Setting->VerticalAlign == 0) //위쪽
+				rt.Y = (REAL)(emptycnt * fontHeight);
+			else if(Setting->VerticalAlign == 1) //가운데
+				rt.Y = (REAL)(ClientRect.bottom - rt.Y) / 2 + (REAL)(emptycnt * fontHeight);
+			else //아래
+				rt.Y = (REAL)(ClientRect.bottom - rt.Y) + (REAL)(emptycnt * fontHeight);
+			bMesaure = false;
+			goto drawloop;
 		}
 		/*
 		album_art_manager_instance_ptr aami =
@@ -728,6 +751,13 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 			p_track->get_info(file);
 			const char *temp = file.meta_get("TITLE", 0);
 			*/
+
+			if(Setting->VerticalAlign == 0) //위
+				format.SetLineAlignment(StringAlignmentNear);
+			else if(Setting->VerticalAlign == 1)
+				format.SetLineAlignment(StringAlignmentCenter);
+			else
+				format.SetLineAlignment(StringAlignmentFar);
 
 			TCHAR out[255];
 			
