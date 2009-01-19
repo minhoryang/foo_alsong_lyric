@@ -433,7 +433,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 	{
 		if(iMessage == WM_CREATE)
 		{
-			CreateToolTipWindow(hWnd);
+			//CreateToolTipWindow(hWnd);
 		}
 		else if(iMessage == WM_PAINT)
 		{
@@ -465,11 +465,11 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 	switch(iMessage)
 	{
 	case WM_NOTIFY:
-		if(((NMHDR *)lParam)->code == TTN_GETDISPINFO)
+		/*if(((NMHDR *)lParam)->code == TTN_GETDISPINFO)
 		{
 			SendMessage(((NMHDR *)lParam)->hwndFrom, TTM_SETMAXTIPWIDTH, 0, 300);
 			((NMTTDISPINFO *)lParam)->lpszText = L"Test";
-		}
+		}*/
 
 		return 0;
 	case WM_NCMOUSEMOVE:
