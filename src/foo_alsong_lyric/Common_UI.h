@@ -13,12 +13,12 @@ private:
 	bool on_keydown(WPARAM wParam);
 	void on_contextmenu(HWND hWndFrom);
 	void GetLRCSavePath(WCHAR *path);
-	void RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting);
+	void RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting, BOOL isOuter);
 	
 	void UnInitializeScript(SquirrelVMSys *vm);
 	SquirrelVMSys InitializeScript();
-	void RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting);
-	void RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting);
+	void RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter);
+	void RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter);
 
 	class Common_Lyric_Manipulation *Lyric;
 

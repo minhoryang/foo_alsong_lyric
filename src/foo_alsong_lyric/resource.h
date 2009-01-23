@@ -18,6 +18,7 @@
 #define IDC_BORDER                      1003
 #define IDC_CHECK3                      1004
 #define IDC_MANUALSCRIPT                1004
+#define IDC_MIMIC                       1004
 #define IDC_NLINESPIN                   1005
 #define IDC_NLINE                       1006
 #define IDC_TRANSPARENCY                1012
@@ -52,7 +53,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1046
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -10,6 +10,7 @@ extern cfg_bool cfg_outer_topmost;
 extern cfg_int cfg_outer_transparency;
 extern cfg_bool cfg_outer_layered;
 extern cfg_bool cfg_outer_border;
+extern cfg_bool cfg_mimic_lyricshow;
 
 struct Window_Setting
 {
@@ -17,7 +18,7 @@ struct Window_Setting
 	COLORREF bkColor;
 	COLORREF fgColor;
 	WCHAR bgImage[MAX_PATH];
-	BOOL bgType; //false: 색, true: 이미지
+	int bgType; //0: 색, 1: 이미지, 2:투명한 배경
 
 	DWORD nLine;
 	DWORD LineMargin;//%단위

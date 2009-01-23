@@ -20,6 +20,7 @@ private:
 	virtual void get_menu_items (uie::menu_hook_t & p_hook) ;
 
 	static const GUID g_extension_guid;
+	static const GUID g_mimic_extension_guid;
 	void OnContextMenu(HWND hParent);
 
 	Window_Setting Setting;

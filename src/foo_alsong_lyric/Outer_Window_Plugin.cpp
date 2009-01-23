@@ -337,7 +337,7 @@ void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom)
 			choosecolor.rgbResult = cfg_outer.get_value().bkColor;
 			if(ChooseColor(&choosecolor))
 			{
-				cfg_outer.get_value().bgType = false;
+				cfg_outer.get_value().bgType = 0;
 				cfg_outer.get_value().bkColor = choosecolor.rgbResult;
 				InvalidateRect(hWndFrom, NULL, TRUE);
 			}
@@ -369,7 +369,7 @@ void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom)
 
 			if(GetOpenFileName(&ofn))
 			{
-				cfg_outer.get_value().bgType = true;
+				cfg_outer.get_value().bgType = 1;
 				InvalidateRect(hWndFrom, NULL, TRUE);
 			}
 		}

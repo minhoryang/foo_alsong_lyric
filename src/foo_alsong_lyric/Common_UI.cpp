@@ -448,7 +448,10 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 		{
 			NowSetting->font.from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 			NowSetting->nLine = 3; //기본값 3줄
-			NowSetting->bgType = false;
+			if(isOuter)
+				NowSetting->bgType = 0;
+			else
+				NowSetting->bgType = 2;
 			NowSetting->bkColor = RGB(255, 255, 255);
 		}
 
@@ -497,7 +500,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 			RECT rt;
 			GetClientRect(hWnd, &rt);
 			
-			if(NowSetting->bgType == FALSE || WndInfo[hWnd]->BackImage == NULL)
+			if(NowSetting->bgType == 0 || WndInfo[hWnd]->BackImage == NULL)
 				return 0;
 
 			if(WndInfo[hWnd]->BackImageCache)
@@ -517,7 +520,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 			PAINTSTRUCT ps;
 			if(BeginPaint(hWnd, &ps) != NULL) 
 			{
-				RenderScreen(hWnd, ps.hdc, NowSetting);
+				RenderScreen(hWnd, ps.hdc, NowSetting, isOuter);
 				EndPaint(hWnd, &ps);
 			}
 			return 0;
@@ -527,15 +530,15 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-void Common_UI_Base::RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting)
+void Common_UI_Base::RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting, BOOL isOuter)
 {
 	//static BOOL bGlobalExec = FALSE;
 	//if(bGlobalExec == FALSE)
 	{
-		RunGlobalScript(hWnd, hdc, NowSetting);
+		RunGlobalScript(hWnd, hdc, NowSetting, isOuter);
 	}
 
-	RunRenderScript(hWnd, hdc, NowSetting);
+	RunRenderScript(hWnd, hdc, NowSetting, isOuter);
 }
 
 
@@ -556,7 +559,7 @@ void Common_UI_Base::UnInitializeScript(SquirrelVMSys *vm)
 	//SquirrelVM::Shutdown();
 }
 
-void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
+void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter)
 {
 	ScriptingInfo = *(WndInfo.find(hWnd));
 /*
@@ -575,7 +578,7 @@ void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 
 	}
 */
-	if(Setting->bgType)
+	if(Setting->bgType == 1)
 		SetBackgroundImage(Setting->bgImage);
 	ScriptingInfo = make_pair((HWND)NULL, (WindowInfo *)NULL);
 }
@@ -597,7 +600,7 @@ void Common_UI_Base::SetBackgroundImage(const TCHAR *Filename)
 	g.DrawImage(ScriptingInfo.second->BackImage, 0, 0, rt.right, rt.bottom);
 }
 
-void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
+void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter)
 {
 	//TODO:이걸 스크립트로
 	RECT ClientRect;
@@ -605,10 +608,10 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
 	Graphics g(&Backbuffer);
 	g.SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
-	g.FillRectangle(&(SolidBrush(Color(255, 255, 255))), 0, 0, ClientRect.right, ClientRect.bottom); //일단 하얗게 불태...
 
-	if(Setting->bgType)
+	if(Setting->bgType == 1)
 	{
+		g.FillRectangle(&(SolidBrush(Color(255, 255, 255))), 0, 0, ClientRect.right, ClientRect.bottom); //일단 하얗게 불태...
 		if(g.DrawImage(WndInfo[hWnd]->BackImageCache, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
 		{
 			//실패시
@@ -617,8 +620,18 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	}
 	else
 	{ //TODO:브러시 없음도 될까? 투명 배경
-		g.FillRectangle(&(SolidBrush(Color(GetRValue(Setting->bkColor), GetGValue(Setting->bkColor), GetBValue(Setting->bkColor)))), 
-			0, 0, ClientRect.right, ClientRect.bottom);
+		if(isOuter || Setting->bgType == 0)
+			g.FillRectangle(&(SolidBrush(Color(GetRValue(Setting->bkColor), GetGValue(Setting->bkColor), GetBValue(Setting->bkColor)))), 
+				0, 0, ClientRect.right, ClientRect.bottom);
+		else if(Setting->bgType == 2)
+		{
+			HWND wnd_parent = GetParent(hWnd);
+			POINT pt = {0, 0}, pt_old = {0,0};
+			MapWindowPoints(hWnd, wnd_parent, &pt, 1);
+			OffsetWindowOrgEx(hdc, pt.x, pt.y, &pt_old);
+			BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
+			SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0);
+		}
 	}
 
 	HFONT hFont = Setting->font.create();

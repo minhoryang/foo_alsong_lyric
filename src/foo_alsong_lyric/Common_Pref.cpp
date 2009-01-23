@@ -111,6 +111,8 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			CheckDlgButton(hWnd, IDC_LOADFROMLRC, TRUE);
 		if(cfg_lrc_save_path)
 			uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
+		if(cfg_mimic_lyricshow == true)
+			CheckDlgButton(hWnd, IDC_MIMIC, TRUE);
 		break;
 
 	case WM_NOTIFY:
@@ -119,6 +121,7 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			cfg_load_from_lrc = (IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC) ? true : false);
 			cfg_save_to_lrc = (IsDlgButtonChecked(hWnd, IDC_SAVELRC) ? true : false);
 			cfg_lrc_save_path = uGetDlgItemText(hWnd, IDC_LRCPATH).get_ptr();
+			cfg_mimic_lyricshow = (IsDlgButtonChecked(hWnd, IDC_MIMIC) ? true : false);
 
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 		}

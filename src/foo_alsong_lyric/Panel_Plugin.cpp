@@ -23,17 +23,30 @@ Alsong_Panel::~Alsong_Panel()
 
 Alsong_Panel::class_data & Alsong_Panel::get_class_data() const 
 {
-	__implement_get_class_data_ex(_T("{E859B366-AF66-45f6-9BE1-234FD363825F}"), _T("Alsong Live Lyric"), true, 0, WS_CHILD | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT, CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW);
+	if(!cfg_mimic_lyricshow)
+	{
+		__implement_get_class_data_ex(_T("{E859B366-AF66-45f6-9BE1-234FD363825F}"), _T("Alsong Live Lyric"), true, 0, WS_CHILD | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT, CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW);
+	}
+	else
+	{
+		__implement_get_class_data_ex(_T("{95B64E70-A978-4819-9CC0-C2223C6E3F9C}"), _T("Lyric Show"), true, 0, WS_CHILD | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT, CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW);
+	}
 }
 
 const GUID &Alsong_Panel::get_extension_guid() const
 {
-	return g_extension_guid;
+	if(!cfg_mimic_lyricshow)
+		return g_extension_guid;
+	else
+		return g_mimic_extension_guid;
 }
 
 void Alsong_Panel::get_name(pfc::string_base & out) const
 {
-	out.set_string("Alsong Lyric Panel");
+	if(!cfg_mimic_lyricshow)
+		out.set_string("Alsong Lyric Panel");
+	else
+		out.set_string("Lyric Show");
 }
 
 void Alsong_Panel::get_category(pfc::string_base & out) const
@@ -52,6 +65,7 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 	enum 
 	{
 		ID_FONT = 1,
+		ID_TRANSBG,
 		ID_BKCOLOR,
 		ID_FGCOLOR,
 		ID_BGIMAGE,
@@ -68,6 +82,10 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 
 	// Add our "Choose font..." command.
 	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("폰트 선택..."));
+	if(Setting.bgType == 2)
+		AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_TRANSBG, TEXT("투명한 배경 사용"));
+	else
+		AppendMenu(hMenu, MF_STRING | MF_UNCHECKED, ID_TRANSBG, TEXT("투명한 배경 사용"));
 	AppendMenu(hMenu, MF_STRING, ID_BKCOLOR, TEXT("배경색 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_FGCOLOR, TEXT("글자색 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_BGIMAGE, TEXT("배경그림 선택..."));
@@ -123,6 +141,14 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
+		else if(cmd == ID_TRANSBG)
+		{
+			if(Setting.bgType == 2)
+				Setting.bgType = 0;
+			else
+				Setting.bgType = 2;
+			InvalidateRect(hParent, NULL, TRUE);
+		}
 		else if(cmd == ID_BKCOLOR)
 		{			
 			CHOOSECOLOR choosecolor;
@@ -134,7 +160,7 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 			choosecolor.rgbResult = Setting.bkColor;
 			if(ChooseColor(&choosecolor))
 			{
-				Setting.bgType = false;
+				Setting.bgType = 0;
 				Setting.bkColor = choosecolor.rgbResult;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
@@ -166,7 +192,7 @@ void Alsong_Panel::OnContextMenu(HWND hParent)
 
 			if(GetOpenFileName(&ofn))
 			{
-				Setting.bgType = true;
+				Setting.bgType = 1;
 				InvalidateRect(hParent, NULL, TRUE);
 			}
 		}
@@ -222,6 +248,7 @@ LRESULT Alsong_Panel::on_message(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 // {E859B366-AF66-45f6-9BE1-234FD363825F}
 
 const GUID Alsong_Panel::g_extension_guid = { 0xe859b366, 0xaf66, 0x45f6, { 0x98, 0xe1, 0x23, 0x4f, 0xd3, 0x63, 0x82, 0x5f } };
+const GUID Alsong_Panel::g_mimic_extension_guid = { 0x95B64E70, 0xA978, 0x4819, { 0x9c, 0xc0, 0xc2, 0x22, 0x3c, 0x6e, 0x3f, 0x9c } };
 
 uie::window_factory<Alsong_Panel> g_lyric_window_factory;
 
