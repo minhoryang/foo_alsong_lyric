@@ -553,7 +553,7 @@ SquirrelVMSys Common_UI_Base::InitializeScript()
 void Common_UI_Base::UnInitializeScript(SquirrelVMSys *vm)
 {
 	SquirrelVM::SetVMSys(*vm);
-	SquirrelVM::Shutdown();
+	//SquirrelVM::Shutdown();
 }
 
 void Common_UI_Base::RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting)
@@ -605,8 +605,9 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
 	Graphics g(&Backbuffer);
 	g.SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
+	g.FillRectangle(&(SolidBrush(Color(255, 255, 255))), 0, 0, ClientRect.right, ClientRect.bottom); //일단 하얗게 불태...
 
-	if(WndInfo[hWnd]->BackImage)
+	if(Setting->bgType)
 	{
 		if(g.DrawImage(WndInfo[hWnd]->BackImageCache, 0, 0, ClientRect.right, ClientRect.bottom) != Ok)
 		{

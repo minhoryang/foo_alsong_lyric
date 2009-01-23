@@ -153,6 +153,8 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 
 	md5(buf, min(0x28000, (size_t)(*file)->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 ÀÏ¼öµµ
 
+	free(buf);
+
 	CHAR HexArray[] = "0123456789abcdef";
 
 	for(i = 0; i < 32; i += 2)

@@ -50,6 +50,8 @@ class initquit_alsong : public initquit
 		timeEndPeriod(ptc.wPeriodMin);
 		WSACleanup();
 		GdiplusShutdown(gdiplus_token);
+
+		SquirrelVM::AppFinalShutdown();
 	}
 };
 
