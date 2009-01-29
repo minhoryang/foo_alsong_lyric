@@ -605,9 +605,11 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 	//TODO:이걸 스크립트로
 	RECT ClientRect;
 	GetClientRect(hWnd, &ClientRect);
-	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom);
+	Bitmap Backbuffer(ClientRect.right, ClientRect.bottom, PixelFormat32bppARGB);
 	Graphics g(&Backbuffer);
-	g.SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
+
+	g.SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);	
+
 
 	if(Setting->bgType == 1)
 	{
@@ -625,12 +627,14 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 				0, 0, ClientRect.right, ClientRect.bottom);
 		else if(Setting->bgType == 2)
 		{
+			HDC hdc = g.GetHDC();
 			HWND wnd_parent = GetParent(hWnd);
 			POINT pt = {0, 0}, pt_old = {0,0};
 			MapWindowPoints(hWnd, wnd_parent, &pt, 1);
 			OffsetWindowOrgEx(hdc, pt.x, pt.y, &pt_old);
 			BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
 			SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0);
+			g.ReleaseHDC(hdc);
 		}
 	}
 
