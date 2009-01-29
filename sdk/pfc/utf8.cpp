@@ -166,24 +166,18 @@ t_size utf8_encode_char(unsigned wide,char * target) throw()
 
 t_size utf16_encode_char(unsigned cur_wchar,wchar_t * out) throw()
 {
-	if (cur_wchar>0 && cur_wchar<(1<<20))
-	{
-		if (sizeof(wchar_t) == 2 && cur_wchar>=0x10000)
-		{
-			unsigned c = cur_wchar - 0x10000;
-			//MSDN:
-			//The first (high) surrogate is a 16-bit code value in the range U+D800 to U+DBFF. The second (low) surrogate is a 16-bit code value in the range U+DC00 to U+DFFF. Using surrogates, Unicode can support over one million characters. For more details about surrogates, refer to The Unicode Standard, version 2.0.
-			out[0] = (wchar_t)(0xD800 | (0x3FF & (c>>10)) );
-			out[1] = (wchar_t)(0xDC00 | (0x3FF & c) ) ;
-			return 2;
-		}
-		else
-		{
-			*out = (wchar_t)cur_wchar;
-			return 1;
-		}
+	if (cur_wchar < 0x10000) {
+		*out = (wchar_t) cur_wchar; return 1;
+	} else if (cur_wchar < (1 << 20)) {
+		unsigned c = cur_wchar - 0x10000;
+		//MSDN:
+		//The first (high) surrogate is a 16-bit code value in the range U+D800 to U+DBFF. The second (low) surrogate is a 16-bit code value in the range U+DC00 to U+DFFF. Using surrogates, Unicode can support over one million characters. For more details about surrogates, refer to The Unicode Standard, version 2.0.
+		out[0] = (wchar_t)(0xD800 | (0x3FF & (c>>10)) );
+		out[1] = (wchar_t)(0xDC00 | (0x3FF & c) ) ;
+		return 2;
+	} else {
+		*out = '?'; return 1;
 	}
-	return 0;
 }
 
 t_size utf16_decode_char(const wchar_t * p_source,unsigned * p_out,t_size p_source_length) throw() {

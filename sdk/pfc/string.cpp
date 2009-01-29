@@ -797,12 +797,54 @@ format_file_size_short::format_file_size_short(t_uint64 size) {
 	*this << ( size  / scale );
 
 	if (scale > 1 && length() < 3) {
-		const t_size digits = 3 - length();
+		t_size digits = 3 - length();
 		const t_uint64 mask = pow_int(10,digits);
-		*this << "." << format_uint(( (size * mask / scale) % mask ), (t_uint32)digits);
+		t_uint64 remaining = ( (size * mask / scale) % mask );
+		while(digits > 0 && (remaining % 10) == 0) {
+			remaining /= 10; --digits;
+		}
+		if (digits > 0) {
+			*this << "." << format_uint(remaining, (t_uint32)digits);
+		}
 	}
 	*this << unit;
 	m_scale = scale;
 }
+
+bool string_base::truncate_eol(t_size start)
+{
+	const char * ptr = get_ptr() + start;
+	for(t_size n=start;*ptr;n++)
+	{
+		if (*ptr==10 || *ptr==13)
+		{
+			truncate(n);
+			return true;
+		}
+		ptr++;
+	}
+	return false;
 }
 
+bool string_base::fix_eol(const char * append,t_size start)
+{
+	const bool rv = truncate_eol(start);
+	if (rv) add_string(append);
+	return rv;
+}
+
+bool string_base::limit_length(t_size length_in_chars,const char * append)
+{
+	bool rv = false;
+	const char * base = get_ptr(), * ptr = base;
+	while(length_in_chars && utf8_advance(ptr)) length_in_chars--;
+	if (length_in_chars==0)
+	{
+		truncate(ptr-base);
+		add_string(append);
+		rv = true;
+	}
+	return rv;
+}
+
+} //namespace pfc

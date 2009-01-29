@@ -87,6 +87,7 @@ public:
 	void set_state(bool p_state) {m_state = p_state;}
 	bool is_radio() {return p_is_radio;}
 	double get_sort_priority() {return m_priority;}
+	bool get_state_() const {return m_state;}
 private:
 	pfc::string8 m_name;
 	const bool m_initialstate;
@@ -111,7 +112,7 @@ public:
 	advconfig_checkbox_factory_t(const char * p_name,const GUID & p_guid,const GUID & p_parent,double p_priority,bool p_initialstate) 
 		: service_factory_single_t<advconfig_entry_checkbox_impl<p_is_radio> >(p_name,p_guid,p_parent,p_priority,p_initialstate) {}
 
-	bool get() const {return get_static_instance().get_state();}
+	bool get() const {return get_static_instance().get_state_();}
 	void set(bool val) {get_static_instance().set_state(val);}
 	operator bool() const {return get();}
 	bool operator=(bool val) {set(val); return val;}

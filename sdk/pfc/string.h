@@ -155,6 +155,11 @@ namespace pfc {
 		t_size find_last(const char * p_string,t_size p_start = ~0) const {return pfc::string_find_last(get_ptr(),p_string,p_start);}
 
 		void fix_dir_separator(char p_char);
+
+		bool truncate_eol(t_size start = 0);
+		bool fix_eol(const char * append = " (...)",t_size start = 0);
+		bool limit_length(t_size length_in_chars,const char * append = " (...)");
+
 	protected:
 		string_base() {}
 		~string_base() {}
@@ -270,9 +275,6 @@ namespace pfc {
 		void remove_chars(t_size first,t_size count); //slow
 		void insert_chars(t_size first,const char * src, t_size count);//slow
 		void insert_chars(t_size first,const char * src);
-		bool truncate_eol(t_size start = 0);
-		bool fix_eol(const char * append = " (...)",t_size start = 0);
-		bool limit_length(t_size length_in_chars,const char * append = " (...)");
 
 		//for string_buffer class
 		char * lock_buffer(t_size n)
@@ -284,8 +286,10 @@ namespace pfc {
 		}
 
 		void unlock_buffer() {
-			used=strlen(m_data.get_ptr());
-			makespace(used+1);
+			if (m_data.get_size() > 0) {
+				used=strlen(m_data.get_ptr());
+				makespace(used+1);
+			}
 		}
 
 		void force_reset() {used=0;m_data.force_reset();}

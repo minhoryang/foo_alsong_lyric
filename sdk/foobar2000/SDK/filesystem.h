@@ -198,17 +198,17 @@ namespace foobar2000_io
 		//! @returns Read/write cursor position
 		virtual t_filesize get_position(abort_callback & p_abort) = 0;
 
-		//! Resizes file to specified size in bytes.
+		//! Resizes file to the specified size in bytes.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
 		virtual void resize(t_filesize p_size,abort_callback & p_abort) = 0;
 
-		//! Sets read/write cursor position to specific offset.
+		//! Sets read/write cursor position to the specified offset.
 		//! @param p_position position to seek to.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
 		virtual void seek(t_filesize p_position,abort_callback & p_abort) = 0;
 
 		
-		//! Sets read/write cursor position to specific offset; extended form allowing seeking relative to current position or to end of file.
+		//! Sets read/write cursor position to the specified offset; extended form allowing seeking relative to current position or to end of file.
 		//! @param p_position Position to seek to; interpretation of this value depends on p_mode parameter.
 		//! @param p_mode Seeking mode; see t_seek_mode enum values for further description.
 		//! @param p_abort abort_callback object signaling user aborting the operation.
@@ -485,6 +485,12 @@ namespace foobar2000_io
 
 
 	t_filetimestamp filetimestamp_from_system_timer();
+
+#ifdef _WIN32
+	inline t_filetimestamp import_filetimestamp(FILETIME ft) {
+		return *reinterpret_cast<t_filetimestamp*>(&ft);
+	}
+#endif
 
 	void generate_temp_location_for_file(pfc::string_base & p_out, const char * p_origpath,const char * p_extension,const char * p_magic);
 

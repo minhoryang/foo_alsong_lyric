@@ -116,6 +116,10 @@ namespace pfc {
 		t_size length() const {return m_content->get_length();}
 		t_size get_length() const {return m_content->get_length();}
 
+		void set_string(const char * ptr, t_size len = ~0) {
+			*this = string(ptr, len);
+		}
+
 		static bool isNonTextChar(char c) {return c >= 0 && c < 32;}
 
 		char operator[](t_size p_index) const {

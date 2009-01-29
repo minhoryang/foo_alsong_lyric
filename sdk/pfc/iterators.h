@@ -22,6 +22,7 @@ namespace pfc {
 		
 		bool is_empty() const throw() {return m_content.is_empty();}
 		bool is_valid() const throw() {return m_content.is_valid();}
+		void invalidate() throw() {m_content = NULL;}
 
 		void walk(bool forward) throw() {m_content = m_content->walk(forward);}
 		void prev() throw() {m_content = m_content->prev();}

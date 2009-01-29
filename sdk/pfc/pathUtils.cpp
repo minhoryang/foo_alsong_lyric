@@ -138,6 +138,7 @@ static bool isIllegalTrailingChar(char c) {
 }
 
 string validateFileName(string name) {
+	while(name.endsWith('?')) name = name.subString(0, name.length() - 1);
 #ifdef _WINDOWS
 	name = replaceIllegalNameChars(name);
 	if (name.length() > 0) {

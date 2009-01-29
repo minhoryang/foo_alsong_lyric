@@ -17,81 +17,82 @@ namespace pfc {
 	private:
 		typedef map_t<t_storage_key,t_storage_value,t_comparator> t_self;
 	public:
-		template<typename t_key,typename t_value>
-		void set(const t_key & p_key, const t_value & p_value) {
+		typedef t_storage_key t_key; typedef t_storage_value t_value;
+		template<typename _t_key,typename _t_value>
+		void set(const _t_key & p_key, const _t_value & p_value) {
 			bool isnew;
-			t_storage & storage = m_data.add_ex(t_search_set<t_key,t_value>(p_key,p_value), isnew);
+			t_storage & storage = m_data.add_ex(t_search_set<_t_key,_t_value>(p_key,p_value), isnew);
 			if (!isnew) storage.m_value = p_value;
 		}
 
-		template<typename t_key>
-		t_storage_value & find_or_add(t_key const & p_key) {
-			return m_data.add(t_search_query<t_key>(p_key)).m_value;
+		template<typename _t_key>
+		t_storage_value & find_or_add(_t_key const & p_key) {
+			return m_data.add(t_search_query<_t_key>(p_key)).m_value;
 		}
 
-		template<typename t_key>
-		t_storage_value & find_or_add_ex(t_key const & p_key,bool & p_isnew) {
-			return m_data.add_ex(t_search_query<t_key>(p_key),p_isnew).m_value;
+		template<typename _t_key>
+		t_storage_value & find_or_add_ex(_t_key const & p_key,bool & p_isnew) {
+			return m_data.add_ex(t_search_query<_t_key>(p_key),p_isnew).m_value;
 		}
 
-		template<typename t_key>
-		bool have_item(const t_key & p_key) const {
-			return m_data.have_item(t_search_query<t_key>(p_key));
+		template<typename _t_key>
+		bool have_item(const _t_key & p_key) const {
+			return m_data.have_item(t_search_query<_t_key>(p_key));
 		}
 
-		template<typename t_key,typename t_value>
-		bool query(const t_key & p_key,t_value & p_value) const {
-			const t_storage * storage = m_data.find_ptr(t_search_query<t_key>(p_key));
+		template<typename _t_key,typename _t_value>
+		bool query(const _t_key & p_key,_t_value & p_value) const {
+			const t_storage * storage = m_data.find_ptr(t_search_query<_t_key>(p_key));
 			if (storage == NULL) return false;
 			p_value = storage->m_value;
 			return true;
 		}
 
-		template<typename t_key>
-		const t_storage_value & operator[] (const t_key & p_key) const {
+		template<typename _t_key>
+		const t_storage_value & operator[] (const _t_key & p_key) const {
 			const t_storage_value * ptr = query_ptr(p_key);
 			if (ptr == NULL) throw exception_map_entry_not_found();
 			return *ptr;
 		}
 
-		template<typename t_key>
-		t_storage_value & operator[] (const t_key & p_key) {
+		template<typename _t_key>
+		t_storage_value & operator[] (const _t_key & p_key) {
 			return find_or_add(p_key);
 		}
 
-		template<typename t_key>
-		const t_storage_value * query_ptr(const t_key & p_key) const {
-			const t_storage * storage = m_data.find_ptr(t_search_query<t_key>(p_key));
+		template<typename _t_key>
+		const t_storage_value * query_ptr(const _t_key & p_key) const {
+			const t_storage * storage = m_data.find_ptr(t_search_query<_t_key>(p_key));
 			if (storage == NULL) return NULL;
 			return &storage->m_value;
 		}
 
-		template<typename t_key>
-		t_storage_value * query_ptr(const t_key & p_key) {
-			t_storage * storage = m_data.find_ptr(t_search_query<t_key>(p_key));
+		template<typename _t_key>
+		t_storage_value * query_ptr(const _t_key & p_key) {
+			t_storage * storage = m_data.find_ptr(t_search_query<_t_key>(p_key));
 			if (storage == NULL) return NULL;
 			return &storage->m_value;
 		}
 
-		template<bool inclusive,bool above,typename t_key>
-		const t_storage_value * query_nearest_ptr(t_key & p_key) const {
-			const t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<t_key>(p_key));
-			if (storage == NULL) return NULL;
-			p_key = storage->m_key;
-			return &storage->m_value;
-		}
-
-		template<bool inclusive,bool above,typename t_key>
-		t_storage_value * query_nearest_ptr(t_key & p_key) {
-			t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<t_key>(p_key));
+		template<bool inclusive,bool above,typename _t_key>
+		const t_storage_value * query_nearest_ptr(_t_key & p_key) const {
+			const t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<_t_key>(p_key));
 			if (storage == NULL) return NULL;
 			p_key = storage->m_key;
 			return &storage->m_value;
 		}
 
-		template<bool inclusive,bool above,typename t_key,typename t_value>
-		bool query_nearest(t_key & p_key,t_value & p_value) const {
-			const t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<t_key>(p_key));
+		template<bool inclusive,bool above,typename _t_key>
+		t_storage_value * query_nearest_ptr(_t_key & p_key) {
+			t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<_t_key>(p_key));
+			if (storage == NULL) return NULL;
+			p_key = storage->m_key;
+			return &storage->m_value;
+		}
+
+		template<bool inclusive,bool above,typename _t_key,typename _t_value>
+		bool query_nearest(_t_key & p_key,_t_value & p_value) const {
+			const t_storage * storage = m_data.find_nearest_item<inclusive,above>(t_search_query<_t_key>(p_key));
 			if (storage == NULL) return false;
 			p_key = storage->m_key;
 			p_value = storage->m_value;
@@ -99,9 +100,9 @@ namespace pfc {
 		}
 
 		
-		template<typename t_key>
-		bool remove(const t_key & p_key) {
-			return m_data.remove_item(t_search_query<t_key>(p_key));
+		template<typename _t_key>
+		bool remove(const _t_key & p_key) {
+			return m_data.remove_item(t_search_query<_t_key>(p_key));
 		}
 
 		template<typename t_callback>
@@ -126,47 +127,47 @@ namespace pfc {
 		}
 
 		//backwards compatibility method wrappers
-		template<typename t_key> bool exists(const t_key & p_key) const {return have_item(p_key);}
+		template<typename _t_key> bool exists(const _t_key & p_key) const {return have_item(p_key);}
 
 
-		template<typename t_key> bool get_first(t_key & p_out) const {
-			return m_data.get_first(t_retrieve_key<t_key>(p_out));
+		template<typename _t_key> bool get_first(_t_key & p_out) const {
+			return m_data.get_first(t_retrieve_key<_t_key>(p_out));
 		}
 
-		template<typename t_key> bool get_last(t_key & p_out) const {
-			return m_data.get_last(t_retrieve_key<t_key>(p_out));
+		template<typename _t_key> bool get_last(_t_key & p_out) const {
+			return m_data.get_last(t_retrieve_key<_t_key>(p_out));
 		}
 
 	private:
-		template<typename t_key>
+		template<typename _t_key>
 		struct t_retrieve_key {
-			typedef t_retrieve_key<t_key> t_self;
-			t_retrieve_key(t_key & p_key) : m_key(p_key) {}
+			typedef t_retrieve_key<_t_key> t_self;
+			t_retrieve_key(_t_key & p_key) : m_key(p_key) {}
 			template<typename t_what> const t_self & operator=(const t_what & p_what) {m_key = p_what.m_key; return *this;}
-			t_key & m_key;
+			_t_key & m_key;
 		};
-		template<typename t_key>
+		template<typename _t_key>
 		struct t_search_query {
-			t_search_query(const t_key & p_key) : m_key(p_key) {}
-			t_key const & m_key;
+			t_search_query(const _t_key & p_key) : m_key(p_key) {}
+			_t_key const & m_key;
 		};
-		template<typename t_key,typename t_value>
+		template<typename _t_key,typename _t_value>
 		struct t_search_set {
-			t_search_set(const t_key & p_key, const t_value & p_value) : m_key(p_key), m_value(p_value) {}
+			t_search_set(const _t_key & p_key, const _t_value & p_value) : m_key(p_key), m_value(p_value) {}
 
-			t_key const & m_key;
-			t_value const & m_value;
+			_t_key const & m_key;
+			_t_value const & m_value;
 		};
 
 		struct t_storage {
 			const t_storage_key m_key;
 			t_storage_value m_value;
 			
-			template<typename t_key>
-			t_storage(t_search_query<t_key> const & p_source) : m_key(p_source.m_key), m_value() {}
+			template<typename _t_key>
+			t_storage(t_search_query<_t_key> const & p_source) : m_key(p_source.m_key), m_value() {}
 
-			template<typename t_key,typename t_value>
-			t_storage(t_search_set<t_key,t_value> const & p_source) : m_key(p_source.m_key), m_value(p_source.m_value) {}
+			template<typename _t_key,typename _t_value>
+			t_storage(t_search_set<_t_key,_t_value> const & p_source) : m_key(p_source.m_key), m_value(p_source.m_value) {}
 
 			static bool equals(const t_storage & v1, const t_storage & v2) {return v1.m_key == v2.m_key && v1.m_value == v2.m_value;}
 			bool operator==(const t_storage & other) const {return equals(*this,other);}

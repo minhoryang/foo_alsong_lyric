@@ -139,9 +139,7 @@ namespace pfc {
 				
 				{
 					wchar_t temp[2];
-					delta = utf16_encode_char(newchar,temp);
-					if (delta == 0) break;
-					retval += delta;
+					retval += utf16_encode_char(newchar,temp);
 				}
 			}
 			return retval;
@@ -160,9 +158,7 @@ namespace pfc {
 				
 				{
 					wchar_t temp[2];
-					delta = utf16_encode_char(newchar,temp);
-					if (delta == 0) break;
-					retval += delta;
+					retval += utf16_encode_char(newchar,temp);
 				}
 			}
 			return retval;

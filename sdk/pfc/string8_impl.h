@@ -75,46 +75,6 @@ void string8_t<t_alloc>::insert_chars(t_size first,const char * src, t_size coun
 template<template<typename> class t_alloc>
 void string8_t<t_alloc>::insert_chars(t_size first,const char * src) {insert_chars(first,src,strlen(src));}
 
-template<template<typename> class t_alloc>
-bool string8_t<t_alloc>::truncate_eol(t_size start)
-{
-	t_size n;
-	const char * ptr = m_data.get_ptr() + start;
-	for(n=start;n<used;n++)
-	{
-		if (*ptr==10 || *ptr==13)
-		{
-			truncate(n);
-			return true;
-		}
-		ptr++;
-	}
-	return false;
-}
-
-template<template<typename> class t_alloc>
-bool string8_t<t_alloc>::fix_eol(const char * append,t_size start)
-{
-	bool rv = truncate_eol(start);
-	if (rv) add_string(append);
-	return rv;
-}
-
-
-template<template<typename> class t_alloc>
-bool string8_t<t_alloc>::limit_length(t_size length_in_chars,const char * append)
-{
-	bool rv = false;
-	const char * base = get_ptr(), * ptr = base;
-	while(length_in_chars && utf8_advance(ptr)) length_in_chars--;
-	if (length_in_chars==0)
-	{
-		truncate(ptr-base);
-		add_string(append);
-		rv = true;
-	}
-	return rv;
-}
 
 template<template<typename> class t_alloc>
 t_size string8_t<t_alloc>::replace_nontext_chars(char p_replace)
