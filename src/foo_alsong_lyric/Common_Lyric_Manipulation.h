@@ -42,6 +42,8 @@ public:
 
 	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
 	DWORD LoadFromFile(WCHAR *LoadFrom, CHAR *fmt);
+
+	BOOL HasLyric();
 };
 
 void md5( unsigned char *input, int ilen, unsigned char output[16] );

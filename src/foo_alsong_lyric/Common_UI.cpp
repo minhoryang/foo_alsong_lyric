@@ -237,7 +237,7 @@ void Common_UI_Base::GetLRCSavePath(WCHAR *path)
 
 void Common_UI_Base::on_playback_pause(bool p_state)
 {
-	if(Lyric->GetLyric(0))
+	if(Lyric->HasLyric())
 	{
 		if(p_state == true)
 		{
@@ -257,7 +257,7 @@ void Common_UI_Base::on_playback_pause(bool p_state)
 
 void Common_UI_Base::on_playback_stop(play_control::t_stop_reason reason)
 {
-	if(Lyric->GetLyric(0))
+	if(Lyric->HasLyric())
 	{
 		SetEvent(hLyricThreadQuit);
 		WaitForSingleObject(hLyricThread, INFINITE);
@@ -359,7 +359,7 @@ UINT CALLBACK Common_UI_Base::LyricCountThread(LPVOID lpParameter)
 
 void Common_UI_Base::on_playback_time(double p_time)
 {
-	if(Lyric->GetLyric(0) != NULL) // 가사 있음
+	if(Lyric->HasLyric() != NULL) // 가사 있음
 	{
 		NowTime = (DWORD)p_time * 100;
 		SetEvent(hTime);
@@ -372,7 +372,7 @@ void Common_UI_Base::on_playback_seek(double p_time)
 	int MinTime = INT_MAX;
 	int temp;
 	
-	if(Lyric->GetLyric(0))
+	if(Lyric->HasLyric())
 	{
 		SetEvent(hLyricThreadQuit);
 		WaitForSingleObject(hLyricThread, INFINITE);
@@ -403,6 +403,43 @@ void Common_UI_Base::on_playback_seek(double p_time)
 		hLyricThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)LyricCountThread, (LPVOID)this, NULL, NULL); //스레드 재생성
 	}
 }
+
+void Common_UI_Base::ReloadLyric()
+{
+	if(Lyric->HasLyric())
+	{
+		SetEvent(hLyricThreadQuit);
+		WaitForSingleObject(hLyricThread, INFINITE);
+		CloseHandle(hLyricThread);
+		ResetEvent(hLyricThreadQuit);
+		hLyricThread = 0;
+	}
+
+	Lyric->ClearLyric();
+
+	InvalidateAllWindow();
+	
+	metadb_handle_ptr p_track;
+	static_api_ptr_t<play_control> pc;
+	pc->get_now_playing(p_track);
+
+	NowPlaying_Path = p_track->get_path();
+	
+	CloseHandle(CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)LyricFetchThread, (LPVOID)this, NULL, NULL));
+	
+	//제목 설정
+	service_ptr_t<titleformat_object> to;
+	pfc::string8 str;
+
+	static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "[%artist% - ]%title%");
+	p_track->format_title(NULL, str, to, NULL);
+
+	for each(pair<HWND, WindowInfo *> i in WndInfo)
+	{
+		uSetWindowText(i.first, str.get_ptr());
+	}
+}
+
 //TODO: 정비
 
 HWND hToolTipWindow;
@@ -659,7 +696,7 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 		format.SetAlignment(StringAlignmentFar);
 	format.SetTrimming(StringTrimmingNone);
 
-	if(Lyric->GetLyric(0) != NULL && static_api_ptr_t<play_control>()->is_playing()) // 가사 있음
+	if(Lyric->HasLyric() != NULL && static_api_ptr_t<play_control>()->is_playing()) // 가사 있음
 	{
 		REAL fontHeight = font.GetHeight(&g);
 

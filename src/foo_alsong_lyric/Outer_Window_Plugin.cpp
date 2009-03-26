@@ -392,7 +392,8 @@ void Outer_Window_Plugin::OnContextMenu(HWND hWndFrom)
 			handle->format_title(NULL, str1, to, NULL);
 
 			double len = handle->get_length();
-			OpenLyricModifyDialog(hWndFrom, (CHAR *)str1.get_ptr(), (CHAR *)str.get_ptr(), (CHAR *)handle->get_path(), len);
+			if(OpenLyricModifyDialog(hWndFrom, (CHAR *)str1.get_ptr(), (CHAR *)str.get_ptr(), (CHAR *)handle->get_path(), len))
+				Common_UI->ReloadLyric();
 		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) {
 			// Let the menu_manager execute the chosen command.

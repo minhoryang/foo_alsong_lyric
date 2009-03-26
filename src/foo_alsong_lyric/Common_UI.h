@@ -59,6 +59,8 @@ public:
 	virtual void on_playback_dynamic_info(const file_info & p_info) {}
 	virtual void on_volume_change(float p_new_val) {}
 
+	void ReloadLyric();
+
 	//Script Functions & Variables
 
 	static pair<HWND, WindowInfo *> ScriptingInfo;

@@ -24,6 +24,13 @@ void Common_Lyric_Manipulation::ClearLyric()
 	Time.clear();
 }
 
+BOOL Common_Lyric_Manipulation::HasLyric()
+{
+	if(Time.size() == 0)
+		return FALSE;
+	return TRUE;
+}
+
 const char *Common_Lyric_Manipulation::GetLyric(DWORD Line)
 {
 	if(Line < Lyric.size() && Line >= 0)
