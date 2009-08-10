@@ -28,7 +28,8 @@ void SquirrelObject::Reset(void)
         if (SquirrelVM::_VM) {
             sq_release(SquirrelVM::_VM, &_o);
         } else if (GetType() != OT_NULL && _o._unVal.pRefCounted) {
-            printf( "SquirrelObject::~SquirrelObject - Cannot release - No VM\n" );
+//            printf( "SquirrelObject::~SquirrelObject - Cannot release - No VM\n" );
+			;
         }
     }
     sq_resetobject(&_o);

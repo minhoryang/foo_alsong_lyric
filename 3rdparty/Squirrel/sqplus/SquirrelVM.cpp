@@ -135,7 +135,7 @@ bool SquirrelVM::Init( HSQUIRRELVM v ){
         // VM:s briefly, this allocation is not optimal.
         new SQSharedStateNode( _ss(v) );
         created_new = true;
-        sq_setprintfunc(v,SquirrelVM::PrintFunc);
+        sq_setprintfunc(v,SquirrelVM::PrintFunc,SquirrelVM::PrintFunc);
         sq_pushroottable(v);
         sqstd_register_iolib(v);
         sqstd_register_bloblib(v);
