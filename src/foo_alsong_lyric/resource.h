@@ -38,7 +38,9 @@
 #define IDC_STATUS                      1035
 #define IDC_LRCPATH                     1036
 #define IDC_EDIT1                       1037
+#define IDC_LINEMARGIN                  1037
 #define IDC_SPIN1                       1038
+#define IDC_MARGINSPIN                  1038
 #define IDC_BUTTON2                     1040
 #define IDC_OUTERSET                    1040
 #define IDC_OUTERNOTIFY_STATIC          1042

@@ -485,6 +485,7 @@ LRESULT Common_UI_Base::Process_Message(HWND hWnd, UINT iMessage, WPARAM wParam,
 		{
 			NowSetting->font.from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 			NowSetting->nLine = 3; //기본값 3줄
+			NowSetting->LineMargin = 100;
 			if(isOuter)
 				NowSetting->bgType = 0;
 			else
@@ -737,7 +738,7 @@ void Common_UI_Base::RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting
 		rt.Y = (REAL)(emptycnt * fontHeight);
 		rt.Width = ClientRect.right - rt.X;
 		rt.Height = ClientRect.bottom - rt.Y;
-		int LineMargin = 0;
+		
 		bool bMesaure = true;
 drawloop: //먼저 위아래 길이를 재고 다시 그린다. 귀찮아서 goto....
 		for(i = start; i < end; i ++)
@@ -766,9 +767,9 @@ drawloop: //먼저 위아래 길이를 재고 다시 그린다. 귀찮아서 goto....
 					g.DrawString(OutLine, -1, &font, rt, &format, &fontbrush);
 			}
 			if(trt.Height == 0)//가끔씩 Height가 0이다. 왜그럴까
-				rt.Y += (REAL)(fontHeight + LineMargin);
+				rt.Y += (REAL)(fontHeight + fontHeight * Setting->LineMargin / 100);
 			else
-				rt.Y += (REAL)(trt.Height + LineMargin);
+				rt.Y += (REAL)(trt.Height + trt.Height * Setting->LineMargin / 100);
 		}
 		if(bMesaure == true)
 		{

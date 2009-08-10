@@ -265,10 +265,10 @@ void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_cal
 	p_reader->read(&t, sizeof(int), p_abort);
 	if(t == ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O')) //signature
 	{
-		if(p_size + 4>= sizeof(Window_Setting))
+		if(p_size - 4>= sizeof(Window_Setting))
 		{
 			p_reader->read(&Setting_temp, sizeof(Window_Setting), p_abort);
-			if(p_size > sizeof(Window_Setting))
+			if(p_size - 4 > sizeof(Window_Setting))
 				p_reader->read_string(Script, p_abort);
 			
 			memcpy(&Setting, &Setting_temp, sizeof(Window_Setting));
