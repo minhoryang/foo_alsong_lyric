@@ -261,19 +261,27 @@ void Alsong_Panel::get_menu_items (uie::menu_hook_t & p_hook)
 void Alsong_Panel::set_config(stream_reader * p_reader, t_size p_size, abort_callback & p_abort)
 {
 	Window_Setting Setting_temp;
-	if(p_size >= sizeof(Window_Setting))
+	int t;
+	p_reader->read(&t, sizeof(int), p_abort);
+	if(t == ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O')) //signature
 	{
-		p_reader->read(&Setting_temp, sizeof(Window_Setting), p_abort);
-		if(p_size > sizeof(Window_Setting))
-			p_reader->read_string(Script, p_abort);
-		
-		memcpy(&Setting, &Setting_temp, sizeof(Window_Setting));
-		Setting.Script = &Script;
+		if(p_size + 4>= sizeof(Window_Setting))
+		{
+			p_reader->read(&Setting_temp, sizeof(Window_Setting), p_abort);
+			if(p_size > sizeof(Window_Setting))
+				p_reader->read_string(Script, p_abort);
+			
+			memcpy(&Setting, &Setting_temp, sizeof(Window_Setting));
+			Setting.Script = &Script;
+		}
 	}
 }
 
 void Alsong_Panel::get_config(stream_writer * p_writer, abort_callback & p_abort) const
 {
+	int t;
+	t = ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O');
+	p_writer->write(&t, sizeof(int), p_abort);
 	p_writer->write(&Setting, sizeof(Window_Setting), p_abort);
 	if(Setting.Script)
 		p_writer->write_string(Setting.Script->get_ptr(), p_abort);
