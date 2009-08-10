@@ -186,7 +186,8 @@ LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARA
 	case WM_NCPAINT:
 		break;
 	case WM_DESTROY:
-		cfg_outer_window_placement.on_window_destruction(hWnd);
+		if(!IsIconic(hWnd))
+			cfg_outer_window_placement.on_window_destruction(hWnd);
 		break;
 	case WM_CREATE:
 		cfg_outer_window_placement.on_window_creation(hWnd);
@@ -198,37 +199,10 @@ LRESULT CALLBACK Outer_Window_Plugin::WindowProc(HWND hWnd, UINT iMessage, WPARA
 				break;
 			RECT rt;
 			GetWindowRect(hWnd, &rt);
-			int ScrWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN); //화면크기 구하기
-			int ScrHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-			int t = 0;//TODO:Test
-			int x, y;
-			x = rt.left;
-			y = rt.top;
 
-			if(rt.bottom < 0)
-			{
-				x = 0;
-				t = 1;
-			}
-			if(rt.right < 0)
-			{
-				y = 0;
-				t = 1;
-			}
-			if(rt.left > ScrWidth - 10)
-			{
-				x = ScrWidth - 10;
-				t = 1;
-			}
-			if(rt.top > ScrHeight - 10)
-			{
-				y = ScrHeight - 10;
-				t = 1;
-			}
-			if(t == 1)
-			{
-				SetWindowPos(hWnd, NULL, x, y, 500, 200, SWP_NOZORDER);
-			}
+			if(rt.right - rt.left < 10 || rt.bottom - rt.top < 10)
+				SetWindowPos(hWnd, NULL, rt.left, rt.right, (rt.right - rt.left < 10) ? 500 : rt.right - rt.left, (rt.bottom - rt.top < 10) ? 200 : rt.bottom - rt.top, SWP_NOZORDER);
+			
 		}
 		break;
 	}
