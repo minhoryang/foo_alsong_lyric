@@ -38,8 +38,8 @@ public:
 //! Helper; implements standard functionality required by app_close_blocking_task implementations - registers/unregisters the task on construction/destruction.
 class app_close_blocking_task_impl : public app_close_blocking_task {
 public:
-	app_close_blocking_task_impl() { try { static_api_ptr_t<app_close_blocking_task_manager>()->register_task(this); } catch(exception_service_not_found) {/*user runs pre-0.9.5.1*/}}
-	~app_close_blocking_task_impl() { try { static_api_ptr_t<app_close_blocking_task_manager>()->unregister_task(this); } catch(exception_service_not_found) {/*user runs pre-0.9.5.1*/}}
+	app_close_blocking_task_impl() { static_api_ptr_t<app_close_blocking_task_manager>()->register_task(this);}
+	~app_close_blocking_task_impl() { static_api_ptr_t<app_close_blocking_task_manager>()->unregister_task(this);}
 
 	void query_task_name(pfc::string_base & out) { out = "<unnamed task>"; }
 };

@@ -126,8 +126,11 @@ HRESULT IDataObjectUtils::ExtractDataObjectContentTest(pfc::com_ptr_t<IDataObjec
 		if ((ExtractDataObjectContent_SupportedTymeds & tymed) != 0) {
 			fmt.tymed = tymed;
 			HRESULT state = obj->QueryGetData(&fmt);
-			if (SUCCEEDED(state)) return S_OK;
-			if (state != DV_E_TYMED) return state;
+			if (SUCCEEDED(state)) {
+				if (state == S_OK) return S_OK;
+			} else {
+				if (state != DV_E_TYMED) return state;
+			}
 		}
 	}
 	return E_FAIL;

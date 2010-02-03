@@ -73,7 +73,7 @@ namespace foobar2000_io
 	static const t_filestats filestats_invalid = {filesize_invalid,filetimestamp_invalid};
 
 #ifdef _WIN32
-	void exception_io_from_win32(DWORD p_code);
+	PFC_NORETURN void exception_io_from_win32(DWORD p_code);
 #define WIN32_IO_OP(X) {SetLastError(NO_ERROR); if (!(X)) exception_io_from_win32(GetLastError());}
 #endif
 
@@ -307,6 +307,18 @@ namespace foobar2000_io
 	};
 	typedef file_readonly_t<file> file_readonly;
 
+	class file_streamstub : public file_readonly {
+	public:
+		t_size read(void * p_buffer,t_size p_bytes,abort_callback & p_abort) {return 0;}
+		t_filesize get_size(abort_callback & p_abort) {return filesize_invalid;}
+		t_filesize get_position(abort_callback & p_abort) {return 0;}
+		bool get_content_type(pfc::string_base & p_out) {return false;}
+		bool is_remote() {return true;}
+		void reopen(abort_callback&) {}
+		void seek(t_filesize p_position,abort_callback & p_abort) {throw exception_io_object_not_seekable();}
+		bool can_seek() {return false;}
+	};
+
 	class filesystem;
 
 	class NOVTABLE directory_callback {
@@ -470,11 +482,13 @@ namespace foobar2000_io
 		virtual void open_archive(service_ptr_t<file> & p_out,const char * archive,const char * file, abort_callback & p_abort)=0;//opens for reading
 	public:
 		//override these
-		
 		virtual void archive_list(const char * path,const service_ptr_t<file> & p_reader,archive_callback & p_out,bool p_want_readers)=0;
 
-		static bool g_parse_unpack_path(const char * path,pfc::string8 & archive,pfc::string8 & file);
-		static void g_make_unpack_path(pfc::string_base & path,const char * archive,const char * file,const char * name);
+		
+		static bool g_is_unpack_path(const char * path);
+		static bool g_parse_unpack_path(const char * path,pfc::string_base & archive,pfc::string_base & file);
+		static bool g_parse_unpack_path_ex(const char * path,pfc::string_base & archive,pfc::string_base & file, pfc::string_base & type);
+		static void g_make_unpack_path(pfc::string_base & path,const char * archive,const char * file,const char * type);
 		void make_unpack_path(pfc::string_base & path,const char * archive,const char * file);
 
 		
@@ -590,6 +604,29 @@ namespace foobar2000_io
 		pfc::string_formatter temp;
 		filesystem::g_get_canonical_path(pfc::stringToPtr(source),temp);
 		return temp.toString();
+	}
+
+
+	static bool matchContentType(const char * fullString, const char * ourType) {
+		t_size lim = pfc::string_find_first(fullString, ';');
+		if (lim != ~0) {
+			while(lim > 0 && fullString[lim-1] == ' ') --lim;
+		}
+		return pfc::stricmp_ascii_ex(fullString,lim, ourType, ~0) == 0;
+	}
+	static bool matchProtocol(const char * fullString, const char * protocolName) {
+		const t_size len = strlen(protocolName);
+		if (pfc::stricmp_ascii_ex(fullString, len, protocolName, len) != 0) return false;
+		return fullString[len] == ':' && fullString[len+1] == '/' && fullString[len+2] == '/';
+	}
+	static void substituteProtocol(pfc::string_base & out, const char * fullString, const char * protocolName) {
+		const char * base = strstr(fullString, "://");
+		if (base) {
+			out = protocolName; out << base;
+		} else {
+			PFC_ASSERT(!"Should not get here");
+			out = fullString;
+		}
 	}
 }
 

@@ -245,6 +245,12 @@ void audio_chunk::pad_with_silence(t_size samples) {
 	}
 }
 
+void audio_chunk::set_silence(t_size samples) {
+	t_size items = samples * get_channels();
+	set_data_size(items);
+	pfc::memset_null_t(get_data(), items);
+	set_sample_count(samples);
+}
 void audio_chunk::insert_silence_fromstart(t_size samples) {
 	t_size old_size = get_sample_count() * get_channels();
 	t_size delta = samples * get_channels();
@@ -325,7 +331,7 @@ bool audio_chunk::to_raw_data(mem_block_container & out, t_uint32 bps) const {
 			render_24bit(get_data(), dataLen, out.get_ptr());
 			break;
 		case 32:
-			pfc::static_assert<sizeof(audio_sample) == 4>();
+			PFC_STATIC_ASSERT( sizeof(audio_sample) == 4 );
 			out.set(get_data(), dataLen * sizeof(audio_sample));
 			break;
 		default:

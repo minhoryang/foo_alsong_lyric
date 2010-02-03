@@ -47,10 +47,44 @@ public:
 };
 
 //! Use this to declare your component's version information. Parameters must ba plain const char * string constants. The ABOUT string can be NULL if you don't provide any information to show in the "About" dialog. \n
-//! Example: DECLARE_COMPONENT_VERSION("blah","v1.337",NULL)
+//! Example: DECLARE_COMPONENT_VERSION("blah","v1.337","")
 #define DECLARE_COMPONENT_VERSION(NAME,VERSION,ABOUT) \
-	static componentversion_impl_simple_factory g_componentversion_service(NAME,VERSION,ABOUT);
+	namespace {class componentversion_myimpl : public componentversion { public: componentversion_myimpl() {PFC_ASSERT( ABOUT );} \
+		void get_file_name(pfc::string_base & out) {out = core_api::get_my_file_name();}	\
+		void get_component_name(pfc::string_base & out) {out = NAME;}	\
+		void get_component_version(pfc::string_base & out) {out = VERSION;}	\
+		void get_about_message(pfc::string_base & out) {out = ABOUT;}	\
+		}; static service_factory_single_t<componentversion_myimpl> g_componentversion_myimpl_factory; }
+	// static componentversion_impl_simple_factory g_componentversion_service(NAME,VERSION,ABOUT);
 
 //! Same as DECLARE_COMPONENT_VERSION(), but parameters can be dynamically generated strings rather than compile-time constants.
 #define DECLARE_COMPONENT_VERSION_COPY(NAME,VERSION,ABOUT) \
 	static componentversion_impl_copy_factory g_componentversion_service(NAME,VERSION,ABOUT);
+
+
+//! \since 1.0
+//! Allows components to cleanly abort app startup in case the installation appears to have become corrupted.
+class component_installation_validator : public service_base {
+public:
+	virtual bool is_installed_correctly() = 0;
+
+	FB2K_MAKE_SERVICE_INTERFACE_ENTRYPOINT(component_installation_validator)
+};
+
+//! Simple implementation of component_installation_validator that makes sure that our component DLL has not been renamed around by idiot users.
+class component_installation_validator_filename : public component_installation_validator {
+public:
+	component_installation_validator_filename(const char * dllName) : m_dllName(dllName) {}
+	bool is_installed_correctly() {
+		const char * path = core_api::get_my_full_path();
+		path += pfc::scan_filename(path);
+		bool retVal = ( strcmp(path, m_dllName) == 0 );
+		PFC_ASSERT( retVal );
+		return retVal;
+	}
+private:
+	const char * const m_dllName;
+};
+
+#define VALIDATE_COMPONENT_FILENAME(FN) \
+	static service_factory_single_t<component_installation_validator_filename> g_component_installation_validator_filename(FN);

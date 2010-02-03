@@ -195,7 +195,7 @@ namespace pfc {
 		class enumeration_wrapper_var {
 		public:
 			enumeration_wrapper_var(t_callback & p_callback) : m_callback(p_callback) {}
-			void operator()(t_storage & p_item) {m_callback(safe_cast<t_storage_key const&>(p_item.m_key),p_item.m_value);}
+			void operator()(t_storage & p_item) {m_callback(implicit_cast<t_storage_key const&>(p_item.m_key),p_item.m_value);}
 		private:
 			t_callback & m_callback;
 		};
@@ -212,6 +212,9 @@ namespace pfc {
 		iterator last() throw() {return m_data._last_var();}
 		const_iterator first() const throw() {return m_data.first();}
 		const_iterator last() const throw() {return m_data.last();}
+
+		template<typename _t_key> iterator find(const _t_key & key) {return m_data.find(t_search_query<_t_key>(key));}
+		template<typename _t_key> const_iterator find(const _t_key & key) const {return m_data.find(t_search_query<_t_key>(key));}
 
 		static bool equals(const t_self & v1, const t_self & v2) {
 			return t_content::equals(v1.m_data,v2.m_data);

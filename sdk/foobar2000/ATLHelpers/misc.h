@@ -133,19 +133,29 @@ public:
 	END_MSG_MAP()
 };
 
+template<typename _parentClass> class CWindowFixSEH : public _parentClass { public:
+	BOOL ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& lResult, DWORD dwMsgMapID = 0) {
+		__try {
+			return _parentClass::ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult, dwMsgMapID);
+		} __except(uExceptFilterProc(GetExceptionInformation())) { return FALSE; /* should not get here */ }
+	}
+	TEMPLATE_CONSTRUCTOR_FORWARD_FLOOD(CWindowFixSEH, _parentClass);
+};
+
 template<typename TClass>
-class CWindowAutoLifetime : public TClass {
+class CWindowAutoLifetime : public CWindowFixSEH<TClass> {
 public:
-	CWindowAutoLifetime(HWND parent) : TClass() {Init(parent);}
-	template<typename TParam1> CWindowAutoLifetime(HWND parent, const TParam1 & p1) : TClass(p1) {Init(parent);}
-	template<typename TParam1,typename TParam2> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2) : TClass(p1,p2) {Init(parent);}
-	template<typename TParam1,typename TParam2, typename TParam3> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3) : TClass(p1,p2,p3) {Init(parent);}
-	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4) : TClass(p1,p2,p3,p4) {Init(parent);}
-	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4,typename TParam5> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4, const TParam5 & p5) : TClass(p1,p2,p3,p4,p5) {Init(parent);}
-	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4,typename TParam5,typename TParam6> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4, const TParam5 & p5, const TParam6 & p6) : TClass(p1,p2,p3,p4,p5,p6) {Init(parent);}
+	typedef CWindowFixSEH<TClass> TBase;
+	CWindowAutoLifetime(HWND parent) : TBase() {Init(parent);}
+	template<typename TParam1> CWindowAutoLifetime(HWND parent, const TParam1 & p1) : TBase(p1) {Init(parent);}
+	template<typename TParam1,typename TParam2> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2) : TBase(p1,p2) {Init(parent);}
+	template<typename TParam1,typename TParam2, typename TParam3> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3) : TBase(p1,p2,p3) {Init(parent);}
+	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4) : TBase(p1,p2,p3,p4) {Init(parent);}
+	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4,typename TParam5> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4, const TParam5 & p5) : TBase(p1,p2,p3,p4,p5) {Init(parent);}
+	template<typename TParam1,typename TParam2, typename TParam3, typename TParam4,typename TParam5,typename TParam6> CWindowAutoLifetime(HWND parent, const TParam1 & p1,const TParam2 & p2,const TParam3 & p3,const TParam4 & p4, const TParam5 & p5, const TParam6 & p6) : TBase(p1,p2,p3,p4,p5,p6) {Init(parent);}
 private:
 	void Init(HWND parent) {WIN32_OP(this->Create(parent) != NULL);}
-	void OnFinalMessage(HWND wnd) {PFC_ASSERT_NO_EXCEPTION( TClass::OnFinalMessage(wnd) ); PFC_ASSERT_NO_EXCEPTION(delete this);}
+	void OnFinalMessage(HWND wnd) {PFC_ASSERT_NO_EXCEPTION( TBase::OnFinalMessage(wnd) ); PFC_ASSERT_NO_EXCEPTION(delete this);}
 };
 
 template<typename TClass>
@@ -163,6 +173,54 @@ private:
 	void OnDestroy() {m_modeless.Set(NULL); SetMsgHandled(FALSE); }
 	CModelessDialogEntry m_modeless;
 };
+
+class CMenuSelectionReceiver_UiElement : public CMenuSelectionReceiver {
+public:
+	CMenuSelectionReceiver_UiElement(service_ptr_t<ui_element_instance> p_owner,unsigned p_id_base) : CMenuSelectionReceiver(p_owner->get_wnd()), m_owner(p_owner), m_id_base(p_id_base) {}
+protected:
+	bool QueryHint(unsigned p_id,pfc::string_base & p_out) {
+		return m_owner->edit_mode_context_menu_get_description(p_id,m_id_base,p_out);
+	}
+private:
+	const unsigned m_id_base;
+	const service_ptr_t<ui_element_instance> m_owner;
+};
+
+static void ui_element_instance_standard_context_menu(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
+	CPoint pt;
+	bool fromKeyboard;
+	if (p_pt == -1) {
+		fromKeyboard = true;
+		if (!p_elem->edit_mode_context_menu_get_focus_point(pt)) {
+			CRect rc;
+			WIN32_OP_D( GetWindowRect(p_elem->get_wnd(), rc) );
+			pt = rc.CenterPoint();
+		}
+	} else {
+		fromKeyboard = false;
+		pt = p_pt;
+	}
+	if (p_elem->edit_mode_context_menu_test(pt,fromKeyboard)) {
+		const unsigned idBase = 1;
+		CMenu menu;
+		WIN32_OP( menu.CreatePopupMenu() );
+		p_elem->edit_mode_context_menu_build(pt,fromKeyboard,menu,idBase);
+		
+		int cmd;
+		{
+			CMenuSelectionReceiver_UiElement receiver(p_elem,idBase);
+			cmd = menu.TrackPopupMenu(TPM_RIGHTBUTTON|TPM_NONOTIFY|TPM_RETURNCMD,pt.x,pt.y,receiver);
+		}
+		if (cmd > 0) p_elem->edit_mode_context_menu_command(pt,fromKeyboard,cmd,idBase);
+	}
+}
+static void ui_element_instance_standard_context_menu_eh(service_ptr_t<ui_element_instance> p_elem, LPARAM p_pt) {
+	try {
+		ui_element_instance_standard_context_menu(p_elem, p_pt);
+	} catch(std::exception const & e) {
+		console::complain("Context menu failure", e);
+	}
+}
 
 
 #if _WIN32_WINNT >= 0x501
@@ -250,6 +308,30 @@ private:
 	t_uint32 m_tickCount;
 };
 
+class CTypableWindowScope {
+public:
+	CTypableWindowScope() : m_wnd() {}
+	~CTypableWindowScope() {Set(NULL);}
+	void Set(HWND wnd) {
+		try {
+			if (m_wnd != NULL) {
+				static_api_ptr_t<ui_element_typable_window_manager>()->remove(m_wnd);
+			}
+			m_wnd = wnd;
+			if (m_wnd != NULL) {
+				static_api_ptr_t<ui_element_typable_window_manager>()->add(m_wnd);
+			}
+		} catch(exception_service_not_found) {
+			m_wnd = NULL;
+		}
+	}
+
+private:
+	HWND m_wnd;
+	PFC_CLASS_NOT_COPYABLE_EX(CTypableWindowScope);
+};
+
+
 class CImageListContainer : public CImageList {
 public:
 	CImageListContainer() {}
@@ -290,13 +372,14 @@ public:
 	END_MSG_MAP()
 };
 
+static bool window_service_trait_defer_destruction(const service_base *) {return true;}
 
 //! Special service_impl_t replacement for service classes that also implement ATL/WTL windows.
-
-template<typename t_base>
-class window_service_impl_t : public t_base {
+template<typename _t_base>
+class window_service_impl_t : public CWindowFixSEH<_t_base> {
 private:
-	typedef window_service_impl_t<t_base> t_self;
+	typedef window_service_impl_t<_t_base> t_self;
+	typedef CWindowFixSEH<_t_base> t_base;
 public:
 	BEGIN_MSG_MAP_EX(window_service_impl_t)
 		MSG_WM_DESTROY(OnDestroyPassThru)
@@ -306,11 +389,11 @@ public:
 	int FB2KAPI service_release() throw() {
 		int ret = --m_counter; 
 		if (ret == 0) {
-			if (!InterlockedExchange(&m_delayedDestroyInProgress,1)) {
+			if (window_service_trait_defer_destruction(this) && !InterlockedExchange(&m_delayedDestroyInProgress,1)) {
 				PFC_ASSERT_NO_EXCEPTION( service_impl_helper::release_object_delayed(this); );
 			} else if (m_hWnd != NULL) {
 				if (!m_destroyWindowInProgress) { // don't double-destroy in weird scenarios
-					PFC_ASSERT_NO_EXCEPTION( this->DestroyWindow() );
+					PFC_ASSERT_NO_EXCEPTION( ::DestroyWindow(m_hWnd) );
 				}
 			} else {
 				PFC_ASSERT_NO_EXCEPTION( delete this );
@@ -341,35 +424,39 @@ static void AppendMenuPopup(HMENU menu, UINT flags, CMenu & popup, const TCHAR *
 	popup.Detach();
 }
 
+class CMessageMapDummy : public CMessageMap { 
+public:
+	BOOL ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
+		LRESULT& lResult, DWORD dwMsgMapID) {return FALSE;}
+};
 
 class CPopupTooltipMessage {
 public:
-	CPopupTooltipMessage() : m_toolinfo() {}
+	CPopupTooltipMessage() : m_toolinfo(), m_shutDown() {}
+	void ShowFocus(const TCHAR * message, CWindow wndParent) {
+		Show(message, wndParent); wndParent.SetFocus();
+	}
 	void Show(const TCHAR * message, CWindow wndParent) {
-		if (message == NULL && m_tooltip.m_hWnd == NULL) return;
-		if (m_tooltip.m_hWnd == NULL) {
-			WIN32_OP_D( m_tooltip.Create( NULL , NULL, NULL, TTS_BALLOON | TTS_NOPREFIX | WS_POPUP) );
+		if (m_shutDown || (message == NULL && m_tooltip.m_hWnd == NULL)) return;
+		Initialize();
+		Hide();
+		
+		if (message != NULL) {
+			CRect rect;
+			WIN32_OP_D( wndParent.GetWindowRect(rect) );
+			ShowInternal(message, wndParent, rect);
 		}
-		if (m_tooltip.m_hWnd == NULL) return;
-
-		if (m_tooltip.GetToolCount() > 0) {
+	}
+	void ShowEx(const TCHAR * message, CWindow wndParent, CRect rect) {
+		if (m_shutDown) return;
+		Initialize();
+		Hide();
+		ShowInternal(message, wndParent, rect);
+	}
+	void Hide() {
+		if (m_tooltip.m_hWnd != NULL && m_tooltip.GetToolCount() > 0) {
 			m_tooltip.TrackActivate(&m_toolinfo,FALSE);
 			m_tooltip.DelTool(&m_toolinfo);
-		}
-
-		if (message != NULL) {
-			m_toolinfo.cbSize = sizeof(m_toolinfo);
-			m_toolinfo.uFlags = TTF_TRACK|TTF_IDISHWND|TTF_ABSOLUTE|TTF_TRANSPARENT|TTF_CENTERTIP;
-			m_toolinfo.hwnd = wndParent;
-			m_toolinfo.uId = 0;
-			m_toolinfo.lpszText = const_cast<TCHAR*>(message);
-			m_toolinfo.hinst = core_api::get_my_instance();
-			if (m_tooltip.AddTool(&m_toolinfo)) {
-				CRect rect;
-				WIN32_OP_D( wndParent.GetWindowRect(rect) );
-				m_tooltip.TrackPosition(rect.CenterPoint().x,rect.bottom);
-				m_tooltip.TrackActivate(&m_toolinfo,TRUE);
-			}
 		}
 	}
 
@@ -378,7 +465,120 @@ public:
 			m_tooltip.DestroyWindow();
 		}
 	}
+	void ShutDown() {
+		m_shutDown = true; CleanUp();
+	}
 private:
-	CToolTipCtrl m_tooltip;
+	void ShowInternal(const TCHAR * message, CWindow wndParent, CRect rect) {
+		PFC_ASSERT( !m_shutDown );
+		PFC_ASSERT( message != NULL );
+		PFC_ASSERT( wndParent != NULL );
+		m_toolinfo.cbSize = sizeof(m_toolinfo);
+		m_toolinfo.uFlags = TTF_TRACK|TTF_IDISHWND|TTF_ABSOLUTE|TTF_TRANSPARENT|TTF_CENTERTIP;
+		m_toolinfo.hwnd = wndParent;
+		m_toolinfo.uId = 0;
+		m_toolinfo.lpszText = const_cast<TCHAR*>(message);
+		m_toolinfo.hinst = core_api::get_my_instance();
+		if (m_tooltip.AddTool(&m_toolinfo)) {
+			m_tooltip.TrackPosition(rect.CenterPoint().x,rect.bottom);
+			m_tooltip.TrackActivate(&m_toolinfo,TRUE);
+		}
+	}
+	void Initialize() {
+		if (m_tooltip.m_hWnd == NULL) {
+			WIN32_OP( m_tooltip.Create( NULL , NULL, NULL, TTS_BALLOON | TTS_NOPREFIX | WS_POPUP) );
+		}
+	}
+	CContainedWindowSimpleT<CToolTipCtrl> m_tooltip;
 	TOOLINFO m_toolinfo;
+	bool m_shutDown;
+};
+
+
+template<typename T> class CDialogWithTooltip : public CDialogImpl<T> {
+public:
+	BEGIN_MSG_MAP(CDialogWithTooltip)
+		MSG_WM_DESTROY(OnDestroy)
+	END_MSG_MAP()
+
+	void ShowTip(UINT id, const TCHAR * label) {
+		m_tip.Show(label, GetDlgItem(id));
+	}
+
+	void ShowTipF(UINT id, const TCHAR * label) {
+		m_tip.ShowFocus(label, GetDlgItem(id));
+	}
+private:
+	void OnDestroy() {m_tip.ShutDown(); SetMsgHandled(FALSE); }
+	CPopupTooltipMessage m_tip;
+};
+
+
+
+
+
+
+
+
+static void ListView_FixContextMenuPoint(CListViewCtrl list,CPoint & coords) {
+	if (coords == CPoint(-1,-1)) {
+		int selWalk = -1;
+		CRect rcClient; WIN32_OP_D(list.GetClientRect(rcClient));
+		for(;;) {
+			selWalk = list.GetNextItem(selWalk, LVNI_SELECTED);
+			if (selWalk < 0) {
+				CRect rc;
+				WIN32_OP_D( list.GetWindowRect(&rc) );
+				coords = rc.CenterPoint();
+				return;
+			}
+			CRect rcItem, rcVisible;
+			WIN32_OP_D( list.GetItemRect(selWalk, &rcItem, LVIR_BOUNDS) );
+			if (rcVisible.IntersectRect(rcItem, rcClient)) {
+				coords = rcVisible.CenterPoint();
+				WIN32_OP_D( list.ClientToScreen(&coords) );
+				return;
+			}
+		}
+	}
+}
+
+
+template<bool managed> class CThemeT {
+public:
+	CThemeT(HTHEME source = NULL) : m_theme(source) {}
+
+	~CThemeT() {
+		Release();
+	}
+
+	HTHEME OpenThemeData(HWND wnd,LPCWSTR classList) {
+		Release();
+		return m_theme = ::OpenThemeData(wnd, classList);
+	}
+
+	void Release() {
+		HTHEME releaseme = pfc::replace_null_t(m_theme);
+		if (managed && releaseme != NULL) CloseThemeData(releaseme);
+	}
+
+	operator HTHEME() const {return m_theme;}
+	HTHEME m_theme;
+};
+typedef CThemeT<false> CThemeHandle;
+typedef CThemeT<true> CTheme;
+
+
+
+
+template<typename TDialog> class preferences_page_instance_impl : public TDialog {
+public:
+	preferences_page_instance_impl(HWND parent, preferences_page_callback::ptr callback) : TDialog(callback) {WIN32_OP(this->Create(parent) != NULL);}
+	HWND get_wnd() {return this->m_hWnd;}
+};
+template<typename TDialog> class preferences_page_impl : public preferences_page_v3 {
+public:
+	preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback) {
+		return new service_impl_t<preferences_page_instance_impl<TDialog> >(parent, callback);
+	}
 };
