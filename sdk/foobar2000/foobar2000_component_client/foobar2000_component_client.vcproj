@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="foobar2000_component_client"
-	ProjectGUID="{71AD2674-065B-48F5-B8B0-E1F9D3892081}"
+	ProjectGUID="{3D30DDBA-7D7B-4A55-8ACC-6118B3B1C654}"
 	RootNamespace="foobar2000_component_client"
 	TargetFrameworkVersion="131072"
 	>
