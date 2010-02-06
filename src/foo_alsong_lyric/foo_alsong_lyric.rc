@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 한국어 resources
+// Korean resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
 #ifdef _WIN32
@@ -166,8 +166,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,1,0,0
- PRODUCTVERSION 0,1,0,0
+ FILEVERSION 0,2,0,0
+ PRODUCTVERSION 0,2,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -183,12 +183,12 @@ BEGIN
         BLOCK "041204b0"
         BEGIN
             VALUE "FileDescription", "Alsong Lyric Plugin for Foobar2000"
-            VALUE "FileVersion", "0, 1, 0, 0"
+            VALUE "FileVersion", "0, 2, 0, 0"
             VALUE "InternalName", "foo_alsong_lyric.dll"
             VALUE "LegalCopyright", "Copyright (C) 2008"
             VALUE "OriginalFilename", "foo_alsong_lyric.dll"
             VALUE "ProductName", "Alsong Lyric Plugin for Foobar2000"
-            VALUE "ProductVersion", "0, 1, 0, 0"
+            VALUE "ProductVersion", "0, 2, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -197,7 +197,7 @@ BEGIN
     END
 END
 
-#endif    // 한국어 resources
+#endif    // Korean resources
 /////////////////////////////////////////////////////////////////////////////
 
 

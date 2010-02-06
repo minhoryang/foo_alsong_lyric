@@ -1,28 +1,47 @@
+#pragma once
 
-struct WindowInfo
+class AlsongUI : public play_callback
 {
-	Bitmap *BackImage;
-	Bitmap *BackImageCache;
-	SquirrelVMSys vm;
-};
-
-class Common_UI_Base : public play_callback
-{
-	friend class save_lrc_callback;
 private:
 	bool on_keydown(WPARAM wParam);
 	void on_contextmenu(HWND hWndFrom);
 	void GetLRCSavePath(WCHAR *path);
-	void RenderScreen(HWND hWnd, HDC hdc, Window_Setting *NowSetting, BOOL isOuter);
+	void RenderScreen(HWND hWnd, HDC hdc);
 	
 	void UnInitializeScript(SquirrelVMSys *vm);
 	SquirrelVMSys InitializeScript();
-	void RunRenderScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter);
-	void RunGlobalScript(HWND hWnd, HDC hdc, Window_Setting *Setting, BOOL isOuter);
+	void RunRenderScript(HWND hWnd, HDC hdc);
+	void RunGlobalScript(HWND hWnd, HDC hdc);
 
 	class Common_Lyric_Manipulation *Lyric;
+	HWND m_hWnd;
+	
+	class save_lrc_callback : public main_thread_callback
+	{
+		AlsongUI *UI;
+	public:
+		save_lrc_callback(AlsongUI *UIPointer)
+		{
+			UI = UIPointer;
+		}
 
-	map<HWND, WindowInfo *> WndInfo;
+		virtual void callback_run()
+		{
+			WCHAR wctemp[255];
+			pfc::string8 str;
+			str = UI->LRCSave_Path;
+
+			UI->GetLRCSavePath(wctemp);
+			if(wctemp[0] == 0)
+				return;
+
+			if(lstrcmpA(str.get_ptr(), UI->NowPlaying_Track->get_path()) != 0)
+				return; //°î¹Ù²î¸é ¹«½Ã
+
+			UI->Lyric->SaveToFile(wctemp, "lrc");
+		}
+	};
+
 
 public:
 
@@ -32,11 +51,15 @@ public:
 	HANDLE hLyricThreadQuit;
 	HANDLE hLyricThread;
 	HANDLE hTime;
+	
+	Bitmap *BackImage;
+	Bitmap *BackImageCache;
+	SquirrelVMSys vm;
 
-	Common_UI_Base();
-	~Common_UI_Base();
+	AlsongUI_Base();
+	~AlsongUI_Base();
 
-	const char *NowPlaying_Path;
+	metadb_handle_ptr NowPlaying_Track;
 	const char *LRCSave_Path;
 
 	void InvalidateAllWindow();
@@ -66,7 +89,5 @@ public:
 	static pair<HWND, WindowInfo *> ScriptingInfo;
 	static void SetBackgroundImage(const TCHAR *Filename);
 };
-
-extern Common_UI_Base *Common_UI; 
 
 extern COLORREF acrCustClr[16];

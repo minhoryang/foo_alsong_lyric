@@ -1,8 +1,12 @@
-class Alsong_Panel : public uie::container_ui_extension
+#pragma once
+
+#include "AlsongUI.h"
+
+class AlsongPanel : public uie::container_ui_extension
 {
 public:
-	Alsong_Panel();
-	~Alsong_Panel();
+	AlsongPanel();
+	~AlsongPanel();
 
 	virtual const GUID & get_extension_guid() const;
 	virtual void get_name(pfc::string_base & out)const;
@@ -21,8 +25,8 @@ private:
 
 	static const GUID g_extension_guid;
 	static const GUID g_mimic_extension_guid;
-	void OnContextMenu(HWND hParent);
 
-	Window_Setting Setting;
-	pfc::string8 Script;
+	AlsongUI *m_UI;
+	Window_Setting m_Setting;
+	pfc::string8 m_Script;
 };

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Common_Settings.h"
+#include "ConfigStore.h"
 
 const GUID guid_cfg_save_to_lrc = // {6F31D8AA-5B2D-484a-9C73-D729BC98459F}
 { 0x6f31d8aa, 0x5b2d, 0x484a, { 0x9c, 0x73, 0xd7, 0x29, 0xbc, 0x98, 0x45, 0x9f } };
@@ -48,9 +48,7 @@ cfg_string cfg_outer_script(guid_cfg_outer_script, "");
 
 const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
-cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL); //NULL로 채운다
-
-//패널설정은 panel host에 맡긴다.
+cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL);
 
 inline t_font_description get_def_font()
 {

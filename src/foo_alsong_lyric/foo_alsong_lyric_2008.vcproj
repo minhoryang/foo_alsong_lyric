@@ -43,7 +43,7 @@
 				AdditionalOptions="/Bt"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../squirrel/sqplus;../../squirrel/include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_STLP_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -97,7 +97,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\components\&quot;&#x0D;&#x0A;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;D:\Work\Sources\foobar2000\components&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -208,35 +208,35 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Common_Init.cpp"
+				RelativePath=".\AlsongPanel.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Lyric_Manipulation.cpp"
+				RelativePath=".\AlsongUI.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Lyric_Modify_Dialog.cpp"
+				RelativePath=".\AlsongWnd.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Pref.cpp"
+				RelativePath=".\ConfigStore.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Settings.cpp"
+				RelativePath=".\LyricManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_UI.cpp"
+				RelativePath=".\MenuItem.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Outer_Window_Plugin.cpp"
+				RelativePath=".\Plugin_Init.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Panel_Plugin.cpp"
+				RelativePath=".\Preferences.cpp"
 				>
 			</File>
 			<File
@@ -266,31 +266,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Common_Lyric_Manipulation.h"
+				RelativePath=".\AlsongPanel.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Lyric_Modify_Dialog.h"
+				RelativePath=".\AlsongUI.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Pref.h"
+				RelativePath=".\AlsongWnd.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_Settings.h"
+				RelativePath=".\ConfigStore.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Common_UI.h"
+				RelativePath=".\LyricManager.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Outer_Window_Plugin.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Panel_Plugin.h"
+				RelativePath=".\Preferences.h"
 				>
 			</File>
 			<File
@@ -310,6 +306,58 @@
 			<File
 				RelativePath=".\foo_alsong_lyric.rc"
 				>
+			</File>
+		</Filter>
+		<Filter
+			Name="pugixml"
+			>
+			<File
+				RelativePath=".\pugixml\pugiconfig.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pugixml\pugixml.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\pugixml\pugixml.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pugixml\pugixpath.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 	</Files>

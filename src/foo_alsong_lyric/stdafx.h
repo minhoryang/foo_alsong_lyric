@@ -1,5 +1,7 @@
-#define _WIN32_WINDOWS 0x0500
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINDOWS 0x0501
+#define _WIN32_WINNT 0x0501
+
+#pragma warning(disable:4180) //Visual C++ bug
 
 #include <winsock2.h>
 #include <windows.h>
@@ -14,23 +16,29 @@
 #include <vector>
 #include <map>
 #include <list>
+#define BOOST_BIND_ENABLE_STDCALL
+#include <boost/bind.hpp>
+#include <boost/signals2.hpp>
+#include <boost/thread.hpp>
+#include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+
+#define foreach BOOST_FOREACH
+#define reverse_foreach BOOST_REVERSE_FOREACH
 
 #include "../../foobar2000/foobar2000/SDK/foobar2000.h"
 #include "../../foobar2000/foobar2000/helpers/helpers.h"
-#include "../../foobar2000/foobar2000/columns_ui_sdk/ui_extension.h"
+#include "../../foobar2000/foobar2000/columns_ui-sdk/ui_extension.h"
 #include "../../Squirrel/sqplus/sqplus.h"
 
-#pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "kernel32.lib")
-#pragma comment(lib, "user32.lib")
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "iphlpapi.lib")
-#pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "gdiplus.lib")
-#pragma comment(lib, "comdlg32.lib")
 #pragma comment(lib, "uxtheme.lib")
+#pragma comment(lib, "comctl32.lib")
 
 #ifndef _DEBUG
 #pragma comment(lib, "../../foobar2000/foobar2000/shared/shared.lib")

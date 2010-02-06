@@ -1,70 +1,124 @@
 #include "stdafx.h"
-#include "Common_Settings.h"
-#include "Common_UI.h"
-#include "Common_Lyric_Manipulation.h"
+#include "ConfigStore.h"
+#include "AlsongUI.h"
+#include "LyricManager.h"
+#include "pugixml/pugixml.hpp"
+using namespace pugi;
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
-#define GET_XML_DATA(xml, tag, data) lstrcpynA(data, GET_XML_POS((xml), (tag)), GET_XML_LEN((xml), (tag)) + 1)
-#define GET_XML_LEN(xml, tag) (abs(StrStrA((xml), (tag)) - StrStrA(StrStrA((xml), (tag)) + lstrlenA((tag)), (tag))) - lstrlenA((tag)) - 3)
-#define GET_XML_POS(xml, tag) (StrStrA((xml), (tag)) + lstrlenA((tag)) + 1)
+LyricManager *LyricManagerInstance;
 
-Common_Lyric_Manipulation::Common_Lyric_Manipulation()
+LyricManager::LyricManager()
 {
-
+	static_api_ptr_t<play_callback_manager> pcm;
+	pcm->register_callback(this, flag_on_playback_all, false);
 }
 
-Common_Lyric_Manipulation::~Common_Lyric_Manipulation()
+LyricManager::~LyricManager()
 {
-	
+	static_api_ptr_t<play_callback_manager> pcm;
+	pcm->unregister_callback(this);
 }
 
-void Common_Lyric_Manipulation::ClearLyric()
+void LyricManager::on_playback_seek(double p_time)
 {
-	Lyric.clear();
-	Time.clear();
 }
 
-BOOL Common_Lyric_Manipulation::HasLyric()
+void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 {
-	if(Time.size() == 0)
-		return FALSE;
-	return TRUE;
+	static boost::shared_ptr<boost::thread> fetchthread;
+	if(fetchthread)
+	{
+		fetchthread->interrupt();
+		fetchthread->join();
+		fetchthread.reset();
+	}
+	fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 }
 
-const char *Common_Lyric_Manipulation::GetLyric(DWORD Line)
+void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 {
-	if(Line < Lyric.size() && Line >= 0)
-		return Lyric[Line].c_str();
-	else
-		return NULL;
+}
+void LyricManager::on_playback_time(double p_time)
+{
+}
+void LyricManager::on_playback_pause(bool p_state)
+{
 }
 
-DWORD Common_Lyric_Manipulation::GetNumberOfLine()
+const char *LyricManager::GetLyricBefore(int n)
 {
-	return Lyric.size();
+	return NULL;
 }
 
-DWORD Common_Lyric_Manipulation::GetLyricTime(DWORD Line)
+const char *LyricManager::GetLyric()
 {
-	if(Line < Time.size() && Line >= 0)
-		return Time[Line];
-	else
-		return 4294967295;
+	return NULL;
+}
+const char *LyricManager::GetLyricAfter(int n)
+{
+	return NULL;
 }
 
-WCHAR *Common_Lyric_Manipulation::GetStatus()
-{
-	return (WCHAR *)Status.c_str();
-}
-
-DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Hash, CHAR *fmt)
+DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 {	
 	int i;
 	int tmp;
 	DWORD Start; //Start Address
 	BYTE MD5[16];
+	service_ptr_t<file> file;
 	abort_callback_impl abort_callback;
-	BYTE temp[255];
+	pfc::string8 str = track->get_path();
+	
+	archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
+	//TODO:cue일때 특별 처리(subsong_index가 있을 때)
+	char *fmt = (char *)str.get_ptr() + str.find_last('.') + 1;
+	file_info_impl info;
+	track->get_info(info);
+	const char *ttmp = info.info_get("referenced_offset");
+	BYTE temp[255]; //아래코드 이용해서 cue에서 raw 뽑아와서 hash생성
+	/*bool void g_decode_file(char const * p_path, abort_callback & p_abort)
+{
+    try
+    {
+        input_helper helper;
+        file_info_impl info;
+
+        // open input
+        helper.open(service_ptr_t<file>(), make_playable_location(p_path, 0), input_flag_simpledecode, p_abort);
+
+        helper.get_info(0, info, p_abort);
+        if (info.get_length() <= 0)
+            throw pfc::exception("Track length invalid");
+
+        audio_chunk_impl chunk;
+
+        if (!helper.run(chunk, p_abort)) return false;
+
+
+        t_uint64 length_samples = audio_math::time_to_samples(info.get_length(), chunk.get_sample_rate());
+        //chunk.get_channels();
+
+        while (true)
+        {
+            // Store the data somewhere.
+
+            bool decode_done = !helper.run(chunk, p_abort);
+            if (decode_done) break;
+        }
+
+        // We now have the full data.
+
+        return true;
+    }
+    catch (const exception_aborted &) {throw;}
+    catch (const std::exception & exc)
+    {
+        console::formatter() << exc << ": " << p_path;
+        return false;
+    }
+};
+*/
 
 	try
 	{
@@ -75,12 +129,12 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 
 			while(1) //ID3가 여러개 있을수도 있음
 			{ //ID3는 보통 맨 처음에 있음
-				(*file)->seek(tmp, abort_callback);
-				(*file)->read(temp, 3, abort_callback);
+				file->seek(tmp, abort_callback);
+				file->read(temp, 3, abort_callback);
 				if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
 				{
 					int tmp;
-					(*file)->read(temp, 7, abort_callback);
+					file->read(temp, 7, abort_callback);
 					//ID3 Tag
 					tmp = temp[6]; //Decode Tag Size
 					tmp |= temp[5] << 7;
@@ -93,11 +147,11 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 					break;
 				tmp ++;
 			}
-			(*file)->seek(Start, abort_callback);
+			file->seek(Start, abort_callback);
 			for(;;Start ++)
 			{
 				BYTE temp;
-				(*file)->read_lendian_t(temp, abort_callback);
+				file->read_lendian_t(temp, abort_callback);
 				if(temp == 0xFF) //MP3 Header까지
 					break;
 			}
@@ -111,12 +165,12 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 			CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
 			while(1)
 			{
-				(*file)->seek(i, abort_callback);
-				(*file)->read(temp, 7, abort_callback);
+				file->seek(i, abort_callback);
+				file->read(temp, 7, abort_callback);
 				if(!memcmp(temp, SetupHeader, 7))
 				{
-					(*file)->seek(i + 7 + 1, abort_callback);
-					(*file)->read(temp, 3, abort_callback);
+					file->seek(i + 7 + 1, abort_callback);
+					file->read(temp, 3, abort_callback);
 					if(!memcmp(temp, BCV, 3)) //Setup Header와 BCV 사이에 뭔가 바이트가 하나 더 있다.
 					{
 						//여기부터다
@@ -125,40 +179,40 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 					}
 				}
 				i ++;
-				if(i > (*file)->get_size(abort_callback))
-					return ERROR_UNSUPPORTED_EXTENSION; //에러
+				if(i > file->get_size(abort_callback))
+					return false; //에러
 			}
 
 		}
 		else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
-			Start = 0;
+			Start = false;
 		else
 		{
 			//에러처리
-			Start = 0;
-			return ERROR_UNSUPPORTED_EXTENSION;
+			Start = false;
+			return false;
 		}
 	}
 	catch(...)
 	{
 		Start = 0;
-		return ERROR_UNKNOWN;
+		return false;
 	}
 
 	BYTE *buf = (BYTE *)malloc(0x28000);
 
 	try
 	{
-		(*file)->seek(Start, abort_callback);
-		(*file)->read(buf, 0x28000, abort_callback);
+		file->seek(Start, abort_callback);
+		file->read(buf, 0x28000, abort_callback);
 	}
 	catch(...)
 	{
 		free(buf);
-		return ERROR_UNKNOWN;
+		return false;
 	}
 
-	md5(buf, min(0x28000, (size_t)(*file)->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
+	md5(buf, min(0x28000, (size_t)file->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
 
 	free(buf);
 
@@ -171,11 +225,11 @@ DWORD Common_Lyric_Manipulation::GetFileHash(service_ptr_t<file> *file, CHAR *Ha
 	}
 	Hash[i] = 0;
 
-	return S_OK;
+	return true;
 }
 
-DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
-{
+DWORD LyricManager::DownloadLyric(CHAR *Hash)
+{//http://pugixml.googlecode.com/svn/trunk/docs/index.html
 	CHAR GetLyricHashHeader[512] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
 		"User-Agent: gSOAP/2.7\r\n"
@@ -191,7 +245,7 @@ DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
 	CHAR GetLyricHashData3[] = "</ns1:strVersion><ns1:strMACAddress>";
 	CHAR GetLyricHashData4[] = "</ns1:strMACAddress><ns1:strIPAddress>";
 	CHAR GetLyricHashData5[] = "</ns1:strIPAddress></ns1:stQuery></ns1:GetLyric5></SOAP-ENV:Body></SOAP-ENV:Envelope>";
-	CHAR Version[] = "1.97";
+	CHAR Version[] = "2.0";
 	CHAR buf[255];
 	struct hostent *host;
 	CHAR Hostname[80];
@@ -227,7 +281,7 @@ DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
 		pAdapterInfo = pAdapterInfo->Next;
 	}
 	if(pAdapterInfo == NULL)
-		return ERROR_CONNECTION;
+		return false;
 
 	CHAR HexArray[] = "0123456789ABCDEF";
 
@@ -242,7 +296,7 @@ DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
 	if(s == 0)
 	{
 		free(data);
-		return ERROR_CONNECTION;
+		return false;
 	}
 
 	len = lstrlenA(GetLyricHashData1) + lstrlenA(GetLyricHashData2) + lstrlenA(GetLyricHashData3) + lstrlenA(GetLyricHashData4) + lstrlenA(GetLyricHashData5) + lstrlenA(Hash) + lstrlenA(Version) + lstrlenA(Local_IP) + lstrlenA(Local_Mac);
@@ -269,101 +323,97 @@ DWORD Common_Lyric_Manipulation::DownloadLyric(CHAR *Hash)
 			MessageBoxA(NULL, buf, "Error", MB_OK);*/
 			free(data);
 			closesocket(s);
-			return ERROR_CONNECTION;
+			return false;
 		}
-		CopyMemory(data + nUse, buf, nRecv);
+		buf[nRecv] = 0;
+		CopyMemory(data + nUse, buf, nRecv + 1);
 		nUse += nRecv;
 		if(nUse + 255 > nAlloc - 100)
 		{
 			data = (CHAR *)realloc(data, nAlloc + 300);
 			nAlloc += 300;
 		}
-	}
-
-	//이제 XML 처리를 하자..
-
-	__try
-	{
-		GET_XML_DATA(data, "strStatusID", buf);
-		if(buf[0] == '2')
+		if(boost::this_thread::interruption_requested())
 		{
 			free(data);
 			closesocket(s);
-			return ERROR_LYRIC_NOT_FOUND;
 		}
-		
-		Title.assign(GET_XML_POS(data, "strTitle"), GET_XML_LEN(data, "strTitle"));
-		Artist.assign(GET_XML_POS(data, "strArtist"), GET_XML_LEN(data, "strArtist"));
-		Album.assign(GET_XML_POS(data, "strAlbum"), GET_XML_LEN(data, "strAlbum"));
-		Registrant.assign(GET_XML_POS(data, "strRegisterFirstName"), GET_XML_LEN(data, "strRegisterFirstName"));
-
-		if(!Album.compare(Title))
-			Album[0] = 0;//Album이 Title과 같은 경우(없는걸로 처리)
-
-		GET_XML_POS(data, "strLyric")[GET_XML_LEN(data, "strLyric")] = 0;
-		ParseLyric(GET_XML_POS(data, "strLyric"), "&lt;br&gt;");
 	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
+
+	//<?xml version="1.0" encoding="utf-8"?>
+	//<soap:Envelope~~><soap:Body><GetLyric5Response xmlns="ALSongWebServer"><GetLyric5Result>
+	//<strStatusID>2</strStatusID><strInfoID>-1</strInfoID><strRegistDate /><strTitle ~~
+	xml_document doc;
+	doc.load(boost::find_first(data, "\r\n\r\n").begin());
+	xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result");
+	const char *result = xmlresult.child("strStatusID").child_value();
+	if(buf[0] == '2')
 	{
 		free(data);
 		closesocket(s);
-		//MessageBox(NULL, TEXT("오류 발생"), TEXT("오류"), MB_OK);
-		return ERROR_LYRIC_NOT_FOUND;
+		return false;
 	}
+
+	m_Title.assign(xmlresult.child("strTitle").child_value());
+	m_Artist.assign(xmlresult.child("strArtist").child_value());
+	m_Album.assign(xmlresult.child("strAlbum").child_value());
+	m_Registrant.assign(xmlresult.child("strRegisterFirstName").child_value());
+
+	if(!m_Album.compare(m_Title))
+		m_Album.clear();
+
+	ParseLyric(xmlresult.child("strLyric").child_value(), "<br>");
+
 	free(data);
 	closesocket(s);
 
 	return S_OK;
 }
 
-DWORD Common_Lyric_Manipulation::FetchLyric(service_ptr_t<file> *file, CHAR *fmt)
+void LyricManager::Clear()
+{
+	m_Lyric.clear();
+	m_Title.clear();
+	m_Album.clear();
+	m_Artist.clear();
+	m_Registrant.clear();
+	m_Time.clear();
+}
+
+DWORD LyricManager::FetchLyric(metadb_handle_ptr track)
 {
 	CHAR Hash[33];
 	DWORD nRet;
+	
+	Clear();
 
-	//기존 정보 삭제
-	Lyric.clear();
-	Time.clear();
+	m_Lyric.resize(1);
+	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("파일 정보 처리중...")));
+	if(boost::this_thread::interruption_requested())
+		return false;
 
-	Status = TEXT("파일 정보 처리중...");
-	Common_UI->InvalidateAllWindow();
-
-	nRet = GetFileHash(file, Hash, fmt);
-	if(nRet == ERROR_UNSUPPORTED_EXTENSION)
-	{
-		Status = TEXT("지원하지 않는 파일 형식입니다.");
-		Common_UI->InvalidateAllWindow();
-		return S_OK;
-	}
-	else if(nRet == ERROR_UNKNOWN)
-	{
-		Status = TEXT("내부 오류가 발생했습니다.");
-		Common_UI->InvalidateAllWindow();
-		return S_OK;
-	}
-
-	Status = TEXT("가사 다운로드 중...");
-	Common_UI->InvalidateAllWindow();
+	nRet = GetFileHash(track, Hash);
+	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
 
 	nRet = DownloadLyric(Hash);
+	if(boost::this_thread::interruption_requested())
+		return false;
 
-	if(nRet == ERROR_LYRIC_NOT_FOUND)
-		Status = TEXT("실시간 가사를 찾을 수 없습니다.");
-	else if(nRet == ERROR_CONNECTION)
-		Status = TEXT("알송 서버와의 연결에 실패했습니다.");
-	else if(nRet == S_OK)
-		Status = TEXT("");
-	Common_UI->InvalidateAllWindow();
+	if(m_Time.size() == 0)
+		m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("다운로드 에러")));
 
-	return S_OK;
+	return true;
 }
 
-DWORD Common_Lyric_Manipulation::ParseLyric(CHAR *InputLyric, CHAR *Delimiter)
+DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 {
 	int i;
 
-	CHAR *nowpos = InputLyric;
-	CHAR *lastpos = nowpos;
+	m_Lyric.clear();
+	m_Time.clear();
+
+	const char *nowpos = InputLyric;
+	const char *lastpos = nowpos;
 	int pos;
 	for(i = 0; ; i ++) //<br>자르기/ LineTotal은 안전빵
 	{
@@ -371,51 +421,42 @@ DWORD Common_Lyric_Manipulation::ParseLyric(CHAR *InputLyric, CHAR *Delimiter)
 		if(pos == -1)
 			break;
 		nowpos = nowpos + 1 + pos;
-		nowpos[0] = 0;
 		
-		Time.push_back(StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7));
-		lastpos += 10; //시간정보는 10글자다
+		m_Time.push_back(StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7));
+		lastpos += 10; //strlen("2:34:56.78");
 
-		Lyric.push_back(lastpos);
+		m_Lyric.push_back(pfc::string8(lastpos, pos - 9));
 		lastpos = nowpos + lstrlenA(Delimiter);
-
-		FromHTTP(&Lyric[i]);
 	}
 
 	return S_OK;
 }
 
-DWORD Common_Lyric_Manipulation::SearchLyricGetNext(CHAR **data, int *Info, string *Title, string *Artist, string *Album, string *Lyric, string *Registrant)
-{
-	__try
-	{
-		Title->assign(GET_XML_POS(*data, "strTitle"), GET_XML_LEN(*data, "strTitle"));
-		Artist->assign(GET_XML_POS(*data, "strArtistName"), GET_XML_LEN(*data, "strArtistName"));
-		Album->assign(GET_XML_POS(*data, "strAlbumName"), GET_XML_LEN(*data, "strAlbumName"));
-		Registrant->assign(GET_XML_POS(*data, "strRegisterFirstName"), GET_XML_LEN(*data, "strRegisterFirstName"));
-		Lyric->assign(GET_XML_POS(*data, "strLyric"), GET_XML_LEN(*data, "strLyric"));
-		CHAR temp[255];
-		GET_XML_DATA(*data, "strInfoID", temp);
-		*Info = StrToIntA(temp);
-		*data = GET_XML_POS(*data, "ST_GET_RESEMBLELYRIC2_RETURN");
-		FromHTTP(Title);
-		FromHTTP(Artist);
-		FromHTTP(Album);
-		FromHTTP(Registrant);
-		FromHTTP(Lyric);
+DWORD LyricManager::SearchLyricGetNext(CHAR **data, int &Info, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Lyric, pfc::string8 Registrant)
+{/*
+	Title.set_string_nc(GET_XML_POS(*data, "strTitle"), GET_XML_LEN(*data, "strTitle"));
+	Artist.set_string_nc(GET_XML_POS(*data, "strArtistName"), GET_XML_LEN(*data, "strArtistName"));
+	Album.set_string_nc(GET_XML_POS(*data, "strAlbumName"), GET_XML_LEN(*data, "strAlbumName"));
+	Registrant.set_string_nc(GET_XML_POS(*data, "strRegisterFirstName"), GET_XML_LEN(*data, "strRegisterFirstName"));
+	string lyrictmp = string(GET_XML_POS(*data, "strLyric"), GET_XML_LEN(*data, "strLyric"));
+	CHAR temp[255];
+	GET_XML_DATA(*data, "strInfoID", temp);
+	Info = StrToIntA(temp);
+	*data = GET_XML_POS(*data, "ST_GET_RESEMBLELYRIC2_RETURN");
+	RemoveHTMLEntities(Title);
+	RemoveHTMLEntities(Artist);
+	RemoveHTMLEntities(Album);
+	RemoveHTMLEntities(Registrant);
+	RemoveHTMLEntities(Lyric);
 
-		while(Lyric->find("<br>") != string::npos)
-			Lyric->replace(Lyric->find("<br>"), 4, "\r\n");
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		return ERROR_LYRIC_NOT_FOUND;
-	}
-
-	return S_OK;
+	while(lyrictmp.find("<br>") != string::npos)
+		lyrictmp.replace(lyrictmp.find("<br>"), 4, "\r\n");
+	Lyric = lyrictmp.c_str();
+*/	
+	return true;
 }
 
-DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, int nPage, CHAR **Output)
+DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, CHAR **Output)
 {
 	CHAR GetLyricHeader[512] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
@@ -440,8 +481,7 @@ DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, 
 	int nUse = 0;
 	int nRecv;
 
-	ToHTTP(InArtist);
-	ToHTTP(InTitle);
+	pfc::string8 ConvertedArtist = Artist, ConvertedTitle = Title;;
 
 	*Output = (CHAR *)malloc(sizeof(CHAR) * 600);
 
@@ -449,9 +489,10 @@ DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, 
 	if(s == 0)
 	{
 		free(Output);
-		return ERROR_CONNECTION;
+		return false;
 	}
-	len = lstrlenA(GetLyricData1) + lstrlenA(GetLyricData2) + lstrlenA(GetLyricData3) + lstrlenA(GetLyricData4) + lstrlenA(InArtist->c_str()) + lstrlenA(InTitle->c_str());
+	len = lstrlenA(GetLyricData1) + lstrlenA(GetLyricData2) + lstrlenA(GetLyricData3) + lstrlenA(GetLyricData4)
+		+ lstrlenA(ConvertedArtist.toString()) + lstrlenA(ConvertedTitle.toString());
 	if(nPage != 0)
 		len += (int)log10((float)nPage) + 1;
 	else
@@ -460,9 +501,9 @@ DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, 
 
 	send(s, buf, lstrlenA(buf), 0);
 	send(s, GetLyricData1, lstrlenA(GetLyricData1), 0);
-	send(s, InTitle->c_str(), lstrlenA(InTitle->c_str()), 0);
+	send(s, ConvertedTitle.toString(), lstrlenA(ConvertedTitle.toString()), 0);
 	send(s, GetLyricData2, lstrlenA(GetLyricData2), 0);
-	send(s, InArtist->c_str(), lstrlenA(InArtist->c_str()), 0);
+	send(s, ConvertedArtist.toString(), lstrlenA(ConvertedArtist.toString()), 0);
 	send(s, GetLyricData3, lstrlenA(GetLyricData3), 0);
 	wsprintfA(buf, "%d", nPage);
 	send(s, buf, lstrlenA(buf), 0);
@@ -477,7 +518,7 @@ DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, 
 			MessageBoxA(NULL, buf, "Error", MB_OK);*/
 			free(Output);
 			closesocket(s);
-			return ERROR_CONNECTION;
+			return false;
 		}
 		CopyMemory(*Output + nUse, buf, nRecv);
 		nUse += nRecv;
@@ -490,10 +531,10 @@ DWORD Common_Lyric_Manipulation::SearchLyric(string *InArtist, string *InTitle, 
 
 	closesocket(s);
 
-	return S_OK;
+	return true;
 }
 
-int Common_Lyric_Manipulation::SearchLyricGetCount(string *Artist, string *Title)
+int LyricManager::SearchLyricGetCount(const pfc::string8 &Artist, const pfc::string8 &Title)
 {
 	CHAR GetCountHeader[] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
@@ -517,21 +558,21 @@ int Common_Lyric_Manipulation::SearchLyricGetCount(string *Artist, string *Title
 
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
 	if(s == 0)
-	{
 		return 0;
-	}
 
-	ToHTTP(Artist);
-	ToHTTP(Title);
+	pfc::string8 ConvertedArtist = Artist, ConvertedTitle = Title;
 
-	len = lstrlenA(GetCountData1) + lstrlenA(GetCountData2) + lstrlenA(GetCountData3) + lstrlenA(Artist->c_str()) + lstrlenA(Title->c_str());
+	ConvertToHTMLEntities(ConvertedArtist);
+	ConvertToHTMLEntities(ConvertedTitle);
+
+	len = lstrlenA(GetCountData1) + lstrlenA(GetCountData2) + lstrlenA(GetCountData3) + lstrlenA(ConvertedArtist.toString()) + lstrlenA(ConvertedTitle.toString());
 	wsprintfA(buf, GetCountHeader, len);
 
 	send(s, buf, lstrlenA(buf), 0);
 	send(s, GetCountData1, lstrlenA(GetCountData1), 0);
-	send(s, Title->c_str(), lstrlenA(Title->c_str()), 0);
+	send(s, ConvertedTitle.toString(), lstrlenA(ConvertedTitle.toString()), 0);
 	send(s, GetCountData2, lstrlenA(GetCountData2), 0);
-	send(s, Artist->c_str(), lstrlenA(Artist->c_str()), 0);
+	send(s, ConvertedArtist.toString(), lstrlenA(ConvertedArtist.toString()), 0);
 	send(s, GetCountData3, lstrlenA(GetCountData3), 0);
 
 	while(nRecv = recv(s, buf, 255, 0))
@@ -558,7 +599,7 @@ int Common_Lyric_Manipulation::SearchLyricGetCount(string *Artist, string *Title
 	return ret;
 }
 
-SOCKET Common_Lyric_Manipulation::InitateConnect(CHAR *Address, int port)
+SOCKET LyricManager::InitateConnect(CHAR *Address, int port)
 {
 	SOCKET s;
 	hostent *host = gethostbyname(Address);
@@ -576,14 +617,14 @@ SOCKET Common_Lyric_Manipulation::InitateConnect(CHAR *Address, int port)
 	client_addr.sin_port = htons(port);
 
 	if(connect(s, (sockaddr *)(&client_addr), sizeof(sockaddr_in)) == SOCKET_ERROR)
-		return 0;
+		return NULL;
 
 	return s;
 }
 
-DWORD Common_Lyric_Manipulation::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
+DWORD LyricManager::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 {
-	ClearLyric();
+	Clear();
 	if(!StrCmpIA(fmt, "lrc"))
 	{
 		HANDLE hFile = CreateFile(LoadFrom, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
@@ -612,10 +653,11 @@ DWORD Common_Lyric_Manipulation::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 		return !ret;
 	}
 
-	return FALSE;
+	return false;
 }
 
-DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *Filename, int PlayTime, int nInfo, int UploadType, string *Lyric, string *Title, string *Artist, string *Album, string *Registrant)
+DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, 
+								pfc::string8 Lyric, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Registrant)
 {
 	//너무 많이 지역변수로 지정됨. 
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
@@ -655,7 +697,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 		"</ns1:strMACAddress><ns1:strIPAddress>",
 		"</ns1:strIPAddress></ns1:stQuery></ns1:UploadLyric></SOAP-ENV:Body></SOAP-ENV:Envelope>"
 	};
-	CHAR Version[] = "1.97";
+	CHAR Version[] = "2.0";
 	CHAR buf[255];
 	struct hostent *host;
 	CHAR Hostname[80];
@@ -669,6 +711,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 	int nUse = 0;
 	int nRecv;
 	CHAR Hash[255];
+	pfc::string8 Filename = track->get_path();
 
 	//IP하고 MAC 찾기
 	gethostname(Hostname, 80);
@@ -692,7 +735,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 		pAdapterInfo = pAdapterInfo->Next;
 	}
 	if(pAdapterInfo == NULL)
-		return ERROR_CONNECTION;
+		return false;
 
 	CHAR HexArray[] = "0123456789ABCDEF";
 
@@ -706,32 +749,27 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
 	if(s == 0)
 	{
-		return ERROR_CONNECTION;
+		return false;
 	}
 
-	ToHTTP(Filename);
+	ConvertToHTMLEntities(Filename);
 
-	pfc::string8 str = Filename->c_str();
-
-	GetFileHash(file, Hash, (char *)str.get_ptr() + str.find_last('.') + 1);
-
-	while(Lyric->find("\r\n") != string::npos)
-		Lyric->replace(Lyric->find("\r\n"), 2, "&lt;br&gt;");
+	GetFileHash(track, Hash);
 	
-	Lyric = ToHTTP(Lyric);
-	Artist = ToHTTP(Artist);
-	Album = ToHTTP(Album);
-	Title = ToHTTP(Title);
-	Registrant = ToHTTP(Registrant);	
+	ConvertToHTMLEntities(Lyric);
+	ConvertToHTMLEntities(Artist);
+	ConvertToHTMLEntities(Album);
+	ConvertToHTMLEntities(Title);
+	ConvertToHTMLEntities(Registrant);	
 
 	for(i = 0; i < 23; i ++)
 		len += lstrlenA(UploadLyricData[i]);
 	len += lstrlenA(strRegisterName);
 	len += (int)log10((float)nInfo) + 1;
-	len += Lyric->length() + Artist->length() + Registrant->length() + Album->length() + Title->length();
+	len += Lyric.length() + Artist.length() + Registrant.length() + Album.length() + Title.length();
 	len += 1;
 	len += lstrlenA(Hash);
-	len += str.length();
+	len += Filename.length();
 	len += (int)log10((float)PlayTime) + 1;
 	len += lstrlenA(Local_IP) + lstrlenA(Local_Mac) + lstrlenA(Version);
 
@@ -744,7 +782,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 	send(s, UploadLyricData[1], lstrlenA(UploadLyricData[1]), 0);
 	send(s, Hash, lstrlenA(Hash), 0);
 	send(s, UploadLyricData[2], lstrlenA(UploadLyricData[2]), 0);
-	send(s, Registrant->c_str(), Registrant->length(), 0);
+	send(s, Registrant.toString(), Registrant.length(), 0);
 	send(s, UploadLyricData[3], lstrlenA(UploadLyricData[3]), 0);
 	send(s, UploadLyricData[4], lstrlenA(UploadLyricData[4]), 0);
 	send(s, UploadLyricData[5], lstrlenA(UploadLyricData[5]), 0);
@@ -756,18 +794,18 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 	send(s, UploadLyricData[10], lstrlenA(UploadLyricData[10]), 0);
 	send(s, UploadLyricData[11], lstrlenA(UploadLyricData[11]), 0);
 	send(s, UploadLyricData[12], lstrlenA(UploadLyricData[12]), 0);
-	send(s, str.get_ptr(), str.length(), 0);
+	send(s, Filename.get_ptr(), Filename.length(), 0);
 	send(s, UploadLyricData[13], lstrlenA(UploadLyricData[13]), 0);
-	send(s, Title->c_str(), Title->length(), 0);
+	send(s, Title.toString(), Title.length(), 0);
 	send(s, UploadLyricData[14], lstrlenA(UploadLyricData[14]), 0);
-	send(s, Artist->c_str(), Artist->length(), 0);
+	send(s, Artist.toString(), Artist.length(), 0);
 	send(s, UploadLyricData[15], lstrlenA(UploadLyricData[15]), 0);
-	send(s, Album->c_str(), Album->length(), 0);
+	send(s, Album.toString(), Album.length(), 0);
 	send(s, UploadLyricData[16], lstrlenA(UploadLyricData[16]), 0);
 	wsprintfA(buf, "%d", nInfo);
 	send(s, buf, lstrlenA(buf), 0);
 	send(s, UploadLyricData[17], lstrlenA(UploadLyricData[17]), 0);
-	send(s, Lyric->c_str(), Lyric->length(), 0);
+	send(s, Lyric.toString(), Lyric.length(), 0);
 	send(s, UploadLyricData[18], lstrlenA(UploadLyricData[18]), 0);
 	wsprintfA(buf, "%d", PlayTime);
 	send(s, buf, lstrlenA(buf), 0);
@@ -790,7 +828,7 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 			MessageBoxA(NULL, buf, "Error", MB_OK);*/
 			free(data);
 			closesocket(s);
-			return ERROR_CONNECTION;
+			return false;
 		}
 		CopyMemory(data + nUse, buf, nRecv);
 		nUse += nRecv;
@@ -806,45 +844,51 @@ DWORD Common_Lyric_Manipulation::UploadLyric(service_ptr_t<file> *file, string *
 	{
 		//실패
 		free(data);
-		return ERROR_UNKNOWN;
+		return false;
 	}
 
 	free(data);
 	
-	return S_OK;
+	return true;
 }
 
-string *Common_Lyric_Manipulation::FromHTTP(string *str)
+void LyricManager::RemoveHTMLEntities(pfc::string8 &str)
 {
-	while(str->find("&amp;") != string::npos)
-		str->replace(str->find("&amp;"), 5, "&");
-	while(str->find("&lt;") != string::npos)
-		str->replace(str->find("&lt;"), 4, "<");
-	while(str->find("&gt;") != string::npos)
-		str->replace(str->find("&gt;"), 4, ">");
+	std::string temp = str;
+	while(temp.find("&amp;") != string::npos)
+		temp.replace(temp.find("&amp;"), 5, "&");
+	while(temp.find("&lt;") != string::npos)
+		temp.replace(temp.find("&lt;"), 4, "<");
+	while(temp.find("&gt;") != string::npos)
+		temp.replace(temp.find("&gt;"), 4, ">");
+	while(temp.find("<br>") != string::npos)
+		temp.replace(temp.find("<br>"), 4, "\4\n");
 
-	return str;
+	str = temp.c_str();
 }
 
-string *Common_Lyric_Manipulation::ToHTTP(string *str)
+void LyricManager::ConvertToHTMLEntities(pfc::string8 &str)
 {
+	std::string temp = str;
 	int off = 0;
-	while(str->find_first_of("&", off) != string::npos)
+	while(temp.find_first_of("&", off) != string::npos)
 	{
-		str->replace(str->find_first_of("&", off), 1, "&amp;");
-		off = str->find_first_of("&", off) + 1;
+		temp.replace(temp.find_first_of("&", off), 1, "&amp;");
+		off = temp.find_first_of("&", off) + 1;
 	}
-	while(str->find("<") != string::npos)
-		str->replace(str->find("<"), 1, "&lt;");
-	while(str->find(">") != string::npos)
-		str->replace(str->find(">"), 1, "&gt;");
+	while(temp.find("<") != string::npos)
+		temp.replace(temp.find("<"), 1, "&lt;");
+	while(temp.find(">") != string::npos)
+		temp.replace(temp.find(">"), 1, "&gt;");
+	while(temp.find("\r\n") != string::npos)
+		temp.replace(temp.find("\r\n"), 2, "<br>");
 
-	return str;
+	str = temp.c_str();
 }
 
-void Common_Lyric_Manipulation::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
+void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 {
-	if(GetLyric(0) == NULL)
+	if(m_Time.size() == 0)
 		return;
 	if(!StrCmpIA(fmt, "lrc"))
 	{
@@ -852,18 +896,15 @@ void Common_Lyric_Manipulation::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 		if(hFile == INVALID_HANDLE_VALUE)
 			return;
 		unsigned int i;
-		CHAR temp[255];
 		DWORD dwWritten;
 
-		for(i = 0; i < GetNumberOfLine(); i ++)
+		for(i = 0; i < m_Time.size(); i ++)
 		{
-			wsprintfA(temp, "[%02d:%02d.%02d]", (int)(Time[i] / 100) / 60, ((int)Time[i] / 100) % 60, (int)(Time[i] % 100));
-			WriteFile(hFile, temp, lstrlenA(temp), &dwWritten, NULL);
-			WriteFile(hFile, Lyric[i].c_str(), Lyric[i].length(), &dwWritten, NULL);
-			temp[0] = '\r';
-			temp[1] = '\n';
-			temp[2] = 0;
-			WriteFile(hFile, temp, 2, &dwWritten, NULL);
+			CHAR temp[255];
+			wsprintfA(temp, "[%02d:%02d.%02d]", (int)(m_Time[i] / 100) / 60, ((int)m_Time[i] / 100) % 60, (int)(m_Time[i] % 100));
+			WriteFile(hFile, (void *)temp, strlen(temp), &dwWritten, NULL);
+			WriteFile(hFile, m_Lyric[i].toString(), m_Lyric[i].length(), &dwWritten, NULL);
+			WriteFile(hFile, "\r\n", 2, &dwWritten, NULL);
 		}
 
 		CloseHandle(hFile);
@@ -872,16 +913,12 @@ void Common_Lyric_Manipulation::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 	{
 		HANDLE hFile = CreateFile(SaveTo, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, NULL, NULL);
 		unsigned int i;
-		CHAR temp[255];
 		DWORD dwWritten;
 
-		for(i = 0; i < GetNumberOfLine(); i ++)
+		for(i = 0; i < m_Time.size(); i ++)
 		{
-			WriteFile(hFile, Lyric[i].c_str(), Lyric[i].length(), &dwWritten, NULL);
-			temp[0] = '\r';
-			temp[1] = '\n';
-			temp[2] = 0;
-			WriteFile(hFile, temp, 2, &dwWritten, NULL);
+			WriteFile(hFile, m_Lyric[i].toString(), m_Lyric[i].length(), &dwWritten, NULL);
+			WriteFile(hFile, "\r\n", 2, &dwWritten, NULL);
 		}
 
 		CloseHandle(hFile);

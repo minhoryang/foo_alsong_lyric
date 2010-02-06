@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "Common_Settings.h"
-#include "Outer_Window_Plugin.h"
+#include "ConfigStore.h"
+#include "AlsongWnd.h"
 #include "resource.h"
-#include "Common_Pref.h"
+#include "Preferences.h"
 
 static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -60,10 +60,8 @@ static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 			pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
 			pages[1].pfnDlgProc = UICommonConfigProc;
 			pages[1].pszTitle = TEXT("외부 창 설정");
-			pages[1].lParam = (LPARAM)
-				(new pair<Window_Setting *, pair<BOOL, HWND> *>
-				(&(cfg_outer.get_value()), 
-				new pair<BOOL, HWND>(TRUE, g_OuterWindow.GetHWND())));
+			std::pair<Window_Setting, HWND> temp = std::make_pair(cfg_outer.get_value(), AlsongWndInstance.GetHWND());
+			pages[1].lParam = (LPARAM)&temp;
 
 			hpages[0] = CreatePropertySheetPage(&pages[0]);
 			hpages[1] = CreatePropertySheetPage(&pages[1]);
@@ -239,8 +237,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_LINEMARGIN), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETPOS32, 0, Setting->LineMargin);
 
-			if(Setting->Script)
-				uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
+//			if(Setting->Script)
+//				uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
 			if(bOuter)
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
@@ -309,8 +307,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 
 			Setting->VerticalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL);
 			Setting->HorizentalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL);
-			if(Setting->Script)
-				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
+//			if(Setting->Script)
+//				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 		}

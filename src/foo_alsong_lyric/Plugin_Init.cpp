@@ -1,20 +1,22 @@
 #include "stdafx.h"
-#include "Outer_Window_Plugin.h"
-#include "Common_Settings.h"
-#include "Common_UI.h"
+#include "AlsongWnd.h"
+#include "ConfigStore.h"
+#include "AlsongUI.h"
+#include "LyricManager.h"
 
 DECLARE_COMPONENT_VERSION(
 "Alsong lyric plugin",
-"0.1.0",
+"0.2.0",
 "Alsong lyric plugin for foobar2000\n"
 "Developed by dlunch(dlunch@gmail.com)\n"
 "compiled: " __DATE__ "\n"
 "with Panel API version: " UI_EXTENSION_VERSION)
 
-static ULONG_PTR gdiplus_token;
-
 class initquit_alsong : public initquit 
 {
+private:
+	ULONG_PTR gdiplus_token;
+public:
 	virtual void on_init() 
 	{
 		WSADATA wd;
@@ -32,19 +34,16 @@ class initquit_alsong : public initquit
 
 		GdiplusStartup(&gdiplus_token, &gsi, NULL);
 
-		Common_UI = new Common_UI_Base();
+		LyricManagerInstance = new LyricManager();
 
-		cfg_outer.get_value().Script = &cfg_outer_script;
-
-		g_OuterWindow.Create();
+		AlsongWndInstance.Create();
 		if (cfg_outer_shown)
-			g_OuterWindow.Show();
+			AlsongWndInstance.Show();
 	}
 
 	virtual void on_quit() 
 	{
-		g_OuterWindow.Destroy();
-		delete Common_UI;
+		AlsongWndInstance.Destroy();
 		TIMECAPS ptc;
 		timeGetDevCaps(&ptc, sizeof(TIMECAPS));
 		timeEndPeriod(ptc.wPeriodMin);
