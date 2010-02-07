@@ -11,13 +11,14 @@ private:
 	vector<DWORD> m_Time;
 
 	boost::signals2::signal<void ()> RedrawHandler;
+	boost::shared_ptr<boost::thread> m_fetchthread;
 
 	static DWORD GetFileHash(metadb_handle_ptr track, CHAR *Hash);
 	DWORD ParseLyric(const char *InputLyric, const char *Delimiter);
 	DWORD DownloadLyric(CHAR *Hash);
 	static void RemoveHTMLEntities(pfc::string8 &str);
 	static void ConvertToHTMLEntities(pfc::string8 &str);
-	DWORD FetchLyric(metadb_handle_ptr track);
+	DWORD FetchLyric(const metadb_handle_ptr &track);
 	void Clear();
 	
 	static SOCKET InitateConnect(CHAR *Address, int port);

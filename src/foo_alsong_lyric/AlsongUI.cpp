@@ -25,7 +25,7 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 	switch(iMessage)
 	{
 	case WM_CREATE:
-		LyricManagerInstance->AddRedrawHandler(boost::bind(InvalidateRect, m_hWnd, (const RECT *)NULL, TRUE));
+		LyricManagerInstance->AddRedrawHandler(boost::bind(InvalidateRect, hWnd, (const RECT *)NULL, TRUE));
 		break;
 	case WM_CONTEXTMENU:
 	case WM_NCRBUTTONUP:
@@ -52,7 +52,13 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 
 void AlsongUI::Draw(HDC hdc)
 {
+	const char *nowlrc = LyricManagerInstance->GetLyric();
+	if(!nowlrc)
+		return;
+	std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(nowlrc);
 
+	TextOut(hdc, 0, 0, nowlrcw.c_str(), nowlrcw.length());
+	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);
 }
 
 void AlsongUI::ShowConfig(HWND hWndParent)

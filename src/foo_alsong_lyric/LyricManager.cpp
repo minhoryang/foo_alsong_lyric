@@ -16,6 +16,8 @@ LyricManager::LyricManager()
 
 LyricManager::~LyricManager()
 {
+	m_fetchthread->interrupt();
+	m_fetchthread->join();
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->unregister_callback(this);
 }
@@ -26,14 +28,13 @@ void LyricManager::on_playback_seek(double p_time)
 
 void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 {
-	static boost::shared_ptr<boost::thread> fetchthread;
-	if(fetchthread)
+	if(m_fetchthread)
 	{
-		fetchthread->interrupt();
-		fetchthread->join();
-		fetchthread.reset();
+		m_fetchthread->interrupt();
+		m_fetchthread->join();
+		m_fetchthread.reset();
 	}
-	fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
+	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 }
 
 void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
@@ -53,7 +54,15 @@ const char *LyricManager::GetLyricBefore(int n)
 
 const char *LyricManager::GetLyric()
 {
-	return NULL;
+	if(m_Time.size() == 0 && m_Lyric.size() == 1)
+		return m_Lyric[0];
+	else if(m_Time.size() == 0)
+		return NULL;
+	else
+	{
+		//TODO:return 
+		return NULL;
+	}
 }
 const char *LyricManager::GetLyricAfter(int n)
 {
@@ -246,7 +255,7 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	CHAR GetLyricHashData4[] = "</ns1:strMACAddress><ns1:strIPAddress>";
 	CHAR GetLyricHashData5[] = "</ns1:strIPAddress></ns1:stQuery></ns1:GetLyric5></SOAP-ENV:Body></SOAP-ENV:Envelope>";
 	CHAR Version[] = "2.0";
-	CHAR buf[255];
+	CHAR buf[256];
 	struct hostent *host;
 	CHAR Hostname[80];
 	CHAR *Local_IP;
@@ -380,7 +389,7 @@ void LyricManager::Clear()
 	m_Time.clear();
 }
 
-DWORD LyricManager::FetchLyric(metadb_handle_ptr track)
+DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 {
 	CHAR Hash[33];
 	DWORD nRet;
@@ -391,16 +400,23 @@ DWORD LyricManager::FetchLyric(metadb_handle_ptr track)
 	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("파일 정보 처리중...")));
 	if(boost::this_thread::interruption_requested())
 		return false;
+	RedrawHandler();
 
 	nRet = GetFileHash(track, Hash);
 	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
+	RedrawHandler();
 
 	nRet = DownloadLyric(Hash);
 	if(boost::this_thread::interruption_requested())
 		return false;
 
 	if(m_Time.size() == 0)
-		m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("다운로드 에러")));
+	{
+		m_Lyric.resize(1);
+		m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
+	}
+
+	RedrawHandler();
 
 	return true;
 }

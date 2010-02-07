@@ -51,6 +51,8 @@ public:
 		GdiplusShutdown(gdiplus_token);
 
 		SquirrelVM::AppFinalShutdown();
+
+		delete LyricManagerInstance;
 	}
 };
 

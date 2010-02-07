@@ -19,8 +19,6 @@ private:
 	void UnInitializeScript(SquirrelVMSys *vm);
 	SquirrelVMSys InitializeScript();
 
-	HWND m_hWnd;
-
 	Window_Setting &m_Setting;
 	pfc::string8 &m_Script;
 
