@@ -437,7 +437,7 @@ void LyricManager::CountLyric()
 		return;
 	if(m_Lyricpos > 0)
 	{
-		while((time_iterator - 1)->time != 0) m_Lyricpos --, time_iterator --;//point to last visible line
+		while(time_iterator != m_Lyric.begin() && (time_iterator - 1)->time != 0) m_Lyricpos --, time_iterator --;//point to last visible line
 		while(time_iterator != m_Lyric.begin() && (time_iterator - 1)->time == time_iterator->time) time_iterator --, m_Lyricpos --;
 	}
 	RedrawHandler();
