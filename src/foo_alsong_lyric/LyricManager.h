@@ -47,9 +47,9 @@ public:
 		return RedrawHandler.connect(Handler);
 	}
 
-	const char *GetLyricBefore(int n); //이전 가사. n:줄수
-	const char *GetLyric(); //현재 표시할 가사 보여주기
-	const char *GetLyricAfter(int n); //다음가사. n:줄수
+	std::vector<pfc::string8> GetLyricBefore(int n); //이전 가사. n:줄수
+	std::vector<pfc::string8> GetLyric(); //현재 표시할 가사 보여주기
+	std::vector<pfc::string8> GetLyricAfter(int n); //다음가사. n:줄수
 
 	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
 	DWORD LoadFromFile(WCHAR *LoadFrom, CHAR *fmt);

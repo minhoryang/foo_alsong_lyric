@@ -52,10 +52,10 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 
 void AlsongUI::Draw(HDC hdc)
 {
-	const char *nowlrc = LyricManagerInstance->GetLyric();
-	if(!nowlrc)
+	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
+	if(!lyric.size())
 		return;
-	std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(nowlrc);
+	std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[0]);
 
 	TextOut(hdc, 0, 0, nowlrcw.c_str(), nowlrcw.length());
 	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);

@@ -58,21 +58,27 @@ void LyricManager::on_playback_pause(bool p_state)
 {
 }
 
-const char *LyricManager::GetLyricBefore(int n)
+std::vector<pfc::string8> LyricManager::GetLyricBefore(int n)
 {
-	return NULL;
+	return std::vector<pfc::string8>();
 }
 
-const char *LyricManager::GetLyric()
+std::vector<pfc::string8> LyricManager::GetLyric()
 {
 	if(m_Lyricpos >= 0)
-		return m_Lyric[m_Lyricpos].lyric.get_ptr();
-	return NULL;
+	{
+		std::vector<pfc::string8> ret;
+		for(int i = m_Lyricpos; i >= 0 && m_Lyric[i].time == m_Lyric[m_Lyricpos].time; i --)
+			ret.push_back(m_Lyric[i].lyric);
+		std::reverse(ret.begin(), ret.end());
+		return ret;
+	}
+	return std::vector<pfc::string8>();
 }
 
-const char *LyricManager::GetLyricAfter(int n)
+std::vector<pfc::string8> LyricManager::GetLyricAfter(int n)
 {
-	return NULL;
+	return std::vector<pfc::string8>();
 }
 
 DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
@@ -476,7 +482,7 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 		nowpos = nowpos + 1 + pos;
 		
 		int time = StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7);
-		lastpos += 10; //strlen("[34:56.78]");
+		//lastpos += 10; //strlen("[34:56.78]");
 
 		m_Lyric.push_back(lyricinfo(time, pfc::string8(lastpos, nowpos - lastpos)));
 		lastpos = nowpos + lstrlenA(Delimiter);

@@ -126,6 +126,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/Zm250&#x0D;&#x0A;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
@@ -195,7 +196,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)\..\foobar2000_test\components&quot;&#x0D;&#x0A;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;c:\program files\foobar2000\components\&quot;&#x0D;&#x0A;"
+				CommandLine="copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;D:\Work\Sources\foobar2000\components&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -232,6 +233,14 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
