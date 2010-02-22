@@ -40,7 +40,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/Bt"
+				AdditionalOptions="/Bt /Zm150"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../squirrel/sqplus;../../squirrel/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_STLP_DEBUG"
@@ -228,6 +228,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\md5.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\MenuItem.cpp"
 				>
 			</File>
@@ -283,6 +295,10 @@
 			</File>
 			<File
 				RelativePath=".\LyricManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\md5.h"
 				>
 			</File>
 			<File

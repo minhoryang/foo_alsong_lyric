@@ -3,21 +3,30 @@
 class LyricManager : public play_callback
 {
 private:
-	vector<pfc::string8> m_Lyric;
 	string m_Title;
 	string m_Album;
 	string m_Artist;
 	string m_Registrant;
-	vector<DWORD> m_Time;
+	struct lyricinfo
+	{
+		lyricinfo(DWORD t, const pfc::string8 &str) : time(t), lyric(str) {}
+		lyricinfo() : time(0), lyric("") {}
+		DWORD time;
+		pfc::string8 lyric;
+	};
+	vector<lyricinfo> m_Lyric;
+	int m_Lyricpos;
 
 	boost::signals2::signal<void ()> RedrawHandler;
 	boost::shared_ptr<boost::thread> m_fetchthread;
+	boost::shared_ptr<boost::thread> m_countthread;
+	boost::posix_time::ptime begin;
+	boost::posix_time::ptime tick;
 
 	static DWORD GetFileHash(metadb_handle_ptr track, CHAR *Hash);
 	DWORD ParseLyric(const char *InputLyric, const char *Delimiter);
+	void CountLyric(const metadb_handle_ptr &track);
 	DWORD DownloadLyric(CHAR *Hash);
-	static void RemoveHTMLEntities(pfc::string8 &str);
-	static void ConvertToHTMLEntities(pfc::string8 &str);
 	DWORD FetchLyric(const metadb_handle_ptr &track);
 	void Clear();
 	

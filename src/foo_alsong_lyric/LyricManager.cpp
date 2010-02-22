@@ -3,12 +3,12 @@
 #include "AlsongUI.h"
 #include "LyricManager.h"
 #include "pugixml/pugixml.hpp"
-using namespace pugi;
+#include "md5.h"
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
 LyricManager *LyricManagerInstance;
 
-LyricManager::LyricManager()
+LyricManager::LyricManager() : m_Lyricpos(-1)
 {
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
@@ -34,7 +34,15 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 		m_fetchthread->join();
 		m_fetchthread.reset();
 	}
+	if(m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
+	begin = boost::posix_time::microsec_clock::universal_time();
+	tick = begin; //0sec
 }
 
 void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
@@ -42,6 +50,7 @@ void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 }
 void LyricManager::on_playback_time(double p_time)
 {
+	tick = boost::posix_time::microsec_clock::universal_time();
 }
 void LyricManager::on_playback_pause(bool p_state)
 {
@@ -54,16 +63,11 @@ const char *LyricManager::GetLyricBefore(int n)
 
 const char *LyricManager::GetLyric()
 {
-	if(m_Time.size() == 0 && m_Lyric.size() == 1)
-		return m_Lyric[0];
-	else if(m_Time.size() == 0)
-		return NULL;
-	else
-	{
-		//TODO:return 
-		return NULL;
-	}
+	if(m_Lyricpos >= 0)
+		return m_Lyric[m_Lyricpos].lyric.get_ptr();
+	return NULL;
 }
+
 const char *LyricManager::GetLyricAfter(int n)
 {
 	return NULL;
@@ -194,7 +198,7 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 
 		}
 		else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
-			Start = false;
+			Start = 0;
 		else
 		{
 			//에러처리
@@ -213,7 +217,7 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	try
 	{
 		file->seek(Start, abort_callback);
-		file->read(buf, 0x28000, abort_callback);
+		file->read(buf, min(0x28000, (size_t)file->get_size(abort_callback) - Start), abort_callback);
 	}
 	catch(...)
 	{
@@ -352,9 +356,9 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	//<?xml version="1.0" encoding="utf-8"?>
 	//<soap:Envelope~~><soap:Body><GetLyric5Response xmlns="ALSongWebServer"><GetLyric5Result>
 	//<strStatusID>2</strStatusID><strInfoID>-1</strInfoID><strRegistDate /><strTitle ~~
-	xml_document doc;
+	pugi::xml_document doc;
 	doc.load(boost::find_first(data, "\r\n\r\n").begin());
-	xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result");
+	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result");
 	const char *result = xmlresult.child("strStatusID").child_value();
 	if(buf[0] == '2')
 	{
@@ -379,6 +383,31 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	return S_OK;
 }
 
+void LyricManager::CountLyric(const metadb_handle_ptr &track)
+{
+	static_api_ptr_t<play_control> pc;
+	int microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
+	int sec = (int)pc->playback_get_position(), i;																//0
+	std::vector<lyricinfo>::iterator time_iterator;																//0   some song			
+	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0			         <-- m_LyricPos
+		time_iterator != m_Lyric.end() && time_iterator->time < sec * 100 + microsec;							//100 blah			
+		m_Lyricpos ++, time_iterator ++);
+	if(time_iterator == m_Lyric.end())
+		return;
+	m_Lyricpos --; //point to last visible line
+	time_iterator --;
+	RedrawHandler();
+	while(time_iterator != m_Lyric.end())
+	{
+		boost::this_thread::sleep(boost::posix_time::microseconds((time_iterator + 1)->time - time_iterator->time) * 100000);
+		if(boost::this_thread::interruption_requested())
+			break;
+		m_Lyricpos ++;
+		RedrawHandler();
+	}
+
+}
+
 void LyricManager::Clear()
 {
 	m_Lyric.clear();
@@ -386,7 +415,6 @@ void LyricManager::Clear()
 	m_Album.clear();
 	m_Artist.clear();
 	m_Registrant.clear();
-	m_Time.clear();
 }
 
 DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
@@ -396,27 +424,27 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	
 	Clear();
 
-	m_Lyric.resize(1);
-	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("파일 정보 처리중...")));
+	m_Lyric.push_back(lyricinfo(0, pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("파일 정보 처리중...")))));
 	if(boost::this_thread::interruption_requested())
 		return false;
 	RedrawHandler();
 
 	nRet = GetFileHash(track, Hash);
-	m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
+	m_Lyric[0] = lyricinfo(0, pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중..."))));
 	RedrawHandler();
 
 	nRet = DownloadLyric(Hash);
 	if(boost::this_thread::interruption_requested())
 		return false;
 
-	if(m_Time.size() == 0)
+	if(m_Lyric.size() == 0)
 	{
-		m_Lyric.resize(1);
-		m_Lyric[0] = pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
+		m_Lyric.push_back(lyricinfo(0, pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")))));
+		RedrawHandler();
+		return false;
 	}
 
-	RedrawHandler();
+	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this, track)));
 
 	return true;
 }
@@ -426,7 +454,6 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 	int i;
 
 	m_Lyric.clear();
-	m_Time.clear();
 
 	const char *nowpos = InputLyric;
 	const char *lastpos = nowpos;
@@ -438,10 +465,10 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 			break;
 		nowpos = nowpos + 1 + pos;
 		
-		m_Time.push_back(StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7));
-		lastpos += 10; //strlen("2:34:56.78");
+		int time = StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7);
+		lastpos += 10; //strlen("[34:56.78]");
 
-		m_Lyric.push_back(pfc::string8(lastpos, pos - 9));
+		m_Lyric.push_back(lyricinfo(time, pfc::string8(lastpos, pos - 9)));
 		lastpos = nowpos + lstrlenA(Delimiter);
 	}
 
@@ -577,6 +604,7 @@ int LyricManager::SearchLyricGetCount(const pfc::string8 &Artist, const pfc::str
 		return 0;
 
 	pfc::string8 ConvertedArtist = Artist, ConvertedTitle = Title;
+/*
 
 	ConvertToHTMLEntities(ConvertedArtist);
 	ConvertToHTMLEntities(ConvertedTitle);
@@ -594,10 +622,10 @@ int LyricManager::SearchLyricGetCount(const pfc::string8 &Artist, const pfc::str
 	while(nRecv = recv(s, buf, 255, 0))
 	{
 		if(SOCKET_ERROR == nRecv)
-		{/*
+		{/ *
 			int t = WSAGetLastError();
 			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
-			MessageBoxA(NULL, buf, "Error", MB_OK);*/
+			MessageBoxA(NULL, buf, "Error", MB_OK);* /
 			closesocket(s);
 			return 0;
 		}
@@ -611,6 +639,7 @@ int LyricManager::SearchLyricGetCount(const pfc::string8 &Artist, const pfc::str
 	}
 
 	closesocket(s);
+*/
 
 	return ret;
 }
@@ -766,145 +795,113 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 	if(s == 0)
 	{
 		return false;
-	}
-
-	ConvertToHTMLEntities(Filename);
-
-	GetFileHash(track, Hash);
+	}/*
 	
-	ConvertToHTMLEntities(Lyric);
-	ConvertToHTMLEntities(Artist);
-	ConvertToHTMLEntities(Album);
-	ConvertToHTMLEntities(Title);
-	ConvertToHTMLEntities(Registrant);	
-
-	for(i = 0; i < 23; i ++)
-		len += lstrlenA(UploadLyricData[i]);
-	len += lstrlenA(strRegisterName);
-	len += (int)log10((float)nInfo) + 1;
-	len += Lyric.length() + Artist.length() + Registrant.length() + Album.length() + Title.length();
-	len += 1;
-	len += lstrlenA(Hash);
-	len += Filename.length();
-	len += (int)log10((float)PlayTime) + 1;
-	len += lstrlenA(Local_IP) + lstrlenA(Local_Mac) + lstrlenA(Version);
-
-	wsprintfA(buf, UploadLyricHeader, len);
-
-	send(s, buf, lstrlenA(buf), 0);
-	send(s, UploadLyricData[0], lstrlenA(UploadLyricData[0]), 0);
-	wsprintfA(buf, "%d", UploadType);
-	send(s, buf, lstrlenA(buf), 0);
-	send(s, UploadLyricData[1], lstrlenA(UploadLyricData[1]), 0);
-	send(s, Hash, lstrlenA(Hash), 0);
-	send(s, UploadLyricData[2], lstrlenA(UploadLyricData[2]), 0);
-	send(s, Registrant.toString(), Registrant.length(), 0);
-	send(s, UploadLyricData[3], lstrlenA(UploadLyricData[3]), 0);
-	send(s, UploadLyricData[4], lstrlenA(UploadLyricData[4]), 0);
-	send(s, UploadLyricData[5], lstrlenA(UploadLyricData[5]), 0);
-	send(s, UploadLyricData[6], lstrlenA(UploadLyricData[6]), 0);
-	send(s, UploadLyricData[7], lstrlenA(UploadLyricData[7]), 0);
-	send(s, strRegisterName, lstrlenA(strRegisterName), 0);
-	send(s, UploadLyricData[8], lstrlenA(UploadLyricData[8]), 0);
-	send(s, UploadLyricData[9], lstrlenA(UploadLyricData[9]), 0);
-	send(s, UploadLyricData[10], lstrlenA(UploadLyricData[10]), 0);
-	send(s, UploadLyricData[11], lstrlenA(UploadLyricData[11]), 0);
-	send(s, UploadLyricData[12], lstrlenA(UploadLyricData[12]), 0);
-	send(s, Filename.get_ptr(), Filename.length(), 0);
-	send(s, UploadLyricData[13], lstrlenA(UploadLyricData[13]), 0);
-	send(s, Title.toString(), Title.length(), 0);
-	send(s, UploadLyricData[14], lstrlenA(UploadLyricData[14]), 0);
-	send(s, Artist.toString(), Artist.length(), 0);
-	send(s, UploadLyricData[15], lstrlenA(UploadLyricData[15]), 0);
-	send(s, Album.toString(), Album.length(), 0);
-	send(s, UploadLyricData[16], lstrlenA(UploadLyricData[16]), 0);
-	wsprintfA(buf, "%d", nInfo);
-	send(s, buf, lstrlenA(buf), 0);
-	send(s, UploadLyricData[17], lstrlenA(UploadLyricData[17]), 0);
-	send(s, Lyric.toString(), Lyric.length(), 0);
-	send(s, UploadLyricData[18], lstrlenA(UploadLyricData[18]), 0);
-	wsprintfA(buf, "%d", PlayTime);
-	send(s, buf, lstrlenA(buf), 0);
-	send(s, UploadLyricData[19], lstrlenA(UploadLyricData[19]), 0);
-	send(s, Version, lstrlenA(Version), 0);
-	send(s, UploadLyricData[20], lstrlenA(UploadLyricData[20]), 0);
-	send(s, Local_Mac, lstrlenA(Local_Mac), 0);
-	send(s, UploadLyricData[21], lstrlenA(UploadLyricData[21]), 0);
-	send(s, Local_IP, lstrlenA(Local_IP), 0);
-	send(s, UploadLyricData[22], lstrlenA(UploadLyricData[22]), 0);
-
-	data = (CHAR *)malloc(sizeof(CHAR) * 600);
-
-	while(nRecv = recv(s, buf, 255, 0))
-	{
-		if(SOCKET_ERROR == nRecv)
+	
+		ConvertToHTMLEntities(Filename);
+	
+		GetFileHash(track, Hash);
+		
+		ConvertToHTMLEntities(Lyric);
+		ConvertToHTMLEntities(Artist);
+		ConvertToHTMLEntities(Album);
+		ConvertToHTMLEntities(Title);
+		ConvertToHTMLEntities(Registrant);	
+	
+		for(i = 0; i < 23; i ++)
+			len += lstrlenA(UploadLyricData[i]);
+		len += lstrlenA(strRegisterName);
+		len += (int)log10((float)nInfo) + 1;
+		len += Lyric.length() + Artist.length() + Registrant.length() + Album.length() + Title.length();
+		len += 1;
+		len += lstrlenA(Hash);
+		len += Filename.length();
+		len += (int)log10((float)PlayTime) + 1;
+		len += lstrlenA(Local_IP) + lstrlenA(Local_Mac) + lstrlenA(Version);
+	
+		wsprintfA(buf, UploadLyricHeader, len);
+	
+		send(s, buf, lstrlenA(buf), 0);
+		send(s, UploadLyricData[0], lstrlenA(UploadLyricData[0]), 0);
+		wsprintfA(buf, "%d", UploadType);
+		send(s, buf, lstrlenA(buf), 0);
+		send(s, UploadLyricData[1], lstrlenA(UploadLyricData[1]), 0);
+		send(s, Hash, lstrlenA(Hash), 0);
+		send(s, UploadLyricData[2], lstrlenA(UploadLyricData[2]), 0);
+		send(s, Registrant.toString(), Registrant.length(), 0);
+		send(s, UploadLyricData[3], lstrlenA(UploadLyricData[3]), 0);
+		send(s, UploadLyricData[4], lstrlenA(UploadLyricData[4]), 0);
+		send(s, UploadLyricData[5], lstrlenA(UploadLyricData[5]), 0);
+		send(s, UploadLyricData[6], lstrlenA(UploadLyricData[6]), 0);
+		send(s, UploadLyricData[7], lstrlenA(UploadLyricData[7]), 0);
+		send(s, strRegisterName, lstrlenA(strRegisterName), 0);
+		send(s, UploadLyricData[8], lstrlenA(UploadLyricData[8]), 0);
+		send(s, UploadLyricData[9], lstrlenA(UploadLyricData[9]), 0);
+		send(s, UploadLyricData[10], lstrlenA(UploadLyricData[10]), 0);
+		send(s, UploadLyricData[11], lstrlenA(UploadLyricData[11]), 0);
+		send(s, UploadLyricData[12], lstrlenA(UploadLyricData[12]), 0);
+		send(s, Filename.get_ptr(), Filename.length(), 0);
+		send(s, UploadLyricData[13], lstrlenA(UploadLyricData[13]), 0);
+		send(s, Title.toString(), Title.length(), 0);
+		send(s, UploadLyricData[14], lstrlenA(UploadLyricData[14]), 0);
+		send(s, Artist.toString(), Artist.length(), 0);
+		send(s, UploadLyricData[15], lstrlenA(UploadLyricData[15]), 0);
+		send(s, Album.toString(), Album.length(), 0);
+		send(s, UploadLyricData[16], lstrlenA(UploadLyricData[16]), 0);
+		wsprintfA(buf, "%d", nInfo);
+		send(s, buf, lstrlenA(buf), 0);
+		send(s, UploadLyricData[17], lstrlenA(UploadLyricData[17]), 0);
+		send(s, Lyric.toString(), Lyric.length(), 0);
+		send(s, UploadLyricData[18], lstrlenA(UploadLyricData[18]), 0);
+		wsprintfA(buf, "%d", PlayTime);
+		send(s, buf, lstrlenA(buf), 0);
+		send(s, UploadLyricData[19], lstrlenA(UploadLyricData[19]), 0);
+		send(s, Version, lstrlenA(Version), 0);
+		send(s, UploadLyricData[20], lstrlenA(UploadLyricData[20]), 0);
+		send(s, Local_Mac, lstrlenA(Local_Mac), 0);
+		send(s, UploadLyricData[21], lstrlenA(UploadLyricData[21]), 0);
+		send(s, Local_IP, lstrlenA(Local_IP), 0);
+		send(s, UploadLyricData[22], lstrlenA(UploadLyricData[22]), 0);
+	
+		data = (CHAR *)malloc(sizeof(CHAR) * 600);
+	
+		while(nRecv = recv(s, buf, 255, 0))
 		{
-			/*int t = WSAGetLastError();
-			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
-			MessageBoxA(NULL, buf, "Error", MB_OK);*/
+			if(SOCKET_ERROR == nRecv)
+			{
+				/ *int t = WSAGetLastError();
+				wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
+				MessageBoxA(NULL, buf, "Error", MB_OK);* /
+				free(data);
+				closesocket(s);
+				return false;
+			}
+			CopyMemory(data + nUse, buf, nRecv);
+			nUse += nRecv;
+			if(nUse + 255 > nAlloc - 100)
+			{
+				data = (CHAR *)realloc(data, nAlloc + 300);
+				nAlloc += 300;
+			}
+		}
+		
+		
+		if(!StrStrA(data, "UploadLyricResult"))
+		{
+			//실패
 			free(data);
-			closesocket(s);
 			return false;
 		}
-		CopyMemory(data + nUse, buf, nRecv);
-		nUse += nRecv;
-		if(nUse + 255 > nAlloc - 100)
-		{
-			data = (CHAR *)realloc(data, nAlloc + 300);
-			nAlloc += 300;
-		}
-	}
 	
-	
-	if(!StrStrA(data, "UploadLyricResult"))
-	{
-		//실패
 		free(data);
-		return false;
-	}
-
-	free(data);
-	
-	return true;
-}
-
-void LyricManager::RemoveHTMLEntities(pfc::string8 &str)
-{
-	std::string temp = str;
-	while(temp.find("&amp;") != string::npos)
-		temp.replace(temp.find("&amp;"), 5, "&");
-	while(temp.find("&lt;") != string::npos)
-		temp.replace(temp.find("&lt;"), 4, "<");
-	while(temp.find("&gt;") != string::npos)
-		temp.replace(temp.find("&gt;"), 4, ">");
-	while(temp.find("<br>") != string::npos)
-		temp.replace(temp.find("<br>"), 4, "\4\n");
-
-	str = temp.c_str();
-}
-
-void LyricManager::ConvertToHTMLEntities(pfc::string8 &str)
-{
-	std::string temp = str;
-	int off = 0;
-	while(temp.find_first_of("&", off) != string::npos)
-	{
-		temp.replace(temp.find_first_of("&", off), 1, "&amp;");
-		off = temp.find_first_of("&", off) + 1;
-	}
-	while(temp.find("<") != string::npos)
-		temp.replace(temp.find("<"), 1, "&lt;");
-	while(temp.find(">") != string::npos)
-		temp.replace(temp.find(">"), 1, "&gt;");
-	while(temp.find("\r\n") != string::npos)
-		temp.replace(temp.find("\r\n"), 2, "<br>");
-
-	str = temp.c_str();
+		
+	*/
+		return true;
 }
 
 void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 {
-	if(m_Time.size() == 0)
+	if(m_Lyric.size() == 0)
 		return;
 	if(!StrCmpIA(fmt, "lrc"))
 	{
@@ -914,12 +911,12 @@ void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 		unsigned int i;
 		DWORD dwWritten;
 
-		for(i = 0; i < m_Time.size(); i ++)
+		for(i = 0; i < m_Lyric.size(); i ++)
 		{
 			CHAR temp[255];
-			wsprintfA(temp, "[%02d:%02d.%02d]", (int)(m_Time[i] / 100) / 60, ((int)m_Time[i] / 100) % 60, (int)(m_Time[i] % 100));
+			wsprintfA(temp, "[%02d:%02d.%02d]", (int)(m_Lyric[i].time / 100) / 60, ((int)m_Lyric[i].time / 100) % 60, (int)(m_Lyric[i].time % 100));
 			WriteFile(hFile, (void *)temp, strlen(temp), &dwWritten, NULL);
-			WriteFile(hFile, m_Lyric[i].toString(), m_Lyric[i].length(), &dwWritten, NULL);
+			WriteFile(hFile, m_Lyric[i].lyric.toString(), m_Lyric[i].lyric.length(), &dwWritten, NULL);
 			WriteFile(hFile, "\r\n", 2, &dwWritten, NULL);
 		}
 
@@ -931,266 +928,12 @@ void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 		unsigned int i;
 		DWORD dwWritten;
 
-		for(i = 0; i < m_Time.size(); i ++)
+		for(i = 0; i < m_Lyric.size(); i ++)
 		{
-			WriteFile(hFile, m_Lyric[i].toString(), m_Lyric[i].length(), &dwWritten, NULL);
+			WriteFile(hFile, m_Lyric[i].lyric.toString(), m_Lyric[i].lyric.length(), &dwWritten, NULL);
 			WriteFile(hFile, "\r\n", 2, &dwWritten, NULL);
 		}
 
 		CloseHandle(hFile);
 	}
-}
-
-typedef struct
-{
-	unsigned long total[2];
-	unsigned long state[4];
-	unsigned char buffer[64];
-
-	unsigned char ipad[64];  
-	unsigned char opad[64];  
-} md5_context;
-
-#define GET_ULONG_LE(n,b,i)                             \
-{                                                       \
-	(n) = ( (unsigned long) (b)[(i)    ]   )            \
-	| ( (unsigned long) (b)[(i) + 1] <<  8 )            \
-	| ( (unsigned long) (b)[(i) + 2] << 16 )            \
-	| ( (unsigned long) (b)[(i) + 3] << 24 );           \
-}
-
-#define PUT_ULONG_LE(n,b,i)                             \
-{                                                       \
-	(b)[(i)    ] = (unsigned char) ( (n)       );       \
-	(b)[(i) + 1] = (unsigned char) ( (n) >>  8 );       \
-	(b)[(i) + 2] = (unsigned char) ( (n) >> 16 );       \
-	(b)[(i) + 3] = (unsigned char) ( (n) >> 24 );       \
-}
-
-void md5_starts( md5_context *ctx )
-{
-	ctx->total[0] = 0;
-	ctx->total[1] = 0;
-
-	ctx->state[0] = 0x67452301;
-	ctx->state[1] = 0xEFCDAB89;
-	ctx->state[2] = 0x98BADCFE;
-	ctx->state[3] = 0x10325476;
-}
-
-static void md5_process( md5_context *ctx, unsigned char data[64] )
-{
-	unsigned long X[16], A, B, C, D;
-
-	GET_ULONG_LE( X[ 0], data,  0 );
-	GET_ULONG_LE( X[ 1], data,  4 );
-	GET_ULONG_LE( X[ 2], data,  8 );
-	GET_ULONG_LE( X[ 3], data, 12 );
-	GET_ULONG_LE( X[ 4], data, 16 );
-	GET_ULONG_LE( X[ 5], data, 20 );
-	GET_ULONG_LE( X[ 6], data, 24 );
-	GET_ULONG_LE( X[ 7], data, 28 );
-	GET_ULONG_LE( X[ 8], data, 32 );
-	GET_ULONG_LE( X[ 9], data, 36 );
-	GET_ULONG_LE( X[10], data, 40 );
-	GET_ULONG_LE( X[11], data, 44 );
-	GET_ULONG_LE( X[12], data, 48 );
-	GET_ULONG_LE( X[13], data, 52 );
-	GET_ULONG_LE( X[14], data, 56 );
-	GET_ULONG_LE( X[15], data, 60 );
-
-#define S(x,n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
-
-#define P(a,b,c,d,k,s,t)                                \
-	{                                                   \
-	a += F(b,c,d) + X[k] + t; a = S(a,s) + b;           \
-	}
-
-	A = ctx->state[0];
-	B = ctx->state[1];
-	C = ctx->state[2];
-	D = ctx->state[3];
-
-#define F(x,y,z) (z ^ (x & (y ^ z)))
-
-	P( A, B, C, D,  0,  7, 0xD76AA478 );
-	P( D, A, B, C,  1, 12, 0xE8C7B756 );
-	P( C, D, A, B,  2, 17, 0x242070DB );
-	P( B, C, D, A,  3, 22, 0xC1BDCEEE );
-	P( A, B, C, D,  4,  7, 0xF57C0FAF );
-	P( D, A, B, C,  5, 12, 0x4787C62A );
-	P( C, D, A, B,  6, 17, 0xA8304613 );
-	P( B, C, D, A,  7, 22, 0xFD469501 );
-	P( A, B, C, D,  8,  7, 0x698098D8 );
-	P( D, A, B, C,  9, 12, 0x8B44F7AF );
-	P( C, D, A, B, 10, 17, 0xFFFF5BB1 );
-	P( B, C, D, A, 11, 22, 0x895CD7BE );
-	P( A, B, C, D, 12,  7, 0x6B901122 );
-	P( D, A, B, C, 13, 12, 0xFD987193 );
-	P( C, D, A, B, 14, 17, 0xA679438E );
-	P( B, C, D, A, 15, 22, 0x49B40821 );
-
-#undef F
-
-#define F(x,y,z) (y ^ (z & (x ^ y)))
-
-	P( A, B, C, D,  1,  5, 0xF61E2562 );
-	P( D, A, B, C,  6,  9, 0xC040B340 );
-	P( C, D, A, B, 11, 14, 0x265E5A51 );
-	P( B, C, D, A,  0, 20, 0xE9B6C7AA );
-	P( A, B, C, D,  5,  5, 0xD62F105D );
-	P( D, A, B, C, 10,  9, 0x02441453 );
-	P( C, D, A, B, 15, 14, 0xD8A1E681 );
-	P( B, C, D, A,  4, 20, 0xE7D3FBC8 );
-	P( A, B, C, D,  9,  5, 0x21E1CDE6 );
-	P( D, A, B, C, 14,  9, 0xC33707D6 );
-	P( C, D, A, B,  3, 14, 0xF4D50D87 );
-	P( B, C, D, A,  8, 20, 0x455A14ED );
-	P( A, B, C, D, 13,  5, 0xA9E3E905 );
-	P( D, A, B, C,  2,  9, 0xFCEFA3F8 );
-	P( C, D, A, B,  7, 14, 0x676F02D9 );
-	P( B, C, D, A, 12, 20, 0x8D2A4C8A );
-
-#undef F
-
-#define F(x,y,z) (x ^ y ^ z)
-
-	P( A, B, C, D,  5,  4, 0xFFFA3942 );
-	P( D, A, B, C,  8, 11, 0x8771F681 );
-	P( C, D, A, B, 11, 16, 0x6D9D6122 );
-	P( B, C, D, A, 14, 23, 0xFDE5380C );
-	P( A, B, C, D,  1,  4, 0xA4BEEA44 );
-	P( D, A, B, C,  4, 11, 0x4BDECFA9 );
-	P( C, D, A, B,  7, 16, 0xF6BB4B60 );
-	P( B, C, D, A, 10, 23, 0xBEBFBC70 );
-	P( A, B, C, D, 13,  4, 0x289B7EC6 );
-	P( D, A, B, C,  0, 11, 0xEAA127FA );
-	P( C, D, A, B,  3, 16, 0xD4EF3085 );
-	P( B, C, D, A,  6, 23, 0x04881D05 );
-	P( A, B, C, D,  9,  4, 0xD9D4D039 );
-	P( D, A, B, C, 12, 11, 0xE6DB99E5 );
-	P( C, D, A, B, 15, 16, 0x1FA27CF8 );
-	P( B, C, D, A,  2, 23, 0xC4AC5665 );
-
-#undef F
-
-#define F(x,y,z) (y ^ (x | ~z))
-
-	P( A, B, C, D,  0,  6, 0xF4292244 );
-	P( D, A, B, C,  7, 10, 0x432AFF97 );
-	P( C, D, A, B, 14, 15, 0xAB9423A7 );
-	P( B, C, D, A,  5, 21, 0xFC93A039 );
-	P( A, B, C, D, 12,  6, 0x655B59C3 );
-	P( D, A, B, C,  3, 10, 0x8F0CCC92 );
-	P( C, D, A, B, 10, 15, 0xFFEFF47D );
-	P( B, C, D, A,  1, 21, 0x85845DD1 );
-	P( A, B, C, D,  8,  6, 0x6FA87E4F );
-	P( D, A, B, C, 15, 10, 0xFE2CE6E0 );
-	P( C, D, A, B,  6, 15, 0xA3014314 );
-	P( B, C, D, A, 13, 21, 0x4E0811A1 );
-	P( A, B, C, D,  4,  6, 0xF7537E82 );
-	P( D, A, B, C, 11, 10, 0xBD3AF235 );
-	P( C, D, A, B,  2, 15, 0x2AD7D2BB );
-	P( B, C, D, A,  9, 21, 0xEB86D391 );
-
-#undef F
-
-	ctx->state[0] += A;
-	ctx->state[1] += B;
-	ctx->state[2] += C;
-	ctx->state[3] += D;
-}
-
-/*
-* MD5 process buffer
-*/
-void md5_update( md5_context *ctx, unsigned char *input, int ilen )
-{
-	int fill;
-	unsigned long left;
-
-	if( ilen <= 0 )
-		return;
-
-	left = ctx->total[0] & 0x3F;
-	fill = 64 - left;
-
-	ctx->total[0] += ilen;
-	ctx->total[0] &= 0xFFFFFFFF;
-
-	if( ctx->total[0] < (unsigned long) ilen )
-		ctx->total[1]++;
-
-	if( left && ilen >= fill )
-	{
-		memcpy( (void *) (ctx->buffer + left),
-			(void *) input, fill );
-		md5_process( ctx, ctx->buffer );
-		input += fill;
-		ilen  -= fill;
-		left = 0;
-	}
-
-	while( ilen >= 64 )
-	{
-		md5_process( ctx, input );
-		input += 64;
-		ilen  -= 64;
-	}
-
-	if( ilen > 0 )
-	{
-		memcpy( (void *) (ctx->buffer + left),
-			(void *) input, ilen );
-	}
-}
-
-static const unsigned char md5_padding[64] =
-{
-	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-/*
-* MD5 final digest
-*/
-void md5_finish( md5_context *ctx, unsigned char output[16] )
-{
-	unsigned long last, padn;
-	unsigned long high, low;
-	unsigned char msglen[8];
-
-	high = ( ctx->total[0] >> 29 )
-		| ( ctx->total[1] <<  3 );
-	low  = ( ctx->total[0] <<  3 );
-
-	PUT_ULONG_LE( low,  msglen, 0 );
-	PUT_ULONG_LE( high, msglen, 4 );
-
-	last = ctx->total[0] & 0x3F;
-	padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
-
-	md5_update( ctx, (unsigned char *) md5_padding, padn );
-	md5_update( ctx, msglen, 8 );
-
-	PUT_ULONG_LE( ctx->state[0], output,  0 );
-	PUT_ULONG_LE( ctx->state[1], output,  4 );
-	PUT_ULONG_LE( ctx->state[2], output,  8 );
-	PUT_ULONG_LE( ctx->state[3], output, 12 );
-}
-
-/*
-* output = MD5( input buffer )
-*/
-void md5( unsigned char *input, int ilen, unsigned char output[16] )
-{
-	md5_context ctx;
-
-	md5_starts( &ctx );
-	md5_update( &ctx, input, ilen );
-	md5_finish( &ctx, output );
-
-	memset( &ctx, 0, sizeof( md5_context ) );
 }
