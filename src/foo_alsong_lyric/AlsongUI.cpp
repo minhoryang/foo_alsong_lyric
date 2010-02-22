@@ -46,6 +46,8 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
+	case WM_ERASEBKGND:
+		return 0;
 	}
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
@@ -55,6 +57,9 @@ void AlsongUI::Draw(HDC hdc)
 	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
 	if(!lyric.size())
 		return;
+	RECT rt;
+	SetRect(&rt, 0, 0, 1000, 1000);
+	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
 	for(int i = 0; i < lyric.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i]);
