@@ -8,7 +8,7 @@
 
 LyricManager *LyricManagerInstance;
 
-LyricManager::LyricManager() : m_Lyricpos(-1)
+LyricManager::LyricManager() : m_Lyricpos(-1), m_Seconds(0)
 {
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
@@ -43,6 +43,7 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 	begin = boost::posix_time::microsec_clock::universal_time();
 	tick = begin; //0sec
+	m_Seconds = 0;
 }
 
 void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
@@ -51,6 +52,7 @@ void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 void LyricManager::on_playback_time(double p_time)
 {
 	tick = boost::posix_time::microsec_clock::universal_time();
+	m_Seconds = (int)p_time;
 }
 void LyricManager::on_playback_pause(bool p_state)
 {
@@ -385,24 +387,29 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 
 void LyricManager::CountLyric(const metadb_handle_ptr &track)
 {
-	static_api_ptr_t<play_control> pc;
 	int microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
-	int sec = (int)pc->playback_get_position(), i;																//0
+	int i;																										//0
 	std::vector<lyricinfo>::iterator time_iterator;																//0   some song			
 	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0			         <-- m_LyricPos
-		time_iterator != m_Lyric.end() && time_iterator->time < sec * 100 + microsec;							//100 blah			
+		time_iterator != m_Lyric.end() && time_iterator->time < m_Seconds * 100 + microsec;						//100 blah			
 		m_Lyricpos ++, time_iterator ++);
 	if(time_iterator == m_Lyric.end())
 		return;
-	m_Lyricpos --; //point to last visible line
-	time_iterator --;
+	if(m_Lyricpos > 0)
+	{
+		m_Lyricpos --; //point to last visible line
+		time_iterator --;
+	}
 	RedrawHandler();
 	while(time_iterator != m_Lyric.end())
 	{
-		boost::this_thread::sleep(boost::posix_time::microseconds((time_iterator + 1)->time - time_iterator->time) * 100000);
+		microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;
+		int lyricpos_temp = m_Lyricpos;
+		while((int)time_iterator->time - (m_Seconds * 100 + microsec) < 0) lyricpos_temp ++, time_iterator ++;
+		boost::this_thread::sleep(boost::posix_time::microseconds(time_iterator->time - (m_Seconds * 100 + microsec)) * 10000);
 		if(boost::this_thread::interruption_requested())
 			break;
-		m_Lyricpos ++;
+		m_Lyricpos = lyricpos_temp;
 		RedrawHandler();
 	}
 
@@ -410,6 +417,8 @@ void LyricManager::CountLyric(const metadb_handle_ptr &track)
 
 void LyricManager::Clear()
 {
+	m_Lyricpos = -1;
+	m_Seconds = 0;
 	m_Lyric.clear();
 	m_Title.clear();
 	m_Album.clear();
@@ -424,6 +433,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	
 	Clear();
 
+	m_Lyricpos = 0;
 	m_Lyric.push_back(lyricinfo(0, pfc::string8(pfc::stringcvt::string_utf8_from_wide(TEXT("파일 정보 처리중...")))));
 	if(boost::this_thread::interruption_requested())
 		return false;
@@ -468,7 +478,7 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 		int time = StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7);
 		lastpos += 10; //strlen("[34:56.78]");
 
-		m_Lyric.push_back(lyricinfo(time, pfc::string8(lastpos, pos - 9)));
+		m_Lyric.push_back(lyricinfo(time, pfc::string8(lastpos, nowpos - lastpos)));
 		lastpos = nowpos + lstrlenA(Delimiter);
 	}
 

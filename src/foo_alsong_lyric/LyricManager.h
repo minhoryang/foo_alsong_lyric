@@ -16,6 +16,7 @@ private:
 	};
 	vector<lyricinfo> m_Lyric;
 	int m_Lyricpos;
+	int m_Seconds;
 
 	boost::signals2::signal<void ()> RedrawHandler;
 	boost::shared_ptr<boost::thread> m_fetchthread;
