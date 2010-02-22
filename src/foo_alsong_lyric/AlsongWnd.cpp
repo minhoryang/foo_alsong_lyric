@@ -3,11 +3,17 @@
 #include "AlsongUI.h"
 #include "AlsongWnd.h"
 #include "Preferences.h"
+#include <propkey.h>
+#include <propvarutil.h>
 
 //TODO:UpdateLayeredWindow() 사용. http://msdn.microsoft.com/en-us/library/bb773289(VS.85).aspx 로 직접 창틀 그리기
 
 AlsongWnd AlsongWndInstance; //singleton
 
+//SHGetPropertyStoreForWindow prototype
+typedef DECLSPEC_IMPORT HRESULT (STDAPICALLTYPE *SHGPSFW)(HWND hwnd,
+														  REFIID riid,
+														  void** ppv);
 HWND AlsongWnd::Create() 
 {
 	assert(m_hWnd == NULL);
@@ -41,6 +47,23 @@ HWND AlsongWnd::Create()
 		0,
 		NULL,
 		this );
+	//windows 7 taskbar
+
+	HMODULE shell32 = LoadLibrary(L"shell32.dll");
+	SHGPSFW SHGetPropertyStoreForWindow = reinterpret_cast<SHGPSFW>(GetProcAddress(shell32, "SHGetPropertyStoreForWindow"));
+	m_Propstore = NULL;
+	if(SHGetPropertyStoreForWindow)
+	{
+		SHGetPropertyStoreForWindow(m_hWnd, IID_IPropertyStore, (void **)&m_Propstore);
+		if(m_Propstore)
+		{
+			PROPVARIANT propvar;
+			InitPropVariantFromString(L"dlunch.foo_alsong_lyric", &propvar);
+			m_Propstore->SetValue(PKEY_AppUserModel_ID, propvar); //use separate window
+			InitPropVariantFromBoolean(true, &propvar);
+			m_Propstore->SetValue(PKEY_AppUserModel_PreventPinning, propvar); //not to pin
+		}
+	}
 	SetLayeredWindowAttributes(m_hWnd, 0, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 	ShowWindow(m_hWnd, SW_HIDE);
 	HMENU hMenu = GetSystemMenu(m_hWnd, FALSE);
@@ -52,8 +75,16 @@ HWND AlsongWnd::Create()
 void AlsongWnd::Destroy() 
 {
 	// Destroy the window.
-	if (m_hWnd) 
+	if(m_hWnd)
 	{
+		if(m_Propstore)
+		{
+			PROPVARIANT propvar;
+			propvar.vt = VT_EMPTY;
+			m_Propstore->SetValue(PKEY_AppUserModel_ID, propvar);
+			m_Propstore->SetValue(PKEY_AppUserModel_PreventPinning, propvar); //reset
+			m_Propstore->Release();
+		}
 		DestroyWindow(m_hWnd);
 	}
 }

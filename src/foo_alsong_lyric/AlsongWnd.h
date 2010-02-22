@@ -7,6 +7,7 @@ class AlsongWnd
 private:
 	HWND m_hWnd;
 	AlsongUI *m_UI;
+	IPropertyStore *m_Propstore;
 public:
 	void Show();
 	void Hide();
