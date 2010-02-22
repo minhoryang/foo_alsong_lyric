@@ -8,7 +8,7 @@
 
 LyricManager *LyricManagerInstance;
 
-LyricManager::LyricManager() : m_Lyricpos(-1), m_Seconds(0)
+LyricManager::LyricManager() : m_Lyricpos(-1), m_Seconds(0), m_haslyric(0)
 {
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
@@ -16,14 +16,33 @@ LyricManager::LyricManager() : m_Lyricpos(-1), m_Seconds(0)
 
 LyricManager::~LyricManager()
 {
-	m_fetchthread->interrupt();
-	m_fetchthread->join();
+	if(m_fetchthread)
+	{
+		m_fetchthread->interrupt();
+		m_fetchthread->join();
+		m_fetchthread.reset();
+	}
+	if(m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->unregister_callback(this);
 }
 
 void LyricManager::on_playback_seek(double p_time)
 {
+	if(m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
+	m_Seconds = (int)p_time;
+	tick = boost::posix_time::microsec_clock::universal_time() - boost::posix_time::microseconds((p_time - m_Seconds) * 1000000);
+	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 }
 
 void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
@@ -48,14 +67,30 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 
 void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 {
+	if(m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
 }
+
 void LyricManager::on_playback_time(double p_time)
 {
 	tick = boost::posix_time::microsec_clock::universal_time();
 	m_Seconds = (int)p_time;
 }
+
 void LyricManager::on_playback_pause(bool p_state)
 {
+	if(p_state == true && m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
+	else if(p_state == false && m_haslyric == 1)
+		m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 }
 
 std::vector<pfc::string8> LyricManager::GetLyricBefore(int n)
@@ -68,9 +103,8 @@ std::vector<pfc::string8> LyricManager::GetLyric()
 	if(m_Lyricpos >= 0)
 	{
 		std::vector<pfc::string8> ret;
-		for(int i = m_Lyricpos; i >= 0 && m_Lyric[i].time == m_Lyric[m_Lyricpos].time; i --)
+		for(int i = m_Lyricpos; i < m_Lyric.size() && m_Lyric[i].time == m_Lyric[m_Lyricpos].time; i ++)
 			ret.push_back(m_Lyric[i].lyric);
-		std::reverse(ret.begin(), ret.end());
 		return ret;
 	}
 	return std::vector<pfc::string8>();
@@ -391,20 +425,20 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	return S_OK;
 }
 
-void LyricManager::CountLyric(const metadb_handle_ptr &track)
+void LyricManager::CountLyric()
 {
 	int microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
-	int i;																										//0
-	std::vector<lyricinfo>::iterator time_iterator;																//0   some song			
-	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0			         <-- m_LyricPos
+	int i;																										//0					<-- m_LyricPos
+	std::vector<lyricinfo>::iterator time_iterator;																//0   some song
+	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0
 		time_iterator != m_Lyric.end() && time_iterator->time < m_Seconds * 100 + microsec;						//100 blah			
 		m_Lyricpos ++, time_iterator ++);
 	if(time_iterator == m_Lyric.end())
 		return;
 	if(m_Lyricpos > 0)
 	{
-		m_Lyricpos --; //point to last visible line
-		time_iterator --;
+		while((time_iterator - 1)->time != 0) m_Lyricpos --, time_iterator --;//point to last visible line
+		while(time_iterator != m_Lyric.begin() && (time_iterator - 1)->time == time_iterator->time) time_iterator --, m_Lyricpos --;
 	}
 	RedrawHandler();
 	while(time_iterator != m_Lyric.end())
@@ -425,6 +459,7 @@ void LyricManager::Clear()
 {
 	m_Lyricpos = -1;
 	m_Seconds = 0;
+	m_haslyric = 0;
 	m_Lyric.clear();
 	m_Title.clear();
 	m_Album.clear();
@@ -460,8 +495,11 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		return false;
 	}
 
-	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this, track)));
+	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 
+	//cleanup
+	m_fetchthread->detach();
+	m_fetchthread.reset();
 	return true;
 }
 
@@ -488,6 +526,7 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 		lastpos = nowpos + lstrlenA(Delimiter);
 	}
 
+	m_haslyric = 1;
 	return S_OK;
 }
 

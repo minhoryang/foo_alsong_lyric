@@ -17,6 +17,7 @@ private:
 	vector<lyricinfo> m_Lyric;
 	int m_Lyricpos;
 	int m_Seconds;
+	int m_haslyric;
 
 	boost::signals2::signal<void ()> RedrawHandler;
 	boost::shared_ptr<boost::thread> m_fetchthread;
@@ -26,7 +27,7 @@ private:
 
 	static DWORD GetFileHash(metadb_handle_ptr track, CHAR *Hash);
 	DWORD ParseLyric(const char *InputLyric, const char *Delimiter);
-	void CountLyric(const metadb_handle_ptr &track);
+	void CountLyric();
 	DWORD DownloadLyric(CHAR *Hash);
 	DWORD FetchLyric(const metadb_handle_ptr &track);
 	void Clear();

@@ -55,9 +55,11 @@ void AlsongUI::Draw(HDC hdc)
 	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
 	if(!lyric.size())
 		return;
-	std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[0]);
-
-	TextOut(hdc, 0, 0, nowlrcw.c_str(), nowlrcw.length());
+	for(int i = 0; i < lyric.size(); i ++)
+	{
+		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i]);
+		TextOut(hdc, 0, i * 20, nowlrcw.c_str(), nowlrcw.length());
+	}
 	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);
 }
 
