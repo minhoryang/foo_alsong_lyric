@@ -14,7 +14,7 @@ public:
 private:
 	bool on_keydown(WPARAM wParam);
 	void on_contextmenu(HWND hWndparent);
-	void Draw(HDC hdc);
+	void Draw(HWND hWnd, HDC hdc);
 
 	void UnInitializeScript(SquirrelVMSys *vm);
 	SquirrelVMSys InitializeScript();

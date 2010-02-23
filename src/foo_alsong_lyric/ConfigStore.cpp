@@ -50,7 +50,7 @@ const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
 cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL);
 
-inline t_font_description get_def_font()
+t_font_description get_def_font()
 {
 	return t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 }

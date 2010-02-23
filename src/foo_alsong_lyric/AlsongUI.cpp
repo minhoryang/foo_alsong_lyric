@@ -44,7 +44,7 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 		PAINTSTRUCT ps;
 		if(BeginPaint(hWnd, &ps) != NULL) 
 		{
-			Draw(ps.hdc);
+			Draw(hWnd, ps.hdc);
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
@@ -54,16 +54,16 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-void AlsongUI::Draw(HDC hdc)
+void AlsongUI::Draw(HWND hWnd, HDC hdc)
 {
 	int before = 5, after = 5;
-	std::vector<pfc::string8> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
 	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
+	std::vector<pfc::string8> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
 	std::vector<pfc::string8> lyricafter = LyricManagerInstance->GetLyricAfter(after);
 	if(!lyric.size())
 		return;
 	RECT rt;
-	SetRect(&rt, 0, 0, 1000, 1000);
+	GetClientRect(hWnd, &rt);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
 	int h = 0, i;
 	for(i = 0; i < before - lyricbefore.size(); i ++)

@@ -1,6 +1,6 @@
 #pragma once;
 
-inline static t_font_description get_def_font();
+t_font_description get_def_font();
 
 extern cfg_bool cfg_save_to_lrc;
 extern cfg_bool cfg_load_from_lrc;

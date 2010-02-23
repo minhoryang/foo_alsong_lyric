@@ -444,7 +444,7 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 void LyricManager::CountLyric()
 {
 	int microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
-	int i;																										//0					<-- m_LyricPos
+																												//0					<-- m_LyricPos
 	std::vector<lyricinfo>::iterator time_iterator;																//0   some song
 	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0
 		time_iterator != m_Lyric.end() && time_iterator->time < m_Seconds * 100 + microsec;						//100 blah			

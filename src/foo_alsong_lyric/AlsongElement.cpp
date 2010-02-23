@@ -2,6 +2,7 @@
 
 #include "AlsongElement.h"
 #include "AlsongUI.h"
+#include "ConfigStore.h"
 
 AlsongElement::AlsongElement()
 {
@@ -15,7 +16,7 @@ AlsongElement::~AlsongElement()
 
 ui_element_instance_ptr AlsongElement::instantiate(HWND p_parent,ui_element_config::ptr cfg,ui_element_instance_callback_ptr p_callback)
 {
-	m_config = cfg;
+	set_configuration(cfg);
 	m_callback = p_callback;
 
 	initialize_window(p_parent);
@@ -63,12 +64,16 @@ HWND AlsongElement::get_wnd()
 
 void AlsongElement::set_configuration(ui_element_config::ptr config)
 {
-	m_config = config;
-}
-
-ui_element_config::ptr AlsongElement::get_configuration()
-{
-	return m_config;
+	DWORD *dataptr = (DWORD *)config->get_data();
+	if(dataptr && config->get_data_size() > 4 && dataptr[0] == ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O'))
+		m_config = config; //right signature
+	else
+		m_config = get_default_configuration();
+	dataptr = (DWORD *)m_config->get_data();
+	memcpy(&m_Setting, &dataptr[1], sizeof(m_Setting));
+	BYTE *datatmp = (BYTE *)m_config->get_data();
+	DWORD scriptlen = *((DWORD *)&datatmp[sizeof(m_Setting) + 4]);
+	m_Script.add_string((const char *)datatmp[sizeof(m_Setting) + 8], scriptlen);
 }
 
 GUID AlsongElement::get_guid()
@@ -90,7 +95,24 @@ void AlsongElement::get_name(pfc::string_base & out)
 
 ui_element_config::ptr AlsongElement::get_default_configuration()
 {
-	return ui_element_config::g_create_empty(get_guid());
+	BYTE temp[sizeof(Window_Setting) + 8];
+	Window_Setting *settemp = (Window_Setting *)&temp[4];
+	memset(temp, 0, sizeof(temp));
+	*((DWORD *)&temp[0]) = ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O');
+	settemp->font = get_def_font();
+	settemp->bkColor = RGB(0, 0, 0);
+	settemp->fgColor = RGB(255, 255, 255);
+	settemp->nLine = 3;
+	settemp->LineMargin = 100;
+	settemp->VerticalAlign = 2;
+	settemp->HorizentalAlign = 2;
+
+	return ui_element_config::g_create(get_guid(), temp, sizeof(temp));
+}
+
+ui_element_config::ptr AlsongElement::get_configuration()
+{
+	return m_config;
 }
 
 const char *AlsongElement::get_description()
