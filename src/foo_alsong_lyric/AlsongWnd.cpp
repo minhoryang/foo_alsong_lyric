@@ -14,6 +14,54 @@ AlsongWnd AlsongWndInstance; //singleton
 typedef DECLSPEC_IMPORT HRESULT (STDAPICALLTYPE *SHGPSFW)(HWND hwnd,
 														  REFIID riid,
 														  void** ppv);
+
+
+/* interface ICustomDestinationList */
+/* [unique][object][uuid] */ 
+
+typedef /* [v1_enum] */ 
+enum KNOWNDESTCATEGORY
+{	KDC_FREQUENT	= 1,
+KDC_RECENT	= ( KDC_FREQUENT + 1 ) 
+} 	KNOWNDESTCATEGORY;
+
+//icustomdestinationlist prototype
+EXTERN_C const IID IID_ICustomDestinationList;
+MIDL_INTERFACE("6332debf-87b5-4670-90c0-5e57b408a49e")
+ICustomDestinationList : public IUnknown
+{
+public:
+	virtual HRESULT STDMETHODCALLTYPE SetAppID( 
+		/* [string][in] */ __RPC__in_string LPCWSTR pszAppID) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE BeginList( 
+		/* [out] */ __RPC__out UINT *pcMinSlots,
+		/* [in] */ __RPC__in REFIID riid,
+		/* [iid_is][out] */ __RPC__deref_out_opt void **ppv) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE AppendCategory( 
+		/* [string][in] */ __RPC__in_string LPCWSTR pszCategory,
+		/* [in] */ __RPC__in_opt IObjectArray *poa) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE AppendKnownCategory( 
+		/* [in] */ KNOWNDESTCATEGORY category) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE AddUserTasks( 
+		/* [in] */ __RPC__in_opt IObjectArray *poa) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE CommitList( void) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE GetRemovedDestinations( 
+		/* [in] */ __RPC__in REFIID riid,
+		/* [iid_is][out] */ __RPC__deref_out_opt void **ppv) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE DeleteList( 
+		/* [string][unique][in] */ __RPC__in_opt_string LPCWSTR pszAppID) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE AbortList( void) = 0;
+
+};
+
 HWND AlsongWnd::Create() 
 {
 	assert(m_hWnd == NULL);
@@ -55,13 +103,52 @@ HWND AlsongWnd::Create()
 	if(SHGetPropertyStoreForWindow)
 	{
 		SHGetPropertyStoreForWindow(m_hWnd, IID_IPropertyStore, (void **)&m_Propstore);
+		wchar_t appid[] = L"dlunch.foo_alsong_lyric";
 		if(m_Propstore)
 		{
 			PROPVARIANT propvar;
-			InitPropVariantFromString(L"dlunch.foo_alsong_lyric", &propvar);
+			InitPropVariantFromString(appid, &propvar);
 			m_Propstore->SetValue(PKEY_AppUserModel_ID, propvar); //use separate window
 			InitPropVariantFromBoolean(true, &propvar);
 			m_Propstore->SetValue(PKEY_AppUserModel_PreventPinning, propvar); //not to pin
+		}
+		ICustomDestinationList *destlist = NULL;
+		CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
+		if(destlist)
+		{
+			UINT MinSlot;
+			IObjectArray *removed;
+			destlist->BeginList(&MinSlot, IID_IObjectArray, (void **)&removed);
+			IObjectCollection *tasks;
+			CoCreateInstance(CLSID_EnumerableObjectCollection, NULL, CLSCTX_INPROC_SERVER, IID_IObjectCollection, (void **)&tasks);
+			
+			//"c:\Program Files (x86)\foobar2000\foobar2000.exe" /command:"알송 실시간 가사"
+			IShellLink *link;
+			CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void **)&link);
+			wchar_t name[255];
+			GetModuleFileName(GetModuleHandle(L"foobar2000.exe"), name, 255);
+			link->SetPath(name);
+			link->SetArguments(L"/command:\"알송 실시간 가사\"");
+			
+			IPropertyStore *propstore;
+			link->QueryInterface(IID_IPropertyStore, (void **)&propstore);
+			PROPVARIANT pv;
+			InitPropVariantFromString(L"알송 실시간 가사", &pv);
+			propstore->SetValue(PKEY_Title, pv);
+			propstore->Commit();
+			propstore->Release();
+
+			tasks->AddObject(link);
+			IObjectArray *arr;
+			tasks->QueryInterface(IID_IObjectArray, (void **)&arr);
+			destlist->AddUserTasks(arr);
+			destlist->CommitList();
+			
+			destlist->Release();
+			tasks->Release();
+			arr->Release();
+			link->Release();
+			removed->Release();
 		}
 	}
 	SetLayeredWindowAttributes(m_hWnd, 0, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
