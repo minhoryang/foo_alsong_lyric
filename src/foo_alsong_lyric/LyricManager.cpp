@@ -6,7 +6,7 @@
 #include "md5.h"
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
-LyricManager *LyricManagerInstance;
+LyricManager *LyricManagerInstance = NULL;
 
 LyricManager::LyricManager() : m_Lyricpos(-1), m_Seconds(0), m_haslyric(0)
 {
@@ -41,7 +41,7 @@ void LyricManager::on_playback_seek(double p_time)
 		m_countthread.reset();
 	}
 	m_Seconds = (int)p_time;
-	tick = boost::posix_time::microsec_clock::universal_time() - boost::posix_time::microseconds((p_time - m_Seconds) * 1000000);
+	tick = boost::posix_time::microsec_clock::universal_time() - boost::posix_time::microseconds((int)(p_time - m_Seconds) * 1000000);
 	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 }
 
@@ -95,6 +95,14 @@ void LyricManager::on_playback_pause(bool p_state)
 
 std::vector<pfc::string8> LyricManager::GetLyricBefore(int n)
 {
+	if(m_Lyricpos >= 0)
+	{
+		std::vector<pfc::string8> ret;
+		for(int i = max(0, m_Lyricpos - n); i < m_Lyricpos; i ++)
+			ret.push_back(m_Lyric[i].lyric);
+
+		return ret;
+	}
 	return std::vector<pfc::string8>();
 }
 
@@ -112,6 +120,14 @@ std::vector<pfc::string8> LyricManager::GetLyric()
 
 std::vector<pfc::string8> LyricManager::GetLyricAfter(int n)
 {
+	if(m_Lyricpos >= 0)
+	{
+		std::vector<pfc::string8> ret;
+		for(int i = m_Lyricpos + 1; i < min(m_Lyric.size(), m_Lyricpos + n); i ++)
+			ret.push_back(m_Lyric[i].lyric);
+
+		return ret;
+	}
 	return std::vector<pfc::string8>();
 }
 
@@ -438,7 +454,7 @@ void LyricManager::CountLyric()
 	if(m_Lyricpos > 0)
 	{
 		m_Lyricpos --, time_iterator --;
-		while(time_iterator->time == 0) m_Lyricpos --, time_iterator --;//point to last visible line
+		while(time_iterator != m_Lyric.begin() && time_iterator->time == 0) m_Lyricpos --, time_iterator --;//point to last visible line
 		while(time_iterator != m_Lyric.begin() && (time_iterator - 1)->time == time_iterator->time) time_iterator --, m_Lyricpos --;
 	}
 	RedrawHandler();

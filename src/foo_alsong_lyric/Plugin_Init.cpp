@@ -34,7 +34,8 @@ public:
 
 		GdiplusStartup(&gdiplus_token, &gsi, NULL);
 
-		LyricManagerInstance = new LyricManager();
+		if(!LyricManagerInstance)
+			LyricManagerInstance = new LyricManager();
 
 		AlsongWndInstance.Create();
 		if (cfg_outer_shown)
@@ -51,8 +52,8 @@ public:
 		GdiplusShutdown(gdiplus_token);
 
 		SquirrelVM::AppFinalShutdown();
-
-		delete LyricManagerInstance;
+		if(LyricManagerInstance)
+			delete LyricManagerInstance;
 	}
 };
 
