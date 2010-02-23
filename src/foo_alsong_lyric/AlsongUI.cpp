@@ -56,28 +56,31 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 
 void AlsongUI::Draw(HDC hdc)
 {
-	std::vector<pfc::string8> lyricbefore = LyricManagerInstance->GetLyricBefore(5);
+	int before = 5, after = 5;
+	std::vector<pfc::string8> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
 	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
-	std::vector<pfc::string8> lyricafter = LyricManagerInstance->GetLyricAfter(5);
+	std::vector<pfc::string8> lyricafter = LyricManagerInstance->GetLyricAfter(after);
 	if(!lyric.size())
 		return;
 	RECT rt;
 	SetRect(&rt, 0, 0, 1000, 1000);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
-	int h = 0;
-	for(int i = 0; i < lyricbefore.size(); i ++)
+	int h = 0, i;
+	for(i = 0; i < before - lyricbefore.size(); i ++)
+		h += 20;
+	for(i = 0; i < lyricbefore.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i]);
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
 		h += 20;
 	}
-	for(int i = 0; i < lyric.size(); i ++)
+	for(i = 0; i < lyric.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i]);
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
 		h += 20;
 	}
-	for(int i = 0; i < lyricafter.size(); i ++)
+	for(i = 0; i < lyricafter.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i]);
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());

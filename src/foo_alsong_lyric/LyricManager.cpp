@@ -123,7 +123,7 @@ std::vector<pfc::string8> LyricManager::GetLyricAfter(int n)
 	if(m_Lyricpos >= 0)
 	{
 		std::vector<pfc::string8> ret;
-		for(int i = m_Lyricpos + 1; i < min(m_Lyric.size(), m_Lyricpos + n); i ++)
+		for(int i = m_Lyricpos + 1; i < min(m_Lyric.size(), m_Lyricpos + n + 1); i ++)
 			ret.push_back(m_Lyric[i].lyric);
 
 		return ret;
