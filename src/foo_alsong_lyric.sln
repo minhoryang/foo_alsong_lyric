@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqstdlib", "..\Squirrel\pro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "squirrel", "..\Squirrel\projects\squirrel.vcxproj", "{D2EB28F5-6B67-4823-8051-B564EF852CED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "columns_ui_sdk", "..\foobar2000\foobar2000\vc9\columns_ui-sdk.vcxproj", "{93EC0EDE-01CD-4FB0-B8E8-4F2A027E026E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "columns_ui_sdk", "..\foobar2000\foobar2000\vc\columns_ui-sdk.vcxproj", "{93EC0EDE-01CD-4FB0-B8E8-4F2A027E026E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "foobar2000_sdk_helpers", "..\foobar2000\foobar2000\helpers\foobar2000_sdk_helpers.vcxproj", "{EE47764E-A202-4F85-A767-ABDAB4AFF35F}"
 EndProject
