@@ -17,7 +17,6 @@ const GUID guid_cfg_mimic_lyricshow = // {D212F5F9-9E24-4ced-BF50-0258D07DBB0C}
 { 0xd212f5f9, 0x9e24, 0x4ced, { 0xbf, 0x50, 0x2, 0x58, 0xd0, 0x7d, 0xbb, 0xc } };
 cfg_bool cfg_mimic_lyricshow(guid_cfg_mimic_lyricshow, false);
 
-
 const GUID guid_cfg_outer_shown = 
 { 0x44eefa62, 0x996e, 0x4480, { 0xaa, 0x72, 0x98, 0xef, 0xb6, 0xf0, 0xcd, 0xd2 } };
 cfg_bool cfg_outer_shown(guid_cfg_outer_shown, false);
@@ -49,8 +48,3 @@ cfg_string cfg_outer_script(guid_cfg_outer_script, "");
 const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
 cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL);
-
-t_font_description get_def_font()
-{
-	return t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
-}

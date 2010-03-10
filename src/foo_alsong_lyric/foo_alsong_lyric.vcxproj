@@ -84,8 +84,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "D:\Work\Sources\foobar2000\components"
-</Command>
+      <Command>copy $(TargetPath) d:\work\Sources\foobar2000\components\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,7 +131,7 @@
       <CLRThreadAttribute>MTAThreadingAttribute</CLRThreadAttribute>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "D:\Work\Sources\foobar2000\components"</Command>
+      <Command>copy $(TargetPath) d:\work\Sources\foobar2000\components\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

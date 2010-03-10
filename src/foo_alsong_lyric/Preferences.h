@@ -1,1 +1,135 @@
-void StartUIConfigDialog(Window_Setting *Setting, HWND hParent, BOOL bOuter);
+#pragma once
+
+class Window_Setting
+{
+public:
+	Window_Setting() {}
+	~Window_Setting() {}
+
+	HFONT CreateFont()
+	{
+		return font.create();
+	}
+	COLORREF GetBkColor()
+	{
+		return bkColor;
+	}
+	COLORREF GetFgColor()
+	{
+		return fgColor;
+	}
+	std::wstring GetBgImagePath()
+	{
+		return std::wstring(bgImage);
+	}
+	int GetBgType()
+	{
+		return bgType;
+	}
+	unsigned int GetnLine()
+	{
+		return nLine;
+	}
+	unsigned int GetLineMargin()
+	{
+		return LineMargin;
+	}
+	BYTE GetVerticalAlign()
+	{
+		return VerticalAlign;
+	}
+	BYTE GetHorizentalAlign()
+	{
+		return HorizentalAlign;
+	}
+	int OpenFontPopup(HWND hWndFrom)
+	{
+		return font.popup_dialog(hWndFrom);
+	}
+	int OpenFgColorPopup(HWND hWndFrom)
+	{
+		COLORREF color;
+		if(color = OpenColorPopup(hWndFrom, fgColor) != -1)
+		{
+			fgColor = color;
+			return color;
+		}
+		return -1;
+	}
+	int OpenBkColorPopup(HWND hWndFrom)
+	{
+		COLORREF color;
+		if(color = OpenColorPopup(hWndFrom, fgColor) != -1)
+		{
+			bgType = 0;
+			bkColor = color;
+			return color;
+		}
+		return -1;
+	}
+	int OpenBgImagePopup(HWND hWndFrom)
+	{
+		OPENFILENAME ofn;
+		ZeroMemory(&ofn, sizeof(ofn));
+		ofn.lStructSize = sizeof(ofn);
+		ofn.lpstrFile = bgImage;
+		ofn.lpstrFilter = TEXT("그림 파일(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
+		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+		ofn.nMaxFile = 255;
+
+		if(GetOpenFileName(&ofn))
+		{
+			bgType = 1;
+			return true;
+		}
+		return false;
+	}
+	void SetDefault()
+	{
+		font = t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
+		bkColor = RGB(0, 0, 0);
+		fgColor = RGB(255, 255, 255);
+		bgImage[0] = 0;
+		nLine = 3;
+		LineMargin = 100;
+		VerticalAlign = 2;
+		HorizentalAlign = 2;
+	}
+
+	void OpenConfigPopup(HWND hParent);
+	static BOOL CALLBACK ConfigProcDispatcher(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+private:
+	COLORREF OpenColorPopup(HWND hWndFrom, COLORREF color)
+	{
+		static COLORREF acrCustClr[16] = {RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
+			RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
+			RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
+			RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255)};
+
+		CHOOSECOLOR choosecolor;
+		ZeroMemory(&choosecolor, sizeof(choosecolor));
+		choosecolor.lStructSize = sizeof(CHOOSECOLOR);
+		choosecolor.Flags = CC_ANYCOLOR | CC_FULLOPEN | CC_RGBINIT ;
+		choosecolor.hwndOwner = hWndFrom;
+		choosecolor.lpCustColors = (LPDWORD)acrCustClr;
+		choosecolor.rgbResult = color;
+		if(ChooseColor(&choosecolor))
+			return choosecolor.rgbResult;
+		return -1;
+	}
+	BOOL UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent);
+
+	t_font_description font;
+	COLORREF bkColor;
+	COLORREF fgColor;
+	WCHAR bgImage[MAX_PATH];
+	int bgType; //0: 색, 1: 이미지, 2:투명한 배경
+
+	DWORD nLine;
+	DWORD LineMargin;//%단위
+
+	BYTE VerticalAlign; //상하정렬. 1:위 2:가운데 3:아래
+	BYTE HorizentalAlign; //좌우정렬. 1:왼쪽 2:가운데 3:오른쪽
+
+	BYTE bReserved[1022]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+};

@@ -5,13 +5,6 @@
 
 //TODO: DropSource
 
-COLORREF acrCustClr[16] = {RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
-RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
-RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), 
-RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255), RGB(255, 255, 255)};
-
-using namespace Gdiplus;
-
 AlsongUI::AlsongUI(Window_Setting &Setting, pfc::string8 &Script) : m_Setting(Setting), m_Script(Script)
 {
 }
@@ -106,7 +99,7 @@ SquirrelVMSys AlsongUI::InitializeScript()
 void AlsongUI::UnInitializeScript(SquirrelVMSys *vm)
 {
 	SquirrelVM::SetVMSys(*vm);
-	//SquirrelVM::Shutdown();
+	SquirrelVM::Shutdown();
 }
 
 bool AlsongUI::on_keydown(WPARAM wParam) 
@@ -149,10 +142,13 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 
 	HMENU hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("폰트 선택..."));
-	if(cfg_outer_topmost)
-		AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_TOPMOST, TEXT("항상 위에 보이기"));
-	else
-		AppendMenu(hMenu, MF_STRING, ID_TOPMOST, TEXT("항상 위에 보이기"));
+	if(GetParent(hWndFrom) == NULL)//if top level
+	{
+		if(cfg_outer_topmost)
+			AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_TOPMOST, TEXT("항상 위에 보이기"));
+		else
+			AppendMenu(hMenu, MF_STRING, ID_TOPMOST, TEXT("항상 위에 보이기"));
+	}
 	AppendMenu(hMenu, MF_STRING, ID_BKCOLOR, TEXT("배경색 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_FGCOLOR, TEXT("글자색 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_BGIMAGE, TEXT("배경그림 선택..."));
@@ -184,13 +180,10 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 		int cmd = TrackPopupMenu(hMenu, TPM_NONOTIFY | TPM_RETURNCMD | TPM_RIGHTBUTTON, 
 			pt.x, pt.y, 0, hWndFrom, 0);
 
-		if (cmd == ID_FONT) {
-			t_font_description font = cfg_outer.get_value().font;
-			if (font.popup_dialog(hWndFrom)) 
-			{
-				cfg_outer.get_value().font = font;
+		if (cmd == ID_FONT) 
+		{
+			if(m_Setting.OpenFontPopup(hWndFrom))
 				InvalidateRect(hWndFrom, NULL, TRUE);
-			}
 		} 
 		else if(cmd == ID_TOPMOST)
 		{
@@ -201,54 +194,22 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 		}
 		else if(cmd == ID_BKCOLOR)
 		{			
-			CHOOSECOLOR choosecolor;
-			ZeroMemory(&choosecolor, sizeof(choosecolor));
-			choosecolor.lStructSize = sizeof(CHOOSECOLOR);
-			choosecolor.Flags = CC_ANYCOLOR | CC_FULLOPEN | CC_RGBINIT ;
-			choosecolor.hwndOwner = hWndFrom;
-			choosecolor.lpCustColors = (LPDWORD)acrCustClr;
-			choosecolor.rgbResult = cfg_outer.get_value().bkColor;
-			if(ChooseColor(&choosecolor))
-			{
-				cfg_outer.get_value().bgType = 0;
-				cfg_outer.get_value().bkColor = choosecolor.rgbResult;
+			if(m_Setting.OpenBkColorPopup(hWndFrom) != -1)
 				InvalidateRect(hWndFrom, NULL, TRUE);
-			}
 		}
 		else if(cmd == ID_FGCOLOR)
 		{
-			CHOOSECOLOR choosecolor;
-			ZeroMemory(&choosecolor, sizeof(choosecolor));
-			choosecolor.lStructSize = sizeof(CHOOSECOLOR);
-			choosecolor.Flags = CC_ANYCOLOR | CC_FULLOPEN | CC_RGBINIT ;
-			choosecolor.hwndOwner = hWndFrom;
-			choosecolor.lpCustColors = (LPDWORD)acrCustClr;
-			choosecolor.rgbResult = cfg_outer.get_value().fgColor;
-			if(ChooseColor(&choosecolor))
-			{
-				cfg_outer.get_value().fgColor = choosecolor.rgbResult;
+			if(m_Setting.OpenFgColorPopup(hWndFrom) != -1)
 				InvalidateRect(hWndFrom, NULL, TRUE);
-			}
 		}
 		else if(cmd == ID_BGIMAGE)
 		{
-			OPENFILENAME ofn;
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.lpstrFile = cfg_outer.get_value().bgImage;
-			ofn.lpstrFilter = TEXT("그림 파일(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
-			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
-			ofn.nMaxFile = 255;
-
-			if(GetOpenFileName(&ofn))
-			{
-				cfg_outer.get_value().bgType = 1;
+			if(m_Setting.OpenBgImagePopup(hWndFrom))
 				InvalidateRect(hWndFrom, NULL, TRUE);
-			}
 		}
 		else if(cmd == ID_ADVSET)
 		{
-			//TODO
+			m_Setting.OpenConfigPopup(hWndFrom);
 		}
 		else if(cmd == ID_MODLRC)
 		{

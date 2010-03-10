@@ -108,6 +108,6 @@ bool AlsongPanel::have_config_popup() const
 
 bool AlsongPanel::show_config_popup(HWND wnd_parent)
 {
-	StartUIConfigDialog(&m_Setting, wnd_parent, FALSE);
+	m_Setting.OpenConfigPopup(wnd_parent);
 	return true;
 }

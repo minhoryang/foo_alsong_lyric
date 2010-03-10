@@ -26,8 +26,7 @@ ui_element_instance_ptr AlsongElement::instantiate(HWND p_parent,ui_element_conf
 
 void AlsongElement::initialize_window(HWND parent)
 {
-	Window_Setting nullset;
-	m_UI = new AlsongUI(nullset, pfc::string8());
+	m_UI = new AlsongUI(m_Setting, m_Script);
 
 	WNDCLASSEX wcex;
 	memset(&wcex, 0, sizeof(wcex));
@@ -62,20 +61,6 @@ HWND AlsongElement::get_wnd()
 	return m_hWnd;
 }
 
-void AlsongElement::set_configuration(ui_element_config::ptr config)
-{
-	DWORD *dataptr = (DWORD *)config->get_data();
-	if(dataptr && config->get_data_size() > 4 && dataptr[0] == ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O'))
-		m_config = config; //right signature
-	else
-		m_config = get_default_configuration();
-	dataptr = (DWORD *)m_config->get_data();
-	memcpy(&m_Setting, &dataptr[1], sizeof(m_Setting));
-	BYTE *datatmp = (BYTE *)m_config->get_data();
-	DWORD scriptlen = *((DWORD *)&datatmp[sizeof(m_Setting) + 4]);
-	m_Script.add_string((const char *)datatmp[sizeof(m_Setting) + 8], scriptlen);
-}
-
 GUID AlsongElement::get_guid()
 {
 	static const GUID AlsongElementGUID = 
@@ -93,25 +78,37 @@ void AlsongElement::get_name(pfc::string_base & out)
 	out.set_string("Alsong Lyric Element");
 }
 
+void AlsongElement::set_configuration(ui_element_config::ptr config)
+{
+	DWORD *dataptr = (DWORD *)config->get_data();
+	if(dataptr && config->get_data_size() > 4 && dataptr[0] == ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O'))
+		m_config = config; //right signature
+	else
+		m_config = get_default_configuration();
+	dataptr = (DWORD *)m_config->get_data();
+	memcpy(&m_Setting, &dataptr[1], sizeof(m_Setting));
+	BYTE *datatmp = (BYTE *)m_config->get_data();
+	DWORD scriptlen = *((DWORD *)&datatmp[sizeof(m_Setting) + 4]);
+	m_Script.add_string((const char *)datatmp[sizeof(m_Setting) + 8], scriptlen);
+}
+
 ui_element_config::ptr AlsongElement::get_default_configuration()
 {
 	BYTE temp[sizeof(Window_Setting) + 8];
 	Window_Setting *settemp = (Window_Setting *)&temp[4];
 	memset(temp, 0, sizeof(temp));
 	*((DWORD *)&temp[0]) = ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O');
-	settemp->font = get_def_font();
-	settemp->bkColor = RGB(0, 0, 0);
-	settemp->fgColor = RGB(255, 255, 255);
-	settemp->nLine = 3;
-	settemp->LineMargin = 100;
-	settemp->VerticalAlign = 2;
-	settemp->HorizentalAlign = 2;
+	settemp->SetDefault();
 
 	return ui_element_config::g_create(get_guid(), temp, sizeof(temp));
 }
 
 ui_element_config::ptr AlsongElement::get_configuration()
 {
+	if(m_config->get_data_size() == sizeof(m_Setting) + m_Script.get_length() + 8)
+	{
+		memcpy(((BYTE *)m_config->get_data() + 4), &m_Setting, sizeof(m_Setting));
+	}
 	return m_config;
 }
 

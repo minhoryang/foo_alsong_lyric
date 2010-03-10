@@ -4,7 +4,7 @@
 #include "resource.h"
 #include "Preferences.h"
 
-static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
@@ -18,7 +18,6 @@ int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
 			VirtualProtect(lpTemplate, sizeof(DLGTEMPLATE), PAGE_READWRITE, &dwOldProtect);
 
 			lpTemplate->style = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU | WS_VISIBLE | DS_3DLOOK;
-
 			lpTemplate->dwExtendedStyle = 0;
 			return TRUE;
 		}
@@ -58,10 +57,9 @@ static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPA
 			pages[1].dwFlags = PSP_DEFAULT | PSP_USETITLE;
 			pages[1].hInstance = core_api::get_my_instance();
 			pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
-			pages[1].pfnDlgProc = UICommonConfigProc;
+			pages[1].pfnDlgProc = &Window_Setting::ConfigProcDispatcher;
 			pages[1].pszTitle = TEXT("외부 창 설정");
-			std::pair<Window_Setting, HWND> temp = std::make_pair(cfg_outer.get_value(), AlsongWndInstance.GetHWND());
-			pages[1].lParam = (LPARAM)&temp;
+			pages[1].lParam = (LPARAM)(&cfg_outer.get_value());
 
 			hpages[0] = CreatePropertySheetPage(&pages[0]);
 			hpages[1] = CreatePropertySheetPage(&pages[1]);
@@ -204,12 +202,9 @@ void UpdateOuterWindowStyle(HWND hWnd)
 }
 
 //TODO: 줄간격 설정
-static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+BOOL Window_Setting::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent)
 {
-	static Window_Setting *Setting;
 	static Window_Setting OldSetting;
-	static BOOL bOuter = FALSE;
-	static HWND hParent;
 
 	static int old_transparency;
 	static bool old_layered, old_border;
@@ -218,28 +213,22 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-			Setting = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->first;
-			bOuter = ((pair<Window_Setting *, pair<BOOL, HWND> *> *)(((PROPSHEETPAGE *)lParam)->lParam))->second->first;
-			hParent = ((pair<Window_Setting *, pair<BOOL, HWND>* > *)(((PROPSHEETPAGE *)lParam)->lParam))->second->second;
-			memcpy(&OldSetting, Setting, sizeof(Window_Setting));
+			memcpy(&OldSetting, this, sizeof(Window_Setting));
 			old_transparency = cfg_outer_transparency;
 			old_layered = cfg_outer_layered;
 			old_border = cfg_outer_border;
 
-			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam)->second;
-			delete ((pair<Window_Setting *, pair<BOOL, HWND> *> *)((PROPSHEETPAGE *)lParam)->lParam);
-
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
-			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, Setting->nLine);
+			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, GetnLine());
 
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETRANGE32, 0, 100);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_LINEMARGIN), 0);
-			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETPOS32, 0, Setting->LineMargin);
+			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETPOS32, 0, GetLineMargin());
 
 //			if(Setting->Script)
 //				uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
-			if(bOuter)
+			if(GetParent(hParent) == NULL)
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_transparency);
@@ -269,8 +258,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("가운데"));
 			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("오른쪽"));
 
-			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_SETCURSEL, Setting->VerticalAlign, NULL);
-			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_SETCURSEL, Setting->HorizentalAlign, NULL);
+			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_SETCURSEL, GetVerticalAlign() - 1, NULL);
+			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_SETCURSEL, GetHorizentalAlign() - 1, NULL);
 
 			SendMessage(GetDlgItem(hWnd, IDC_MANUALSCRIPT), WM_CLOSE, 0, 0);
 			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
@@ -278,7 +267,7 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 
 		break;
 	case WM_HSCROLL:
-		if(bOuter)
+		if(GetParent(hParent) == NULL)
 		{
 			int pos;
 			pos = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
@@ -295,9 +284,9 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 	case WM_NOTIFY:
 		if(((LPNMHDR)lParam)->code == PSN_APPLY)
 		{
-			Setting->nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
-			Setting->LineMargin = SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_GETPOS32, NULL, NULL);
-			if(bOuter)
+			nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
+			LineMargin = SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_GETPOS32, NULL, NULL);
+			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
@@ -305,8 +294,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 				UpdateOuterWindowStyle(hParent);
 			}
 
-			Setting->VerticalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL);
-			Setting->HorizentalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL);
+			VerticalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1;
+			HorizentalAlign = (BYTE)SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL) + 1;
 //			if(Setting->Script)
 //				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
@@ -318,8 +307,8 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_RESET)
 		{
-			memcpy(Setting, &OldSetting, sizeof(Window_Setting));
-			if(bOuter)
+			memcpy(this, &OldSetting, sizeof(Window_Setting));
+			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = old_transparency;
 				cfg_outer_layered = old_layered;
@@ -335,19 +324,43 @@ static BOOL CALLBACK UICommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 	return TRUE;
 }
 
-void StartUIConfigDialog(Window_Setting *Setting, HWND hParent, BOOL bOuter)
+static HWND g_ConfigParent = NULL; //TODO
+
+BOOL CALLBACK Window_Setting::ConfigProcDispatcher(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	static Window_Setting *_this = NULL;
+	if(iMessage == WM_INITDIALOG)
+		_this = (Window_Setting *)((PROPSHEETPAGE *)lParam)->lParam;
+
+	if(iMessage == WM_DESTROY)
+	{
+		_this = NULL;
+		g_ConfigParent = NULL;
+	}
+
+	if(_this)
+		return _this->UIConfigProc(hWnd, iMessage, wParam, lParam, g_ConfigParent);
+	else
+		return FALSE;
+}
+
+void Window_Setting::OpenConfigPopup(HWND hParent)
+{
+	if(g_ConfigParent)
+	{
+		MessageBox(hParent, TEXT("Cannot open more than two config popup"), TEXT("error"), MB_OK);
+		return;
+	}
+	g_ConfigParent = hParent;
+
 	HPROPSHEETPAGE pages[1];
 	PROPSHEETPAGE page;
 	page.dwSize = sizeof(PROPSHEETPAGE);
 	page.dwFlags = PSP_DEFAULT;
 	page.hInstance = core_api::get_my_instance();
 	page.pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
-	page.pfnDlgProc = UICommonConfigProc;
-	page.lParam = (LPARAM)
-				(new pair<Window_Setting *, pair<BOOL, HWND> *>
-				(Setting, 
-				new pair<BOOL, HWND>(bOuter, hParent)));
+	page.pfnDlgProc = &Window_Setting::ConfigProcDispatcher;
+	page.lParam = (LPARAM)this;
 	pages[0] = CreatePropertySheetPage(&page);
 
 	PROPSHEETHEADER psh;
