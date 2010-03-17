@@ -206,6 +206,7 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 					file->read(temp, 7, abort_callback);
 #define ID3_TAGSIZE(x) ((*(x) << 21) | (*((x) + 1) << 14) | (*((x) + 2) << 7) | *((x) + 3))
 					Start += ID3_TAGSIZE(temp + 3) + 10;
+#undef ID3_TAGSIZE
 				}
 				else
 					break;
