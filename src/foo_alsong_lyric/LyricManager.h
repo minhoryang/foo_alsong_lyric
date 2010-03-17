@@ -41,7 +41,7 @@ public:
 		pfc::string8 Lyric, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Registrant);
 	static DWORD SearchLyricGetNext(CHAR **data, int &Info, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Lyric, pfc::string8 Registrant);
 	static int SearchLyricGetCount(const pfc::string8 &Artist, const pfc::string8 &Title);
-	static DWORD SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, CHAR **Output);
+	static DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, std::vector<char> &data);
 	
 	boost::signals2::connection AddRedrawHandler(const boost::signals2::signal<void ()>::slot_type &Handler)
 	{

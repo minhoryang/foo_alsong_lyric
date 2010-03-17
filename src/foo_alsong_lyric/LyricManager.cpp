@@ -111,7 +111,7 @@ std::vector<pfc::string8> LyricManager::GetLyric()
 	if(m_Lyricpos >= 0)
 	{
 		std::vector<pfc::string8> ret;
-		for(int i = m_Lyricpos; i < m_Lyric.size() && m_Lyric[i].time == m_Lyric[m_Lyricpos].time; i ++)
+		for(unsigned int i = m_Lyricpos; i < m_Lyric.size() && m_Lyric[i].time == m_Lyric[m_Lyricpos].time; i ++)
 			ret.push_back(m_Lyric[i].lyric);
 		return ret;
 	}
@@ -123,7 +123,7 @@ std::vector<pfc::string8> LyricManager::GetLyricAfter(int n)
 	if(m_Lyricpos >= 0)
 	{
 		std::vector<pfc::string8> ret;
-		for(int i = m_Lyricpos + 1; i < min(m_Lyric.size(), m_Lyricpos + n + 1); i ++)
+		for(unsigned int i = m_Lyricpos + 1; i < min(m_Lyric.size(), (unsigned int)m_Lyricpos + n + 1); i ++)
 			ret.push_back(m_Lyric[i].lyric);
 
 		return ret;
@@ -287,7 +287,7 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 
 DWORD LyricManager::DownloadLyric(CHAR *Hash)
 {//http://pugixml.googlecode.com/svn/trunk/docs/index.html
-	CHAR GetLyricHashHeader[512] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
+	CHAR GetLyricHashHeader[] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
 		"User-Agent: gSOAP/2.7\r\n"
 		"Content-Type: application/soap+xml; charset=utf-8\r\n"
@@ -416,7 +416,7 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 
 void LyricManager::CountLyric()
 {
-	int microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
+	long long microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;	//sec:0, microsec:10
 																												//0					<-- m_LyricPos
 	std::vector<lyricinfo>::iterator time_iterator;																//0   some song
 	for(m_Lyricpos = 0, time_iterator = m_Lyric.begin();														//0
@@ -544,58 +544,58 @@ DWORD LyricManager::SearchLyricGetNext(CHAR **data, int &Info, pfc::string8 Titl
 	return true;
 }
 
-DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, CHAR **Output)
+DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, std::vector<char> &data)
 {
-	CHAR GetLyricHeader[512] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
+	CHAR GetLyricHeader[] = "POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 		"Host: lyrics.alsong.co.kr\r\n"
 		"User-Agent: gSOAP/2.7\r\n"
 		"Content-Type: application/soap+xml; charset=utf-8\r\n"
 		"Content-Length: %d\r\n"
 		"Connection: close\r\n"
 		"SOAPAction: \"ALSongWebServer/GetResembleLyric2\"\r\n\r\n";
-	CHAR GetLyricData1[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:ns2=\"ALSongWebServer/Service1Soap\" xmlns:ns1=\"ALSongWebServer\" xmlns:ns3=\"ALSongWebServer/Service1Soap12\">"
-		"<SOAP-ENV:Body><ns1:GetResembleLyric2>"
-		"<ns1:stQuery><ns1:strTitle>";
-	CHAR GetLyricData2[] = "</ns1:strTitle><ns1:strArtistName>";
-	CHAR GetLyricData3[] = "</ns1:strArtistName><ns1:nCurPage>";
-	CHAR GetLyricData4[] = "</ns1:nCurPage></ns1:stQuery>"
-		"</ns1:GetResembleLyric2></SOAP-ENV:Body></SOAP-ENV:Envelope>";
-
+	
 	SOCKET s;
-	int len;
-	CHAR buf[255];
-	int nAlloc = 600;
-	int nUse = 0;
 	int nRecv;
+	CHAR buf[255];
+	data.clear();
 
-	pfc::string8 ConvertedArtist = Artist, ConvertedTitle = Title;;
-
-	*Output = (CHAR *)malloc(sizeof(CHAR) * 600);
+	pugi::xml_document xmldoc;
+	pugi::xml_node envelope = xmldoc.append_child();
+	envelope.set_name("SOAP-ENV:Envelope");
+	envelope.append_attribute("xmlns:SOAP-ENV").set_value("http://www.w3.org/2003/05/soap-envelope");
+	envelope.append_attribute("xmlns:SOAP-ENC").set_value("http://www.w3.org/2003/05/soap-encoding");
+	envelope.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+	envelope.append_attribute("xmlns:xsd").set_value("http://www.w3.org/2001/XMLSchema");
+	envelope.append_attribute("xmlns:ns2").set_value("ALSongWebServer/Service1Soap");
+	envelope.append_attribute("xmlns:ns1").set_value("ALSongWebServer");
+	envelope.append_attribute("xmlns:ns3").set_value("ALSongWebServer/Service1Soap12");
+	envelope.append_child().set_name("SOAP-ENV:Body");
+	pugi::xml_node getlyric = envelope.child("SOAP-ENV:Body").append_child();
+	getlyric.set_name("ns1:GetResembleLyric2");
+	pugi::xml_node query = getlyric.append_child();
+	query.set_name("ns1:stQuery");
+	pugi::xml_node title = query.append_child();
+	title.set_name("ns1:strTitle");
+	title.append_child(pugi::node_pcdata).set_value(Title.get_ptr());
+	pugi::xml_node artist = query.append_child();
+	artist.set_name("ns1:strArtistName");
+	artist.append_child(pugi::node_pcdata).set_value(Artist.get_ptr());
+	pugi::xml_node page = query.append_child();
+	page.set_name("ns1:nCurPage");
+	wsprintfA(buf, "%d", nPage);
+	page.append_child(pugi::node_pcdata).set_value(buf);
+	std::stringstream str;
+	pugi::xml_writer_stream writer(str);
+	xmldoc.save(writer, "", pugi::format_raw);
 
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
 	if(s == 0)
-	{
-		free(Output);
 		return false;
-	}
-	len = lstrlenA(GetLyricData1) + lstrlenA(GetLyricData2) + lstrlenA(GetLyricData3) + lstrlenA(GetLyricData4)
-		+ lstrlenA(ConvertedArtist.toString()) + lstrlenA(ConvertedTitle.toString());
-	if(nPage != 0)
-		len += (int)log10((float)nPage) + 1;
-	else
-		len += 1;
-	wsprintfA(buf, GetLyricHeader, len);
+	
+	wsprintfA(buf, GetLyricHeader, str.str().length());
 
 	send(s, buf, lstrlenA(buf), 0);
-	send(s, GetLyricData1, lstrlenA(GetLyricData1), 0);
-	send(s, ConvertedTitle.toString(), lstrlenA(ConvertedTitle.toString()), 0);
-	send(s, GetLyricData2, lstrlenA(GetLyricData2), 0);
-	send(s, ConvertedArtist.toString(), lstrlenA(ConvertedArtist.toString()), 0);
-	send(s, GetLyricData3, lstrlenA(GetLyricData3), 0);
-	wsprintfA(buf, "%d", nPage);
-	send(s, buf, lstrlenA(buf), 0);
-	send(s, GetLyricData4, lstrlenA(GetLyricData4), 0);
+	send(s, str.str().c_str(), str.str().length(), 0);
 
 	while(nRecv = recv(s, buf, 255, 0))
 	{
@@ -604,17 +604,11 @@ DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 T
 			int t = WSAGetLastError();
 			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
 			MessageBoxA(NULL, buf, "Error", MB_OK);*/
-			free(Output);
 			closesocket(s);
 			return false;
 		}
-		CopyMemory(*Output + nUse, buf, nRecv);
-		nUse += nRecv;
-		if(nUse + 255 > nAlloc - 100)
-		{
-			*Output = (CHAR *)realloc(*Output, nAlloc + 300);
-			nAlloc += 300;
-		}
+		buf[nRecv] = 0;
+		data.insert(data.end(), buf, buf + nRecv);
 	}
 
 	closesocket(s);
