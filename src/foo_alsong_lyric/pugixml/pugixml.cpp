@@ -3048,7 +3048,7 @@ namespace pugi
 
 		if (!(flags & format_no_declaration))
 		{
-			buffered_writer.write("<?xml version=\"1.0\"?>");
+			buffered_writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			if (!(flags & format_raw)) buffered_writer.write("\n");
 		}
 
