@@ -134,9 +134,10 @@ std::vector<pfc::string8> LyricManager::GetLyricAfter(int n)
 DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 {	
 	int i;
-	int tmp;
-	DWORD Start; //Start Address
+	DWORD Start = 0; //Start Address
 	BYTE MD5[16];
+	BYTE temp[255]; 
+
 	service_ptr_t<file> file;
 	abort_callback_impl abort_callback;
 	pfc::string8 str = track->get_path();
@@ -144,10 +145,11 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
 	//TODO:cue일때 특별 처리(subsong_index가 있을 때)
 	char *fmt = (char *)str.get_ptr() + str.find_last('.') + 1;
+	/*
 	file_info_impl info;
 	track->get_info(info);
-	const char *ttmp = info.info_get("referenced_offset");
-	BYTE temp[255]; //아래코드 이용해서 cue에서 raw 뽑아와서 hash생성
+	const char *ttmp = info.info_get("referenced_offset");*/
+	//아래코드 이용해서 cue에서 raw 뽑아와서 hash생성
 	/*bool void g_decode_file(char const * p_path, abort_callback & p_abort)
 {
     try
@@ -194,29 +196,19 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	try
 	{
 		if(!StrCmpIA(fmt, "mp3"))
-		{ //MP3	
-			tmp = 0;
-			Start = 0;
-
+		{
 			while(1) //ID3가 여러개 있을수도 있음
 			{ //ID3는 보통 맨 처음에 있음
-				file->seek(tmp, abort_callback);
+				file->seek(Start, abort_callback);
 				file->read(temp, 3, abort_callback);
 				if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
 				{
-					int tmp;
 					file->read(temp, 7, abort_callback);
-					//ID3 Tag
-					tmp = temp[6]; //Decode Tag Size
-					tmp |= temp[5] << 7;
-					tmp |= temp[4] << 14;
-					tmp |= temp[3] << 21;
-					tmp += 10; //Header Size
-					Start += tmp;
+#define ID3_TAGSIZE(x) ((*(x) << 21) | (*((x) + 1) << 14) | (*((x) + 2) << 7) | *((x) + 3))
+					Start += ID3_TAGSIZE(temp + 3) + 10;
 				}
 				else
 					break;
-				tmp ++;
 			}
 			file->seek(Start, abort_callback);
 			for(;;Start ++)
@@ -230,7 +222,6 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 		else if(!StrCmpIA(fmt, "ogg"))
 		{
 			//처음 나오는 vorbis setup header 검색
-			Start = 0;
 			i = 0;
 			CHAR SetupHeader[7] = {0x05, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73}; //Vorbis Setup Header
 			CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
@@ -258,15 +249,10 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 		else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
 			Start = 0;
 		else
-		{
-			//에러처리
-			Start = false;
 			return false;
-		}
 	}
 	catch(...)
 	{
-		Start = 0;
 		return false;
 	}
 
@@ -308,14 +294,7 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 		"Content-Length: %d\r\n"
 		"Connection: close\r\n"
 		"SOAPAction: \"ALSongWebServer/GetLyric5\"\r\n\r\n";
-	CHAR GetLyricHashData1[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:ns2=\"ALSongWebServer/Service1Soap\" xmlns:ns1=\"ALSongWebServer\" xmlns:ns3=\"ALSongWebServer/Service1Soap12\">"
-		"<SOAP-ENV:Body><ns1:GetLyric5>"
-		"<ns1:stQuery><ns1:strChecksum>";
-	CHAR GetLyricHashData2[] = "</ns1:strChecksum><ns1:strVersion>";
-	CHAR GetLyricHashData3[] = "</ns1:strVersion><ns1:strMACAddress>";
-	CHAR GetLyricHashData4[] = "</ns1:strMACAddress><ns1:strIPAddress>";
-	CHAR GetLyricHashData5[] = "</ns1:strIPAddress></ns1:stQuery></ns1:GetLyric5></SOAP-ENV:Body></SOAP-ENV:Envelope>";
+
 	CHAR Version[] = "2.0";
 	CHAR buf[256];
 	struct hostent *host;
@@ -323,11 +302,8 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	CHAR *Local_IP;
 	CHAR Local_Mac[20];
 	int i;
-	int len;
 	SOCKET s;
-	CHAR *data = (CHAR *)malloc(sizeof(CHAR) * 600);
-	int nAlloc = 600;
-	int nUse = 0;
+	std::vector<char> data;
 	int nRecv;
 
 	//IP하고 MAC 찾기
@@ -342,7 +318,6 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	DWORD dwBufLen = sizeof(AdapterInfo);
 
 	GetAdaptersInfo(AdapterInfo, &dwBufLen);
-
 	PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
 
 	while(pAdapterInfo) 
@@ -355,7 +330,6 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 		return false;
 
 	CHAR HexArray[] = "0123456789ABCDEF";
-
 	for(i = 0; i < 12; i += 2)
 	{
 		Local_Mac[i] = HexArray[(pAdapterInfo->Address[i / 2] & 0xf0) >> 4];
@@ -364,26 +338,42 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	Local_Mac[i] = 0;
 
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
-	if(s == 0)
-	{
-		free(data);
-		return false;
-	}
 
-	len = lstrlenA(GetLyricHashData1) + lstrlenA(GetLyricHashData2) + lstrlenA(GetLyricHashData3) + lstrlenA(GetLyricHashData4) + lstrlenA(GetLyricHashData5) + lstrlenA(Hash) + lstrlenA(Version) + lstrlenA(Local_IP) + lstrlenA(Local_Mac);
+	pugi::xml_document xmldoc;
+	pugi::xml_node envelope = xmldoc.append_child();
+	envelope.set_name("SOAP-ENV:Envelope");
+	envelope.append_attribute("xmlns:SOAP-ENV").set_value("http://www.w3.org/2003/05/soap-envelope");
+	envelope.append_attribute("xmlns:SOAP-ENC").set_value("http://www.w3.org/2003/05/soap-encoding");
+	envelope.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+	envelope.append_attribute("xmlns:xsd").set_value("http://www.w3.org/2001/XMLSchema");
+	envelope.append_attribute("xmlns:ns2").set_value("ALSongWebServer/Service1Soap");
+	envelope.append_attribute("xmlns:ns1").set_value("ALSongWebServer");
+	envelope.append_attribute("xmlns:ns3").set_value("ALSongWebServer/Service1Soap12");
+	envelope.append_child().set_name("SOAP-ENV:Body");
+	pugi::xml_node getlyric = envelope.child("SOAP-ENV:Body").append_child();
+	getlyric.set_name("ns1:GetLyric5");
+	pugi::xml_node query = getlyric.append_child();
+	query.set_name("ns1:stQuery");
+	pugi::xml_node checksum = query.append_child();
+	checksum.set_name("ns1:strChecksum");
+	checksum.append_child(pugi::node_pcdata).set_value(Hash);
+	pugi::xml_node version = query.append_child();
+	version.set_name("ns1:strVersion");
+	version.append_child(pugi::node_pcdata).set_value(Version);
+	pugi::xml_node macaddr = query.append_child();
+	macaddr.set_name("ns1:strMACAddress");
+	macaddr.append_child(pugi::node_pcdata).set_value(Local_Mac);
+	pugi::xml_node ip = query.append_child();
+	ip.set_name("ns1:strIPAddress");
+	ip.append_child(pugi::node_pcdata).set_value(Local_IP);
+	std::stringstream str;
+	pugi::xml_writer_stream writer(str);
+	xmldoc.save(writer, "", pugi::format_raw);
 
-	wsprintfA(buf, GetLyricHashHeader, len);
+	wsprintfA(buf, GetLyricHashHeader, str.str().length());
 
 	send(s, buf, lstrlenA(buf), 0);
-	send(s, GetLyricHashData1, lstrlenA(GetLyricHashData1), 0);
-	send(s, Hash, lstrlenA(Hash), 0);
-	send(s, GetLyricHashData2, lstrlenA(GetLyricHashData2), 0);
-	send(s, Version, lstrlenA(Version), 0);
-	send(s, GetLyricHashData3, lstrlenA(GetLyricHashData3), 0);
-	send(s, Local_Mac, lstrlenA(Local_Mac), 0);
-	send(s, GetLyricHashData4, lstrlenA(GetLyricHashData4), 0);
-	send(s, Local_IP, lstrlenA(Local_IP), 0);
-	send(s, GetLyricHashData5, lstrlenA(GetLyricHashData5), 0);
+	send(s, str.str().c_str(), str.str().length(), 0);
 
 	while(nRecv = recv(s, buf, 255, 0))
 	{
@@ -392,22 +382,15 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 			/*int t = WSAGetLastError();
 			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
 			MessageBoxA(NULL, buf, "Error", MB_OK);*/
-			free(data);
 			closesocket(s);
 			return false;
 		}
 		buf[nRecv] = 0;
-		CopyMemory(data + nUse, buf, nRecv + 1);
-		nUse += nRecv;
-		if(nUse + 255 > nAlloc - 100)
-		{
-			data = (CHAR *)realloc(data, nAlloc + 300);
-			nAlloc += 300;
-		}
+		data.insert(data.end(), buf, buf + nRecv);
 		if(boost::this_thread::interruption_requested())
 		{
-			free(data);
 			closesocket(s);
+			return false;
 		}
 	}
 
@@ -415,16 +398,8 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 	//<soap:Envelope~~><soap:Body><GetLyric5Response xmlns="ALSongWebServer"><GetLyric5Result>
 	//<strStatusID>2</strStatusID><strInfoID>-1</strInfoID><strRegistDate /><strTitle ~~
 	pugi::xml_document doc;
-	doc.load(boost::find_first(data, "\r\n\r\n").begin());
+	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
 	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result");
-	const char *result = xmlresult.child("strStatusID").child_value();
-	if(buf[0] == '2')
-	{
-		free(data);
-		closesocket(s);
-		return false;
-	}
-
 	m_Title.assign(xmlresult.child("strTitle").child_value());
 	m_Artist.assign(xmlresult.child("strArtist").child_value());
 	m_Album.assign(xmlresult.child("strAlbum").child_value());
@@ -434,8 +409,6 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 		m_Album.clear();
 
 	ParseLyric(xmlresult.child("strLyric").child_value(), "<br>");
-
-	free(data);
 	closesocket(s);
 
 	return S_OK;
@@ -542,8 +515,8 @@ DWORD LyricManager::ParseLyric(const char *InputLyric, const char *Delimiter)
 		m_Lyric.push_back(lyricinfo(time, pfc::string8(lastpos, nowpos - lastpos)));
 		lastpos = nowpos + lstrlenA(Delimiter);
 	}
-
-	m_haslyric = 1;
+	if(i)
+		m_haslyric = 1;
 	return S_OK;
 }
 
