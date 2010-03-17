@@ -394,9 +394,6 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 		}
 	}
 
-	//<?xml version="1.0" encoding="utf-8"?>
-	//<soap:Envelope~~><soap:Body><GetLyric5Response xmlns="ALSongWebServer"><GetLyric5Result>
-	//<strStatusID>2</strStatusID><strInfoID>-1</strInfoID><strRegistDate /><strTitle ~~
 	pugi::xml_document doc;
 	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
 	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result");
@@ -570,9 +567,9 @@ DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 T
 	envelope.append_attribute("xmlns:ns1").set_value("ALSongWebServer");
 	envelope.append_attribute("xmlns:ns3").set_value("ALSongWebServer/Service1Soap12");
 	envelope.append_child().set_name("SOAP-ENV:Body");
-	pugi::xml_node getlyric = envelope.child("SOAP-ENV:Body").append_child();
-	getlyric.set_name("ns1:GetResembleLyric2");
-	pugi::xml_node query = getlyric.append_child();
+	pugi::xml_node searchlyric = envelope.child("SOAP-ENV:Body").append_child();
+	searchlyric.set_name("ns1:GetResembleLyric2");
+	pugi::xml_node query = searchlyric.append_child();
 	query.set_name("ns1:stQuery");
 	pugi::xml_node title = query.append_child();
 	title.set_name("ns1:strTitle");
@@ -582,8 +579,7 @@ DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 T
 	artist.append_child(pugi::node_pcdata).set_value(Artist.get_ptr());
 	pugi::xml_node page = query.append_child();
 	page.set_name("ns1:nCurPage");
-	wsprintfA(buf, "%d", nPage);
-	page.append_child(pugi::node_pcdata).set_value(buf);
+	page.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(nPage));
 	std::stringstream str;
 	pugi::xml_writer_stream writer(str);
 	xmldoc.save(writer, "", pugi::format_raw);
@@ -626,61 +622,67 @@ int LyricManager::SearchLyricGetCount(const pfc::string8 &Artist, const pfc::str
 		"Connection: close\r\n"
 		"SOAPAction: \"ALSongWebServer/GetResembleLyric2Count\"\r\n\r\n";
 
-	CHAR GetCountData1[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:ns2=\"ALSongWebServer/Service1Soap\" xmlns:ns1=\"ALSongWebServer\" xmlns:ns3=\"ALSongWebServer/Service1Soap12\">"
-		"<SOAP-ENV:Body><ns1:GetResembleLyric2Count>"
-		"<ns1:stQuery><ns1:strTitle>";
-	CHAR GetCountData2[] = "</ns1:strTitle><ns1:strArtistName>";
-	CHAR GetCountData3[] = "</ns1:strArtistName></ns1:stQuery>"
-		"</ns1:GetResembleLyric2Count></SOAP-ENV:Body></SOAP-ENV:Envelope>";
 	SOCKET s;
-	int len, ret;
 	CHAR buf[255];
 	DWORD nRecv;
+	std::vector<char> data;
 
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
-	if(s == 0)
-		return 0;
+	if(s == NULL)
+		return false;
 
-	pfc::string8 ConvertedArtist = Artist, ConvertedTitle = Title;
-/*
+	pugi::xml_document xmldoc;
+	pugi::xml_node envelope = xmldoc.append_child();
+	envelope.set_name("SOAP-ENV:Envelope");
+	envelope.append_attribute("xmlns:SOAP-ENV").set_value("http://www.w3.org/2003/05/soap-envelope");
+	envelope.append_attribute("xmlns:SOAP-ENC").set_value("http://www.w3.org/2003/05/soap-encoding");
+	envelope.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+	envelope.append_attribute("xmlns:xsd").set_value("http://www.w3.org/2001/XMLSchema");
+	envelope.append_attribute("xmlns:ns2").set_value("ALSongWebServer/Service1Soap");
+	envelope.append_attribute("xmlns:ns1").set_value("ALSongWebServer");
+	envelope.append_attribute("xmlns:ns3").set_value("ALSongWebServer/Service1Soap12");
+	envelope.append_child().set_name("SOAP-ENV:Body");
+	pugi::xml_node getlyriccount = envelope.child("SOAP-ENV:Body").append_child();
+	getlyriccount.set_name("ns1:GetResembleLyric2Count");
+	pugi::xml_node query = getlyriccount.append_child();
+	query.set_name("ns1:stQuery");
+	pugi::xml_node title = query.append_child();
+	title.set_name("ns1:strTitle");
+	title.append_child(pugi::node_pcdata).set_value(Title.get_ptr());
+	pugi::xml_node artist = query.append_child();
+	artist.set_name("ns1:strArtistName");
+	artist.append_child(pugi::node_pcdata).set_value(Artist.get_ptr());
+	std::stringstream str;
+	pugi::xml_writer_stream writer(str);
+	xmldoc.save(writer, "", pugi::format_raw);
 
-	ConvertToHTMLEntities(ConvertedArtist);
-	ConvertToHTMLEntities(ConvertedTitle);
-
-	len = lstrlenA(GetCountData1) + lstrlenA(GetCountData2) + lstrlenA(GetCountData3) + lstrlenA(ConvertedArtist.toString()) + lstrlenA(ConvertedTitle.toString());
-	wsprintfA(buf, GetCountHeader, len);
+	wsprintfA(buf, GetCountHeader, str.str().length());
 
 	send(s, buf, lstrlenA(buf), 0);
-	send(s, GetCountData1, lstrlenA(GetCountData1), 0);
-	send(s, ConvertedTitle.toString(), lstrlenA(ConvertedTitle.toString()), 0);
-	send(s, GetCountData2, lstrlenA(GetCountData2), 0);
-	send(s, ConvertedArtist.toString(), lstrlenA(ConvertedArtist.toString()), 0);
-	send(s, GetCountData3, lstrlenA(GetCountData3), 0);
+	send(s, str.str().c_str(), str.str().length(), 0);
 
 	while(nRecv = recv(s, buf, 255, 0))
 	{
 		if(SOCKET_ERROR == nRecv)
-		{/ *
+		{/*
 			int t = WSAGetLastError();
 			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
-			MessageBoxA(NULL, buf, "Error", MB_OK);* /
+			MessageBoxA(NULL, buf, "Error", MB_OK);*/
 			closesocket(s);
-			return 0;
+			return false;
 		}
 		//<strResembleLyricCount>310
-		CHAR *CountPtr;
-		if(CountPtr = StrStrA(buf, "<strResembleLyricCount>"))
-		{
-			ret = StrToIntA(CountPtr + 23);
-			break;
-		}
+		buf[nRecv] = 0;
+		data.insert(data.end(), buf, buf + nRecv);
 	}
 
+	pugi::xml_document doc;
+	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
+	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2CountResult/strResembleLyricCount"); //TODO: Test
+	
 	closesocket(s);
-*/
 
-	return ret;
+	return boost::lexical_cast<int>(xmlresult.child_value());
 }
 
 SOCKET LyricManager::InitateConnect(CHAR *Address, int port)
@@ -743,7 +745,6 @@ DWORD LyricManager::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, 
 								pfc::string8 Lyric, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Registrant)
 {
-	//너무 많이 지역변수로 지정됨. 
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 								"Host: lyrics.alsong.co.kr\r\n"
 								"User-Agent: gSOAP/2.7\r\n"
@@ -754,33 +755,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//나머지는 생략
 
 	//UploadLyricType - 1:Link 새거 2:Modify 수정 5:ReSetLink 아예 새거
-	CHAR UploadLyricData[23][512] = {
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:SOAP-ENC=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:ns2=\"ALSongWebServer/Service1Soap\" xmlns:ns1=\"ALSongWebServer\" xmlns:ns3=\"ALSongWebServer/Service1Soap12\">"
-		"<SOAP-ENV:Body><ns1:UploadLyric><ns1:stQuery><ns1:nUploadLyricType>",
-		"</ns1:nUploadLyricType><ns1:strMD5>",
-		"</ns1:strMD5><ns1:strRegisterFirstName>",
-		"</ns1:strRegisterFirstName><ns1:strRegisterFirstEMail>",
-		"</ns1:strRegisterFirstEMail><ns1:strRegisterFirstURL>",
-		"</ns1:strRegisterFirstURL><ns1:strRegisterFirstPhone>",
-		"</ns1:strRegisterFirstPhone><ns1:strRegisterFirstComment>",
-		"</ns1:strRegisterFirstComment><ns1:strRegisterName>",
-		"</ns1:strRegisterName><ns1:strRegisterEMail>",
-		"</ns1:strRegisterEMail><ns1:strRegisterURL>",
-		"</ns1:strRegisterURL><ns1:strRegisterPhone>",
-		"</ns1:strRegisterPhone><ns1:strRegisterComment>",
-		"</ns1:strRegisterComment><ns1:strFileName>",
-		"</ns1:strFileName><ns1:strTitle>",
-		"</ns1:strTitle><ns1:strArtist>",
-		"</ns1:strArtist><ns1:strAlbum>",
-		"</ns1:strAlbum><ns1:nInfoID>",
-		"</ns1:nInfoID><ns1:strLyric>",
-		"</ns1:strLyric><ns1:nPlayTime>",
-		"</ns1:nPlayTime><ns1:strVersion>",
-		"</ns1:strVersion><ns1:strMACAddress>",
-		"</ns1:strMACAddress><ns1:strIPAddress>",
-		"</ns1:strIPAddress></ns1:stQuery></ns1:UploadLyric></SOAP-ENV:Body></SOAP-ENV:Envelope>"
-	};
+
 	CHAR Version[] = "2.0";
 	CHAR buf[255];
 	struct hostent *host;
@@ -788,14 +763,11 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 	CHAR *Local_IP;
 	CHAR Local_Mac[20];
 	int i;
-	int len = 0;
 	SOCKET s;
-	CHAR *data;
-	int nAlloc = 600;
-	int nUse = 0;
 	int nRecv;
 	CHAR Hash[255];
 	pfc::string8 Filename = track->get_path();
+	std::vector<char> data;
 
 	//IP하고 MAC 찾기
 	gethostname(Hostname, 80);
@@ -809,7 +781,6 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 	DWORD dwBufLen = sizeof(AdapterInfo);
 
 	GetAdaptersInfo(AdapterInfo, &dwBufLen);
-
 	PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
 
 	while(pAdapterInfo) 
@@ -822,7 +793,6 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 		return false;
 
 	CHAR HexArray[] = "0123456789ABCDEF";
-
 	for(i = 0; i < 12; i += 2)
 	{
 		Local_Mac[i] = HexArray[(pAdapterInfo->Address[i / 2] & 0xf0) >> 4];
@@ -830,112 +800,136 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 	}
 	Local_Mac[i] = 0;
 
+	GetFileHash(track, Hash);
+
 	s = InitateConnect("lyrics.alsong.co.kr", 80);
 	if(s == 0)
+		return false;	
+		
+	pugi::xml_document xmldoc;
+	pugi::xml_node envelope = xmldoc.append_child();
+	envelope.set_name("SOAP-ENV:Envelope");
+	envelope.append_attribute("xmlns:SOAP-ENV").set_value("http://www.w3.org/2003/05/soap-envelope");
+	envelope.append_attribute("xmlns:SOAP-ENC").set_value("http://www.w3.org/2003/05/soap-encoding");
+	envelope.append_attribute("xmlns:xsi").set_value("http://www.w3.org/2001/XMLSchema-instance");
+	envelope.append_attribute("xmlns:xsd").set_value("http://www.w3.org/2001/XMLSchema");
+	envelope.append_attribute("xmlns:ns2").set_value("ALSongWebServer/Service1Soap");
+	envelope.append_attribute("xmlns:ns1").set_value("ALSongWebServer");
+	envelope.append_attribute("xmlns:ns3").set_value("ALSongWebServer/Service1Soap12");
+	envelope.append_child().set_name("SOAP-ENV:Body");
+	pugi::xml_node uploadlyric = envelope.child("SOAP-ENV:Body").append_child();
+	uploadlyric.set_name("ns1:UploadLyric");
+	pugi::xml_node query = uploadlyric.append_child();
+	query.set_name("ns1:stQuery");
+
+	pugi::xml_node uploadlyrictype = query.append_child();
+	uploadlyrictype.set_name("ns1:nUploadLyricType");
+	uploadlyrictype.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(UploadType));
+
+	pugi::xml_node md5 = query.append_child();
+	md5.set_name("ns1:strMD5");
+	md5.append_child(pugi::node_pcdata).set_value(Hash);
+
+	pugi::xml_node strRegisterFirstName = query.append_child();
+	strRegisterFirstName.set_name("ns1:strRegisterFirstName");
+	strRegisterFirstName.append_child(pugi::node_pcdata).set_value(Registrant.get_ptr());
+
+	pugi::xml_node strRegisterFirstEMail = query.append_child();
+	strRegisterFirstEMail.set_name("ns1:strRegisterFirstEMail");
+
+	pugi::xml_node strRegisterFirstURL = query.append_child();
+	strRegisterFirstURL.set_name("ns1:strRegisterFirstURL");
+
+	pugi::xml_node strRegisterFirstPhone = query.append_child();
+	strRegisterFirstPhone.set_name("ns1:strRegisterFirstPhone");
+
+	pugi::xml_node strRegisterFirstComment = query.append_child();
+	strRegisterFirstComment.set_name("ns1:strRegisterFirstComment");
+
+	pugi::xml_node registername = query.append_child();
+	registername.set_name("ns1:strRegisterName");
+	registername.append_child(pugi::node_pcdata).set_value(strRegisterName);
+
+	pugi::xml_node strRegisterEMail = query.append_child();
+	strRegisterEMail.set_name("ns1:strRegisterEMail");
+
+	pugi::xml_node strRegisterURL = query.append_child();
+	strRegisterURL.set_name("ns1:strRegisterURL");
+
+	pugi::xml_node strRegisterPhone = query.append_child();
+	strRegisterPhone.set_name("ns1:strRegisterPhone");
+
+	pugi::xml_node strRegisterComment = query.append_child();
+	strRegisterComment.set_name("ns1:strRegisterComment");
+
+	pugi::xml_node strFileName = query.append_child();
+	strFileName.set_name("ns1:strFileName");
+	strFileName.append_child(pugi::node_pcdata).set_value(Filename.get_ptr());
+
+	pugi::xml_node title = query.append_child();
+	title.set_name("ns1:strTitle");
+	title.append_child(pugi::node_pcdata).set_value(Title.get_ptr());
+
+	pugi::xml_node artist = query.append_child();
+	artist.set_name("ns1:strArtist");
+	artist.append_child(pugi::node_pcdata).set_value(Artist.get_ptr());
+
+	pugi::xml_node strAlbum = query.append_child();
+	strAlbum.set_name("ns1:strAlbum");
+	strAlbum.append_child(pugi::node_pcdata).set_value(Album.get_ptr());
+
+	pugi::xml_node nInfoID = query.append_child();
+	nInfoID.set_name("ns1:nInfoID");
+	nInfoID.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(nInfo));
+
+	pugi::xml_node strLyric = query.append_child();
+	strLyric.set_name("ns1:strLyric");
+	strLyric.append_child(pugi::node_pcdata).set_value(Lyric.get_ptr());
+
+	pugi::xml_node nPlayTime = query.append_child();
+	nPlayTime.set_name("ns1:nPlayTime");
+	nPlayTime.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(PlayTime));
+
+	pugi::xml_node strVersion = query.append_child();
+	strVersion.set_name("ns1:strVersion");
+	strVersion.append_child(pugi::node_pcdata).set_value(Version);
+
+	pugi::xml_node strMACAddress = query.append_child();
+	strMACAddress.set_name("ns1:strMACAddress");
+	strMACAddress.append_child(pugi::node_pcdata).set_value(Local_Mac);
+
+	pugi::xml_node strIPAddress = query.append_child();
+	strIPAddress.set_name("ns1:strIPAddress");
+	strIPAddress.append_child(pugi::node_pcdata).set_value(Local_IP);
+
+	std::stringstream str;
+	pugi::xml_writer_stream writer(str);
+	xmldoc.save(writer, "", pugi::format_raw);
+
+	wsprintfA(buf, UploadLyricHeader, str.str().length());
+	
+	send(s, buf, lstrlenA(buf), 0);
+	send(s, str.str().c_str(), str.str().length(), 0);
+	
+	while(nRecv = recv(s, buf, 255, 0))
 	{
-		return false;
-	}/*
-	
-	
-		ConvertToHTMLEntities(Filename);
-	
-		GetFileHash(track, Hash);
-		
-		ConvertToHTMLEntities(Lyric);
-		ConvertToHTMLEntities(Artist);
-		ConvertToHTMLEntities(Album);
-		ConvertToHTMLEntities(Title);
-		ConvertToHTMLEntities(Registrant);	
-	
-		for(i = 0; i < 23; i ++)
-			len += lstrlenA(UploadLyricData[i]);
-		len += lstrlenA(strRegisterName);
-		len += (int)log10((float)nInfo) + 1;
-		len += Lyric.length() + Artist.length() + Registrant.length() + Album.length() + Title.length();
-		len += 1;
-		len += lstrlenA(Hash);
-		len += Filename.length();
-		len += (int)log10((float)PlayTime) + 1;
-		len += lstrlenA(Local_IP) + lstrlenA(Local_Mac) + lstrlenA(Version);
-	
-		wsprintfA(buf, UploadLyricHeader, len);
-	
-		send(s, buf, lstrlenA(buf), 0);
-		send(s, UploadLyricData[0], lstrlenA(UploadLyricData[0]), 0);
-		wsprintfA(buf, "%d", UploadType);
-		send(s, buf, lstrlenA(buf), 0);
-		send(s, UploadLyricData[1], lstrlenA(UploadLyricData[1]), 0);
-		send(s, Hash, lstrlenA(Hash), 0);
-		send(s, UploadLyricData[2], lstrlenA(UploadLyricData[2]), 0);
-		send(s, Registrant.toString(), Registrant.length(), 0);
-		send(s, UploadLyricData[3], lstrlenA(UploadLyricData[3]), 0);
-		send(s, UploadLyricData[4], lstrlenA(UploadLyricData[4]), 0);
-		send(s, UploadLyricData[5], lstrlenA(UploadLyricData[5]), 0);
-		send(s, UploadLyricData[6], lstrlenA(UploadLyricData[6]), 0);
-		send(s, UploadLyricData[7], lstrlenA(UploadLyricData[7]), 0);
-		send(s, strRegisterName, lstrlenA(strRegisterName), 0);
-		send(s, UploadLyricData[8], lstrlenA(UploadLyricData[8]), 0);
-		send(s, UploadLyricData[9], lstrlenA(UploadLyricData[9]), 0);
-		send(s, UploadLyricData[10], lstrlenA(UploadLyricData[10]), 0);
-		send(s, UploadLyricData[11], lstrlenA(UploadLyricData[11]), 0);
-		send(s, UploadLyricData[12], lstrlenA(UploadLyricData[12]), 0);
-		send(s, Filename.get_ptr(), Filename.length(), 0);
-		send(s, UploadLyricData[13], lstrlenA(UploadLyricData[13]), 0);
-		send(s, Title.toString(), Title.length(), 0);
-		send(s, UploadLyricData[14], lstrlenA(UploadLyricData[14]), 0);
-		send(s, Artist.toString(), Artist.length(), 0);
-		send(s, UploadLyricData[15], lstrlenA(UploadLyricData[15]), 0);
-		send(s, Album.toString(), Album.length(), 0);
-		send(s, UploadLyricData[16], lstrlenA(UploadLyricData[16]), 0);
-		wsprintfA(buf, "%d", nInfo);
-		send(s, buf, lstrlenA(buf), 0);
-		send(s, UploadLyricData[17], lstrlenA(UploadLyricData[17]), 0);
-		send(s, Lyric.toString(), Lyric.length(), 0);
-		send(s, UploadLyricData[18], lstrlenA(UploadLyricData[18]), 0);
-		wsprintfA(buf, "%d", PlayTime);
-		send(s, buf, lstrlenA(buf), 0);
-		send(s, UploadLyricData[19], lstrlenA(UploadLyricData[19]), 0);
-		send(s, Version, lstrlenA(Version), 0);
-		send(s, UploadLyricData[20], lstrlenA(UploadLyricData[20]), 0);
-		send(s, Local_Mac, lstrlenA(Local_Mac), 0);
-		send(s, UploadLyricData[21], lstrlenA(UploadLyricData[21]), 0);
-		send(s, Local_IP, lstrlenA(Local_IP), 0);
-		send(s, UploadLyricData[22], lstrlenA(UploadLyricData[22]), 0);
-	
-		data = (CHAR *)malloc(sizeof(CHAR) * 600);
-	
-		while(nRecv = recv(s, buf, 255, 0))
+		if(SOCKET_ERROR == nRecv)
 		{
-			if(SOCKET_ERROR == nRecv)
-			{
-				/ *int t = WSAGetLastError();
-				wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
-				MessageBoxA(NULL, buf, "Error", MB_OK);* /
-				free(data);
-				closesocket(s);
-				return false;
-			}
-			CopyMemory(data + nUse, buf, nRecv);
-			nUse += nRecv;
-			if(nUse + 255 > nAlloc - 100)
-			{
-				data = (CHAR *)realloc(data, nAlloc + 300);
-				nAlloc += 300;
-			}
-		}
-		
-		
-		if(!StrStrA(data, "UploadLyricResult"))
-		{
-			//실패
-			free(data);
+			/*int t = WSAGetLastError();
+			wsprintfA(buf, "Error receiving data. WSAGetLastError() = %d", t);
+			MessageBoxA(NULL, buf, "Error", MB_OK);*/
+			closesocket(s);
 			return false;
 		}
-	
-		free(data);
-		
-	*/
-		return true;
+		buf[nRecv] = 0;
+		data.insert(data.end(), buf, buf + nRecv);
+	}
+
+	pugi::xml_document doc;
+	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
+	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/UploadLyricResult/UploadLyricResult"); //TODO: Test
+
+	return true;
 }
 
 void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
