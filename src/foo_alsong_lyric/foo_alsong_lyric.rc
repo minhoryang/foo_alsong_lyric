@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Korean resources
+// Korean (Korea) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
-#ifdef _WIN32
 LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
 #pragma code_page(949)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -56,14 +54,15 @@ IDD_COMMON_PREF DIALOGEX 0, 0, 316, 180
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "LRC 파일로 저장",IDC_SAVELRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,22,73,10
+    CONTROL         "LRC 파일로 저장",IDC_SAVELRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,22,73,10
     EDITTEXT        IDC_LRCPATH,71,34,156,14,ES_AUTOHSCROLL
     LTEXT           "LRC 저장 위치",IDC_STATIC,21,36,50,8
     LTEXT           "(저장 위치를 비워두면 곡과 같은 폴더에 저장됩니다)",IDC_STATIC,71,49,197,29
-    CONTROL         "LRC 파일이 있으면 읽기(알송 가사 무시)",IDC_LOADFROMLRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,63,156,10
+    CONTROL         "LRC 파일이 있으면 읽기(알송 가사 무시)",IDC_LOADFROMLRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,58,156,10
     CONTROL         "Lyric Show 플러그인 대체(foo_uie_lyrics.dll을 지우고 사용하여야 합니다)",IDC_MIMIC,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,78,263,10
-    LTEXT           "기존에 Lyric Show를 사용하는 스킨에서 Lyric Show 대신에\n알송 가사창을 넣을 수 있는 기능입니다.\nfoo_uie_lyrics.dll을 지우지 않으면 문제가 발생할 수 있습니다. \nfoobar2000을 재시작해야 적용됩니다.",IDC_STATIC,30,90,221,32
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,78,263,10
+    LTEXT           "기존에 Lyric Show를 사용하는 스킨에서 Lyric Show 대신에\n알송 가사창을 넣을 수 있는 기능입니다.\nfoo_uie_lyrics.dll을 지우지 않으면 문제가 발생할 수 있습니다. \nfoobar2000을 재시작해야 적용됩니다.",IDC_STATIC,32,90,221,32
+    CONTROL         "파일 자체에 저장",IDC_SAVETOFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,68,76,10
 END
 
 IDD_UI_PREF DIALOGEX 0, 0, 314, 273
@@ -77,17 +76,19 @@ BEGIN
     CONTROL         "",IDC_TRANSPARENCY,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,129,7,111,15,WS_EX_TRANSPARENT
     LTEXT           "투명도",IDC_TRANSPARENCY_STATIC,103,11,25,8
     LTEXT           "",IDC_TRANSPARENCY_LABEL,246,10,34,8
-    EDITTEXT        IDC_LINEMARGIN,44,33,40,14,ES_AUTOHSCROLL
-    CONTROL         "",IDC_MARGINSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS,84,33,11,14
-    LTEXT           "줄 간격",IDC_STATIC,15,36,27,8
+    EDITTEXT        IDC_LINEMARGIN,42,33,40,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_MARGINSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS,82,33,11,14
+    LTEXT           "줄 간격",IDC_STATIC,11,36,27,8
     CONTROL         "레이어드 윈도우(마우스 클릭이 창 아래로 전달됩니다)",IDC_LAYERED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,104,24,203,10
     CONTROL         "창틀 숨기기",IDC_BORDER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,104,36,55,10
     EDITTEXT        IDC_UISCRIPT,7,249,112,17,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN
-    CONTROL         "스크립트 직접 작성",IDC_MANUALSCRIPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,104,48,84,10
-    COMBOBOX        IDC_VERTICALALIGN,51,66,48,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_HORIZENTALALIGN,142,66,48,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "수평 맞춤",IDC_STATIC,106,68,35,8
-    LTEXT           "수직 맞춤",IDC_STATIC,14,68,35,8
+    CONTROL         "스크립트 직접 작성",IDC_MANUALSCRIPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,42,192,84,10
+    COMBOBOX        IDC_VERTICALALIGN,51,74,48,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_HORIZENTALALIGN,142,74,48,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "수평 맞춤",IDC_STATIC,106,76,35,8
+    LTEXT           "수직 맞춤",IDC_STATIC,14,76,35,8
+    CONTROL         "투명도 기능 사용 안함",IDC_NOLAYERED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,104,48,94,10
+    LTEXT           "(일부 게임/어플리케이션과 충돌이 있을 때 사용하세요)",IDC_STATIC,112,59,195,8
 END
 
 IDD_LYRIC_MODIFY DIALOGEX 0, 0, 494, 225
@@ -107,7 +108,9 @@ BEGIN
     LTEXT           "아티스트",IDC_STATIC,10,9,33,8
     LTEXT           "제목",IDC_STATIC,10,25,17,8
     EDITTEXT        IDC_LYRIC,248,7,239,194,ES_MULTILINE | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
-    CTEXT           "",IDC_STATUS,7,44,234,8
+    CTEXT           "검색을 눌러주세요",IDC_STATUS,7,44,183,8
+    PUSHBUTTON      "싱크/가사 수정",IDC_SYNCEDIT,248,203,76,14
+    PUSHBUTTON      "새 가사",IDC_NEWLYRIC,195,41,50,14
 END
 
 IDD_PREF DIALOGEX 0, 0, 316, 180
@@ -123,7 +126,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_COMMON_PREF, DIALOG
     BEGIN
@@ -197,7 +200,7 @@ BEGIN
     END
 END
 
-#endif    // Korean resources
+#endif    // Korean (Korea) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

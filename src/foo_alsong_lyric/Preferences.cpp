@@ -101,14 +101,11 @@ static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	switch (iMessage)
 	{
 	case WM_INITDIALOG:
-		if(cfg_save_to_lrc == true)
-			CheckDlgButton(hWnd, IDC_SAVELRC, TRUE);
-		if(cfg_load_from_lrc == true)
-			CheckDlgButton(hWnd, IDC_LOADFROMLRC, TRUE);
-		if(cfg_lrc_save_path)
-			uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
-		if(cfg_mimic_lyricshow == true)
-			CheckDlgButton(hWnd, IDC_MIMIC, TRUE);
+		CheckDlgButton(hWnd, IDC_SAVELRC, cfg_save_to_lrc);
+		CheckDlgButton(hWnd, IDC_LOADFROMLRC, cfg_load_from_lrc);
+		uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
+		CheckDlgButton(hWnd, IDC_MIMIC, cfg_mimic_lyricshow);
+		CheckDlgButton(hWnd, IDC_SAVETOFILE, cfg_lyric_savetofile);
 		break;
 
 	case WM_NOTIFY:
@@ -180,7 +177,7 @@ void UpdateOuterWindowStyle(HWND hWnd)
 	//TODO: 작업 표시줄, Alt+Tab에서 없애기
 
 	//100%투명도 아닐경우에만 적용. 항상위 강제
-	if(cfg_outer_layered == true && cfg_outer_transparency != 100)
+	if(cfg_outer_layered == true && cfg_outer_transparency != 100 && cfg_outer_nolayered == false)
 	{
 		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
 		if(cfg_outer_shown)
@@ -190,7 +187,7 @@ void UpdateOuterWindowStyle(HWND hWnd)
 	}
 	else
 	{
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST));
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST) & (cfg_outer_nolayered ? ~WS_EX_LAYERED : 0xFFFFFFFF));
 		if(cfg_outer_shown)
 			SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 		else
@@ -241,6 +238,7 @@ BOOL Window_Setting::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 
 				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
 				CheckDlgButton(hWnd, IDC_BORDER, cfg_outer_border);
+				CheckDlgButton(hWnd, IDC_NOLAYERED, cfg_outer_nolayered);
 			}
 			else
 			{
@@ -249,6 +247,7 @@ BOOL Window_Setting::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_NOLAYERED), WM_CLOSE, 0, 0);
 			}
 
 			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("위"));
@@ -291,6 +290,7 @@ BOOL Window_Setting::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
+				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				UpdateOuterWindowStyle(hParent);
 			}
 

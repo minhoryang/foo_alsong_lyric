@@ -48,3 +48,11 @@ cfg_string cfg_outer_script(guid_cfg_outer_script, "");
 const GUID guid_cfg_outer = // {77FC7D79-8B1F-4611-BBB9-CB6A57D2A98A}
 { 0x77fc7d79, 0x8b1f, 0x4611, { 0xbb, 0xb9, 0xcb, 0x6a, 0x57, 0xd2, 0xa9, 0x8a } };
 cfg_struct_t<Window_Setting> cfg_outer(guid_cfg_outer, NULL);
+
+const GUID guid_cfg_outer_nolayered = // {A49F5228-C65A-4DA3-A4F9-BE4BC8BF2417}
+{ 0xa49f5228, 0xc65a, 0x4da3, { 0xa4, 0xf9, 0xbe, 0x4b, 0xc8, 0xbf, 0x24, 0x17 } };
+cfg_bool cfg_outer_nolayered(guid_cfg_outer_nolayered, false);
+
+const GUID guid_cfg_lyric_savetofile = // {8317D8A1-82E5-4F2F-80E2-77B3E98A370B}
+{ 0x8317d8a1, 0x82e5, 0x4f2f, { 0x80, 0xe2, 0x77, 0xb3, 0xe9, 0x8a, 0x37, 0xb } };
+cfg_bool cfg_lyric_savetofile(guid_cfg_lyric_savetofile, false);

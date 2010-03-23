@@ -43,11 +43,16 @@
 #define IDC_MARGINSPIN                  1038
 #define IDC_BUTTON2                     1040
 #define IDC_OUTERSET                    1040
+#define IDC_NEWLYRIC                    1040
 #define IDC_OUTERNOTIFY_STATIC          1042
 #define IDC_UISCRIPT                    1043
 #define IDC_VERTICALALIGN               1044
 #define IDC_COMBO2                      1045
 #define IDC_HORIZENTALALIGN             1045
+#define IDC_SYNCEDIT                    1047
+#define IDC_CHECK4                      1048
+#define IDC_NOLAYERED                   1048
+#define IDC_SAVETOFILE                  1048
 
 // Next default values for new objects
 // 
@@ -55,7 +60,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_CONTROL_VALUE         1049
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
