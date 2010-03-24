@@ -1,5 +1,29 @@
 #pragma once
 
+#include "pugixml/pugixml.hpp"
+
+struct LyricResult
+{
+	std::string Artist;
+	std::string Album;
+	std::string Title;
+	std::string Registrant;
+	std::string Lyric;
+};
+
+class LyricSearchResult
+{
+private:
+	std::vector<char> data;
+	pugi::xml_node::iterator it;
+public:
+	LyricResult Get();
+	std::vector<char> &GetData()
+	{
+		return data;
+	}
+};
+
 class LyricManager : public play_callback
 {
 private:
@@ -9,10 +33,10 @@ private:
 	string m_Registrant;
 	struct lyricinfo
 	{
-		lyricinfo(DWORD t, const pfc::string8 &str) : time(t), lyric(str) {}
+		lyricinfo(DWORD t, const std::string &str) : time(t), lyric(str) {}
 		lyricinfo() : time(0), lyric("") {}
 		DWORD time;
-		pfc::string8 lyric;
+		std::string lyric;
 	};
 	vector<lyricinfo> m_Lyric;
 	int m_Lyricpos;
@@ -33,27 +57,28 @@ private:
 	void Clear();
 	
 	static SOCKET InitateConnect(CHAR *Address, int port);
+	static UINT CALLBACK LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 public:
 	LyricManager();
 	~LyricManager();
 
-	static DWORD UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, 
-		pfc::string8 Lyric, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Registrant);
-	static DWORD SearchLyricGetNext(CHAR **data, int &Info, pfc::string8 Title, pfc::string8 Artist, pfc::string8 Album, pfc::string8 Lyric, pfc::string8 Registrant);
-	static int SearchLyricGetCount(const pfc::string8 &Artist, const pfc::string8 &Title);
-	static DWORD LyricManager::SearchLyric(const pfc::string8 &Artist, const pfc::string8 Title, int nPage, std::vector<char> &data);
+	static DWORD UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, const LyricResult &Lyric);
+	static int SearchLyricGetCount(const std::string &Artist, const std::string &Title);
+	static DWORD SearchLyric(const std::string &Artist, const std::string Title, int nPage, LyricSearchResult &data);
 	
 	boost::signals2::connection AddRedrawHandler(const boost::signals2::signal<void ()>::slot_type &Handler)
 	{
 		return RedrawHandler.connect(Handler);
 	}
 
-	std::vector<pfc::string8> GetLyricBefore(int n); //이전 가사. n:줄수
-	std::vector<pfc::string8> GetLyric(); //현재 표시할 가사 보여주기
-	std::vector<pfc::string8> GetLyricAfter(int n); //다음가사. n:줄수
+	std::vector<std::string> GetLyricBefore(int n); //이전 가사. n:줄수
+	std::vector<std::string> GetLyric(); //현재 표시할 가사 보여주기
+	std::vector<std::string> GetLyricAfter(int n); //다음가사. n:줄수
 
 	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
 	DWORD LoadFromFile(WCHAR *LoadFrom, CHAR *fmt);
+
+	void OpenLyricModifyDialog(HWND hWndParent);
 
 	// play_callback methods (the ones we're interested in)
 	virtual void on_playback_seek(double p_time);

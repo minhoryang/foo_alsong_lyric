@@ -50,9 +50,9 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 void AlsongUI::Draw(HWND hWnd, HDC hdc)
 {
 	int before = 5, after = 5;
-	std::vector<pfc::string8> lyric = LyricManagerInstance->GetLyric();
-	std::vector<pfc::string8> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
-	std::vector<pfc::string8> lyricafter = LyricManagerInstance->GetLyricAfter(after);
+	std::vector<std::string> lyric = LyricManagerInstance->GetLyric();
+	std::vector<std::string> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
+	std::vector<std::string> lyricafter = LyricManagerInstance->GetLyricAfter(after);
 	if(!lyric.size())
 		return;
 	RECT rt;
@@ -63,19 +63,19 @@ void AlsongUI::Draw(HWND hWnd, HDC hdc)
 		h += 20;
 	for(i = 0; i < lyricbefore.size(); i ++)
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i]);
+		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].c_str());
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
 		h += 20;
 	}
 	for(i = 0; i < lyric.size(); i ++)
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i]);
+		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i].c_str());
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
 		h += 20;
 	}
 	for(i = 0; i < lyricafter.size(); i ++)
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i]);
+		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i].c_str());
 		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
 		h += 20;
 	}
@@ -215,7 +215,7 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 		{
 			if(handle == NULL)
 				return;
-			//TODO
+			LyricManagerInstance->OpenLyricModifyDialog(hWndFrom);
 		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
