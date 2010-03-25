@@ -4,6 +4,13 @@
 
 struct LyricResult
 {
+	LyricResult() : nInfo(-1) {}
+	operator int()
+	{
+		return nInfo != -1;
+	}
+
+	int nInfo;
 	std::string Artist;
 	std::string Album;
 	std::string Title;
@@ -13,15 +20,13 @@ struct LyricResult
 
 class LyricSearchResult
 {
+	friend class LyricManager;
 private:
 	std::vector<char> data;
-	pugi::xml_node::iterator it;
+	pugi::xml_document doc;
+	pugi::xml_node node;
 public:
 	LyricResult Get();
-	std::vector<char> &GetData()
-	{
-		return data;
-	}
 };
 
 class LyricManager : public play_callback
@@ -62,7 +67,7 @@ public:
 	LyricManager();
 	~LyricManager();
 
-	static DWORD UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, const LyricResult &Lyric);
+	static DWORD UploadLyric(metadb_handle_ptr track, int PlayTime, int UploadType, const LyricResult &Lyric);
 	static int SearchLyricGetCount(const std::string &Artist, const std::string &Title);
 	static DWORD SearchLyric(const std::string &Artist, const std::string Title, int nPage, LyricSearchResult &data);
 	

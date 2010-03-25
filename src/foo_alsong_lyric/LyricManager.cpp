@@ -538,7 +538,7 @@ DWORD LyricManager::SearchLyric(const std::string &Artist, const std::string Tit
 	SOCKET s;
 	int nRecv;
 	CHAR buf[256];
-	data.GetData().clear();
+	data.data.clear();
 
 	pugi::xml_document xmldoc;
 	pugi::xml_node envelope = xmldoc.append_child();
@@ -588,8 +588,11 @@ DWORD LyricManager::SearchLyric(const std::string &Artist, const std::string Tit
 			return false;
 		}
 		buf[nRecv] = 0;
-		data.GetData().insert(data.GetData().end(), buf, buf + nRecv);
+		data.data.insert(data.data.end(), buf, buf + nRecv);
 	}
+
+	data.doc.load(&*boost::find_first(data.data, "\r\n\r\n").begin());
+	data.node = data.doc.first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2Response/GetResembleLyric2Result/ST_GET_RESEMBLELYRIC2_RETURN"); //TODO: Test
 
 	closesocket(s);
 
@@ -726,7 +729,7 @@ DWORD LyricManager::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 	return false;
 }
 
-DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo, int UploadType, const LyricResult &Lyric)
+DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int UploadType, const LyricResult &Lyric)
 {
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 								"Host: lyrics.alsong.co.kr\r\n"
@@ -862,7 +865,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int nInfo
 
 	pugi::xml_node nInfoID = query.append_child();
 	nInfoID.set_name("ns1:nInfoID");
-	nInfoID.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(nInfo));
+	nInfoID.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(Lyric.nInfo));
 
 	pugi::xml_node strLyric = query.append_child();
 	strLyric.set_name("ns1:strLyric");
@@ -1009,6 +1012,7 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
 					LyricSearchResult data;
 					LyricManager::SearchLyric(artist.toString(), title.toString(), 0, data);
+					LyricResult res = data.Get();
 					//search
 				}
 				break;
@@ -1036,4 +1040,21 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 		return TRUE;
 	}
 	return FALSE;
+}
+
+LyricResult LyricSearchResult::Get()
+{
+	if(!node)
+		return LyricResult();
+	
+	LyricResult ret;
+	ret.Album = node.child("strAlbumName").child_value();
+	ret.Title = node.child("strTitle").child_value();
+	ret.Artist = node.child("strArtistName").child_value();
+	ret.Registrant = node.child("strRegisterFirstName").child_value();
+	ret.Lyric = node.child("strLyric").child_value();
+	ret.nInfo = boost::lexical_cast<int>(node.child("strInfoID").child_value());
+	node = node.next_sibling("ST_GET_RESEMBLELYRIC2_RETURN");
+
+	return ret;
 }
