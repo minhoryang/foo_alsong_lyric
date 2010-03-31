@@ -729,7 +729,7 @@ DWORD LyricManager::LoadFromFile(WCHAR *LoadFrom, CHAR *fmt)
 	return false;
 }
 
-DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int UploadType, const LyricResult &Lyric)
+DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const LyricResult &Lyric)
 {
 	CHAR UploadLyricHeader[] =	"POST /alsongwebservice/service1.asmx HTTP/1.1\r\n"
 								"Host: lyrics.alsong.co.kr\r\n"
@@ -753,6 +753,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int PlayTime, int Uploa
 	CHAR Hash[255];
 	std::string Filename = track->get_path();
 	std::vector<char> data;
+	int PlayTime = (int)(track->get_length() * 1000);
 
 	//IP하고 MAC 찾기
 	gethostname(Hostname, 80);
@@ -1122,6 +1123,17 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 			case IDC_SYNCEDIT:
 				break;
 			case IDC_REGISTER:
+				{
+					LVITEM item;
+					item.mask = LVIF_TEXT | LVIF_PARAM;
+					item.iItem = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTEDCOLUMN, 0, 0);
+					item.iSubItem = 0;
+					SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETITEM, NULL, (LPARAM)&item);
+					metadb_handle_ptr handle;
+					static_api_ptr_t<play_control> pc;
+					pc->get_now_playing(handle);
+					LyricManager::UploadLyric(handle, 1, searchresult.Get(item.lParam));
+				}
 				break;
 			case IDC_CANCEL:
 				EndDialog(hWnd, 0);

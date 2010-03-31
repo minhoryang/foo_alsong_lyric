@@ -70,7 +70,7 @@ public:
 	LyricManager();
 	~LyricManager();
 
-	static DWORD UploadLyric(metadb_handle_ptr track, int PlayTime, int UploadType, const LyricResult &Lyric);
+	static DWORD UploadLyric(metadb_handle_ptr track, int UploadType, const LyricResult &Lyric);
 	static int SearchLyricGetCount(const std::string &Artist, const std::string &Title);
 	static DWORD SearchLyric(const std::string &Artist, const std::string Title, int nPage, LyricSearchResult &data);
 	
