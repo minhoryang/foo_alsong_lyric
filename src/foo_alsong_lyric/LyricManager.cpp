@@ -1018,6 +1018,9 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 			ListView_InsertColumn(GetDlgItem(hWnd, IDC_LYRICLIST), 0, &lv);
 			lv.pszText = TEXT("제목");
 			ListView_InsertColumn(GetDlgItem(hWnd, IDC_LYRICLIST), 1, &lv);
+			
+			SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED); //disable next, prev button
+			SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
 		}
 		return TRUE;
 	case WM_COMMAND:
@@ -1031,6 +1034,16 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uGetDlgItemText(hWnd, IDC_ARTIST, artist);
 					pfc::string8 title;
 					uGetDlgItemText(hWnd, IDC_TITLE, title);
+					if(artist.get_length() == 0)
+					{
+						MessageBox(hWnd, TEXT("아티스트를 입력해 주세요"), TEXT("에러"), MB_OK);
+						return TRUE;
+					}
+					if(title.get_length() == 0)
+					{
+						MessageBox(hWnd, TEXT("제목을 입력해 주세요"), TEXT("에러"), MB_OK);
+						return TRUE;
+					}
 					
 					page = 0;
 					lyriccount = LyricManager::SearchLyricGetCount(artist.toString(), title.toString());
@@ -1039,6 +1052,13 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
 					LyricManager::SearchLyric(artist.toString(), title.toString(), 0, searchresult);
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
+					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
+					if(lyriccount > 100)
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+					else
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+					SetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED); //disable it
+					SetWindowLong(GetDlgItem(hWnd, IDC_TITLE), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED);
 				}
 				break;
 			case IDC_RESET:
@@ -1048,16 +1068,56 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 				ListView_DeleteAllItems(GetDlgItem(hWnd, IDC_LYRICLIST));
 				SetDlgItemText(hWnd, IDC_LYRIC, TEXT(""));
 				SetFocus(GetDlgItem(hWnd, IDC_ARTIST));
+				SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+				SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+				SetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) & ~WS_DISABLED);
+				SetWindowLong(GetDlgItem(hWnd, IDC_TITLE), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) & ~WS_DISABLED);
 				//reset;
 				break;
 			case IDC_NEWLYRIC:
 				//something
 				break;
 			case IDC_PREV:
-				//something;
+				{
+					if(page == 0)
+						return TRUE;
+					page --;
+					pfc::string8 artist;
+					uGetDlgItemText(hWnd, IDC_ARTIST, artist);
+					pfc::string8 title;
+					uGetDlgItemText(hWnd, IDC_TITLE, title);
+					std::stringstream str;
+					str << page * 100 + 1 << "~" << min(lyriccount, (page + 1) * 100) << "/" << lyriccount;
+					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
+					LyricManager::SearchLyric(artist.toString(), title.toString(), page, searchresult);
+					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
+					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
+					if(lyriccount > 100)
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+					else
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+				}
 				break;
 			case IDC_NEXT:
-				//some
+				{
+					if(page == lyriccount / 100)
+						return TRUE;
+					page ++;
+					pfc::string8 artist;
+					uGetDlgItemText(hWnd, IDC_ARTIST, artist);
+					pfc::string8 title;
+					uGetDlgItemText(hWnd, IDC_TITLE, title);
+					std::stringstream str;
+					str << page * 100 + 1 << "~" << min(lyriccount, (page + 1) * 100) << "/" << lyriccount;
+					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
+					LyricManager::SearchLyric(artist.toString(), title.toString(), page, searchresult);
+					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
+					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
+					if(lyriccount > 100)
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+					else
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+				}
 				break;
 			case IDC_SYNCEDIT:
 				break;
