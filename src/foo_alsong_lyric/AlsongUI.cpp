@@ -135,7 +135,6 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 		ID_FGCOLOR,
 		ID_BGIMAGE,
 		ID_ADVSET,
-		ID_MODLRC,
 		ID_CONTEXT_FIRST,
 		ID_CONTEXT_LAST = ID_CONTEXT_FIRST + 1000,
 	};
@@ -153,7 +152,6 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 	AppendMenu(hMenu, MF_STRING, ID_FGCOLOR, TEXT("글자색 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_BGIMAGE, TEXT("배경그림 선택..."));
 	AppendMenu(hMenu, MF_STRING, ID_ADVSET, TEXT("고급 설정..."));
-	AppendMenu(hMenu, MF_STRING, ID_MODLRC, TEXT("가사 추가/변경..."));
 
 	try 
 	{
@@ -210,12 +208,6 @@ void AlsongUI::on_contextmenu(HWND hWndFrom)
 		else if(cmd == ID_ADVSET)
 		{
 			m_Setting.OpenConfigPopup(hWndFrom);
-		}
-		else if(cmd == ID_MODLRC)
-		{
-			if(handle == NULL)
-				return;
-			LyricManagerInstance->OpenLyricModifyDialog(hWndFrom);
 		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
