@@ -57,4 +57,4 @@ public:
 	}
 };
 
-static initquit_factory_t<initquit_alsong> foo_initquit;
+static initquit_factory_t<initquit_alsong> alsong_initquit;

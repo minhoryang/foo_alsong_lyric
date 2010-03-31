@@ -957,9 +957,9 @@ void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
 	}
 }
 
-void LyricManager::OpenLyricModifyDialog(HWND hWndParent)
+void LyricManager::OpenLyricModifyDialog(HWND hWndParent, metadb_handle_ptr track)
 {
-	DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRIC_MODIFY), hWndParent, (DLGPROC)&LyricManager::LyricModifyDialogProc);
+	DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRIC_MODIFY), hWndParent, (DLGPROC)&LyricManager::LyricModifyDialogProc, (LPARAM)&track);
 }
 
 void LyricManager::PopulateListView(HWND hListView, LyricSearchResult &res)
@@ -989,15 +989,13 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 	static int lyriccount;
 	static LyricSearchResult searchresult;
 	static int page = 0;
+	static metadb_handle_ptr track;
 	switch(iMessage)
 	{
 	case WM_INITDIALOG:
 		{
-			//get title text
-			static_api_ptr_t<play_control> pc;
-			metadb_handle_ptr handle;
-			pc->get_now_playing(handle);
-			uSetWindowText(hWnd, handle->get_path());
+			track = *(metadb_handle_ptr *)lParam;
+			uSetWindowText(hWnd, track->get_path());
 			
 			//set artist, title field
 			service_ptr_t<titleformat_object> to;
@@ -1005,9 +1003,9 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 			pfc::string8 title;
 
 			static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "%artist%");
-			handle->format_title(NULL, artist, to, NULL);
+			track->format_title(NULL, artist, to, NULL);
 			static_api_ptr_t<titleformat_compiler>()->compile_safe(to, "%title%");
-			handle->format_title(NULL, title, to, NULL);
+			track->format_title(NULL, title, to, NULL);
 			uSetDlgItemText(hWnd, IDC_ARTIST, artist.get_ptr());
 			uSetDlgItemText(hWnd, IDC_TITLE, title.get_ptr());
 			//perform listview initialization.
@@ -1129,10 +1127,7 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					item.iItem = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTEDCOLUMN, 0, 0);
 					item.iSubItem = 0;
 					SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETITEM, NULL, (LPARAM)&item);
-					metadb_handle_ptr handle;
-					static_api_ptr_t<play_control> pc;
-					pc->get_now_playing(handle);
-					LyricManager::UploadLyric(handle, 1, searchresult.Get(item.lParam));
+					LyricManager::UploadLyric(track, 1, searchresult.Get(item.lParam));
 				}
 				break;
 			case IDC_CANCEL:

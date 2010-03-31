@@ -66,14 +66,15 @@ private:
 	static SOCKET InitateConnect(CHAR *Address, int port);
 	static UINT CALLBACK LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	static void PopulateListView(HWND hListView, LyricSearchResult &res);
-public:
-	LyricManager();
-	~LyricManager();
-
+	
 	static DWORD UploadLyric(metadb_handle_ptr track, int UploadType, const LyricResult &Lyric);
 	static int SearchLyricGetCount(const std::string &Artist, const std::string &Title);
 	static DWORD SearchLyric(const std::string &Artist, const std::string Title, int nPage, LyricSearchResult &data);
 	
+public:
+	LyricManager();
+	~LyricManager();
+
 	boost::signals2::connection AddRedrawHandler(const boost::signals2::signal<void ()>::slot_type &Handler)
 	{
 		return RedrawHandler.connect(Handler);
@@ -86,7 +87,7 @@ public:
 	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
 	DWORD LoadFromFile(WCHAR *LoadFrom, CHAR *fmt);
 
-	void OpenLyricModifyDialog(HWND hWndParent);
+	static void OpenLyricModifyDialog(HWND hWndParent, metadb_handle_ptr track = NULL);
 
 	// play_callback methods (the ones we're interested in)
 	virtual void on_playback_seek(double p_time);
