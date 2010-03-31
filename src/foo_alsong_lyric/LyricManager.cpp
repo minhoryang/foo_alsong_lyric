@@ -992,6 +992,12 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 	static metadb_handle_ptr track;
 	switch(iMessage)
 	{
+	case WM_CLOSE:
+		EndDialog(hWnd, 0);
+		break;
+	case WM_DESTROY:
+		track = NULL;
+		break;
 	case WM_INITDIALOG:
 		{
 			track = *(metadb_handle_ptr *)lParam;
@@ -1053,9 +1059,9 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
 					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
 					if(lyriccount > 100)
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
 					SetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED); //disable it
 					SetWindowLong(GetDlgItem(hWnd, IDC_TITLE), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED);
 				}
@@ -1092,9 +1098,9 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
 					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
 					if(lyriccount > 100)
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
 				}
 				break;
 			case IDC_NEXT:
@@ -1113,9 +1119,9 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
 					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
 					if(lyriccount > 100)
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
-						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
 				}
 				break;
 			case IDC_SYNCEDIT:

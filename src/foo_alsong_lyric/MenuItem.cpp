@@ -72,36 +72,39 @@ static mainmenu_commands_factory_t<menu_command_alsong> alsong_main_menu;
 class contextcommand_alsong : public contextmenu_item_simple 
 {
 public:
-	GUID get_parent() 
+	virtual GUID get_parent()
 	{
-		return contextmenu_groups::tagging;
+		return contextmenu_groups::root;
 	}
 
-	unsigned int get_num_items() 
+	virtual unsigned int get_num_items() 
 	{
 		return 1;
 	}
 
-	void get_item_name(unsigned int p_index, pfc::string_base & p_out) 
+	virtual void get_item_name(unsigned int p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
 			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 가사 추가/변경"), lstrlen(TEXT("알송 가사 추가/변경")));
 	}
 
-	void context_command(unsigned int p_index, metadb_handle_list_cref p_data, const GUID& p_caller) 
+	virtual void context_command(unsigned int p_index, metadb_handle_list_cref p_data, const GUID& p_caller) 
 	{
 		if(p_index == 0 && p_data.get_count() == 1)
-			LyricManager::OpenLyricModifyDialog(core_api::get_main_window(), p_data.get_item(1));
+			LyricManager::OpenLyricModifyDialog(core_api::get_main_window(), p_data.get_item(0));
 	}
 	
-	bool context_get_display(unsigned int p_index, metadb_handle_list_cref p_data, pfc::string_base & p_out, unsigned & p_displayflags, const GUID & p_caller) 
+	virtual bool context_get_display(unsigned int p_index, metadb_handle_list_cref p_data, pfc::string_base & p_out, unsigned & p_displayflags, const GUID & p_caller) 
 	{
 		if(p_index == 0)
+		{
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 가사 추가/변경"), lstrlen(TEXT("알송 가사 추가/변경")));
 			return p_data.get_count() == 1;
+		}
 		return false;
 	}
 
-	GUID get_item_guid(unsigned int p_index) 
+	virtual GUID get_item_guid(unsigned int p_index) 
 	{
 		if(p_index == 0)
 		{
@@ -113,7 +116,7 @@ public:
 		return nullguid;
 	}
 
-	bool get_item_description(unsigned int p_index, pfc::string_base & p_out) 
+	virtual bool get_item_description(unsigned int p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
 		{
