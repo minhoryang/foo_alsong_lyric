@@ -961,8 +961,33 @@ void LyricManager::OpenLyricModifyDialog(HWND hWndParent)
 	DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRIC_MODIFY), hWndParent, (DLGPROC)&LyricManager::LyricModifyDialogProc);
 }
 
+void LyricManager::PopulateListView(HWND hListView, LyricSearchResult &res)
+{
+	LyricResult lrc;
+	int n = 0;
+	ListView_DeleteAllItems(hListView);
+	while(lrc = res.Get())
+	{
+		std::wstring artist = pfc::stringcvt::string_wide_from_utf8(lrc.Artist.c_str()).get_ptr();
+		std::wstring title = pfc::stringcvt::string_wide_from_utf8(lrc.Title.c_str()).get_ptr();
+		LVITEM item;
+		item.mask = LVIF_TEXT | LVIF_PARAM;
+		item.iItem = n ++;
+		item.iSubItem = 0;
+		item.pszText = const_cast<WCHAR *>(artist.c_str());
+		item.lParam = lrc.nInfo;
+		ListView_InsertItem(hListView, &item);
+		item.iSubItem = 1;
+		item.pszText = const_cast<WCHAR *>(title.c_str());
+		ListView_SetItem(hListView, &item);
+	}
+}
+
 UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	static int lyriccount;
+	static LyricSearchResult searchresult;
+	static int page = 0;
 	switch(iMessage)
 	{
 	case WM_INITDIALOG:
@@ -1006,17 +1031,23 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uGetDlgItemText(hWnd, IDC_ARTIST, artist);
 					pfc::string8 title;
 					uGetDlgItemText(hWnd, IDC_TITLE, title);
-					int count = LyricManager::SearchLyricGetCount(artist.toString(), title.toString());
+					
+					page = 0;
+					lyriccount = LyricManager::SearchLyricGetCount(artist.toString(), title.toString());
 					std::stringstream str;
-					str << 1 << "/" << count;
+					str << page * 100 + 1 << "~" << min(lyriccount, (page + 1) * 100) << "/" << lyriccount;
 					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
-					LyricSearchResult data;
-					LyricManager::SearchLyric(artist.toString(), title.toString(), 0, data);
-					LyricResult res = data.Get();
-					//search
+					LyricManager::SearchLyric(artist.toString(), title.toString(), 0, searchresult);
+					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
 				}
 				break;
 			case IDC_RESET:
+				SetDlgItemText(hWnd, IDC_ARTIST, TEXT(""));
+				SetDlgItemText(hWnd, IDC_TITLE, TEXT(""));
+				SetDlgItemText(hWnd, IDC_STATUS, TEXT(""));
+				ListView_DeleteAllItems(GetDlgItem(hWnd, IDC_LYRICLIST));
+				SetDlgItemText(hWnd, IDC_LYRIC, TEXT(""));
+				SetFocus(GetDlgItem(hWnd, IDC_ARTIST));
 				//reset;
 				break;
 			case IDC_NEWLYRIC:
@@ -1042,10 +1073,10 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 	return FALSE;
 }
 
-LyricResult LyricSearchResult::Get()
+LyricResult &LyricSearchResult::Get()
 {
 	if(!node)
-		return LyricResult();
+		return LyricResultMap[-1]; //invalid item
 	
 	LyricResult ret;
 	ret.Album = node.child("strAlbumName").child_value();
@@ -1055,6 +1086,15 @@ LyricResult LyricSearchResult::Get()
 	ret.Lyric = node.child("strLyric").child_value();
 	ret.nInfo = boost::lexical_cast<int>(node.child("strInfoID").child_value());
 	node = node.next_sibling("ST_GET_RESEMBLELYRIC2_RETURN");
+	LyricResultMap[ret.nInfo] = ret;
 
-	return ret;
+	return LyricResultMap[ret.nInfo];
+}
+
+LyricResult &LyricSearchResult::Get(int nInfo)
+{
+	if(LyricResultMap.find(nInfo) != LyricResultMap.end())
+		return LyricResultMap[nInfo];
+	else
+		return LyricResultMap[-1];
 }

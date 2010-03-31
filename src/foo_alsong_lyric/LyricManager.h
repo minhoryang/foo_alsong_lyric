@@ -25,8 +25,10 @@ private:
 	std::vector<char> data;
 	pugi::xml_document doc;
 	pugi::xml_node node;
+	std::map<int, LyricResult> LyricResultMap;
 public:
-	LyricResult Get();
+	LyricResult &Get();
+	LyricResult &Get(int nInfo);
 };
 
 class LyricManager : public play_callback
@@ -63,6 +65,7 @@ private:
 	
 	static SOCKET InitateConnect(CHAR *Address, int port);
 	static UINT CALLBACK LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+	static void PopulateListView(HWND hListView, LyricSearchResult &res);
 public:
 	LyricManager();
 	~LyricManager();
