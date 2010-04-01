@@ -994,10 +994,10 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 	{
 	case WM_CLOSE:
 		EndDialog(hWnd, 0);
-		break;
+		return TRUE;
 	case WM_DESTROY:
 		track = NULL;
-		break;
+		return TRUE;
 	case WM_INITDIALOG:
 		{
 			track = *(metadb_handle_ptr *)lParam;
@@ -1026,6 +1026,17 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 			
 			SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED); //disable next, prev button
 			SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+		}
+		return TRUE;
+	case WM_NOTIFY:
+		{
+			NMHDR *hdr = (NMHDR *)lParam;
+			if(hdr->code == NM_CLICK && hdr->idFrom == IDC_LYRICLIST)
+			{
+				NMITEMACTIVATE *item = (LPNMITEMACTIVATE)lParam;
+				LyricResult res = searchresult.Get((int)item->lParam);
+				uSetDlgItemText(hWnd, IDC_LYRIC, res.Lyric.c_str());
+			}
 		}
 		return TRUE;
 	case WM_COMMAND:
