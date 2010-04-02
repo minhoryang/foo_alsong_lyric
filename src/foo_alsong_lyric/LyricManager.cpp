@@ -5,6 +5,7 @@
 #include "pugixml/pugixml.hpp"
 #include "md5.h"
 #include "resource.h"
+#include <boost/algorithm/string.hpp>
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
 #define ALSONG_VERSION "2.11"
@@ -979,6 +980,7 @@ void LyricManager::PopulateListView(HWND hListView, LyricSearchResult &res)
 		item.lParam = lrc.nInfo;
 		ListView_InsertItem(hListView, &item);
 		item.iSubItem = 1;
+		item.mask = LVIF_TEXT;
 		item.pszText = const_cast<WCHAR *>(title.c_str());
 		ListView_SetItem(hListView, &item);
 	}
@@ -1031,10 +1033,17 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 	case WM_NOTIFY:
 		{
 			NMHDR *hdr = (NMHDR *)lParam;
-			if(hdr->code == NM_CLICK && hdr->idFrom == IDC_LYRICLIST)
+			if(hdr->code == LVN_ITEMCHANGED && hdr->idFrom == IDC_LYRICLIST)
 			{
-				NMITEMACTIVATE *item = (LPNMITEMACTIVATE)lParam;
-				LyricResult res = searchresult.Get((int)item->lParam);
+				int nSel;
+				nSel = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTIONMARK, 0, 0);
+				LVITEM litem;
+				litem.mask = LVIF_PARAM;
+				litem.iItem = nSel;
+				litem.iSubItem = 0;
+				ListView_GetItem(GetDlgItem(hWnd, IDC_LYRICLIST), &litem);
+				LyricResult res = searchresult.Get((int)litem.lParam);
+				boost::replace_all(res.Lyric, "<br>", "\r\n");
 				uSetDlgItemText(hWnd, IDC_LYRIC, res.Lyric.c_str());
 			}
 		}
@@ -1073,8 +1082,6 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
-					SetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED); //disable it
-					SetWindowLong(GetDlgItem(hWnd, IDC_TITLE), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_ARTIST), GWL_STYLE) | WS_DISABLED);
 				}
 				break;
 			case IDC_RESET:
