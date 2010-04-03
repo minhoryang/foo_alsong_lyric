@@ -811,7 +811,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const L
 
 	pugi::xml_node uploadlyrictype = query.append_child();
 	uploadlyrictype.set_name("ns1:nUploadLyricType");
-	uploadlyrictype.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(UploadType));
+	uploadlyrictype.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<std::string>(UploadType).c_str());
 
 	pugi::xml_node md5 = query.append_child();
 	md5.set_name("ns1:strMD5");
@@ -867,7 +867,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const L
 
 	pugi::xml_node nInfoID = query.append_child();
 	nInfoID.set_name("ns1:nInfoID");
-	nInfoID.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(Lyric.nInfo));
+	nInfoID.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<std::string>(Lyric.nInfo).c_str());
 
 	pugi::xml_node strLyric = query.append_child();
 	strLyric.set_name("ns1:strLyric");
@@ -875,7 +875,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const L
 
 	pugi::xml_node nPlayTime = query.append_child();
 	nPlayTime.set_name("ns1:nPlayTime");
-	nPlayTime.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<char *>(PlayTime));
+	nPlayTime.append_child(pugi::node_pcdata).set_value(boost::lexical_cast<std::string>(PlayTime).c_str());
 
 	pugi::xml_node strVersion = query.append_child();
 	strVersion.set_name("ns1:strVersion");
@@ -914,9 +914,11 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const L
 
 	pugi::xml_document doc;
 	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
-	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/UploadLyricResult/UploadLyricResult"); //TODO: Test
-
-	return true;
+	pugi::xml_node xmlresult = doc.first_element_by_path("soap:Envelope/soap:Body/UploadLyricResponse/UploadLyricResult"); //TODO: Test
+	const char *val = xmlresult.child_value();
+	if(boost::find_first(val, "Successed"))
+		return true;
+	return false;
 }
 
 void LyricManager::SaveToFile(WCHAR *SaveTo, CHAR *fmt)
@@ -1146,12 +1148,20 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 				break;
 			case IDC_REGISTER:
 				{
-					LVITEM item;
-					item.mask = LVIF_TEXT | LVIF_PARAM;
-					item.iItem = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTEDCOLUMN, 0, 0);
-					item.iSubItem = 0;
-					SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETITEM, NULL, (LPARAM)&item);
-					LyricManager::UploadLyric(track, 1, searchresult.Get(item.lParam));
+					int nSel;
+					nSel = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTIONMARK, 0, 0);
+					LVITEM litem;
+					litem.mask = LVIF_PARAM;
+					litem.iItem = nSel;
+					litem.iSubItem = 0;
+					ListView_GetItem(GetDlgItem(hWnd, IDC_LYRICLIST), &litem);
+					if(LyricManager::UploadLyric(track, 1, searchresult.Get(litem.lParam)))
+					{
+						MessageBox(hWnd, TEXT("등록 성공"), TEXT("안내"), MB_OK);
+						EndDialog(hWnd, 0);
+						return TRUE;
+					}
+					MessageBox(hWnd, TEXT("등록 실패"), TEXT("안내"), MB_OK);
 				}
 				break;
 			case IDC_CANCEL:
