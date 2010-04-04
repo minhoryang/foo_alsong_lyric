@@ -49,35 +49,43 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 
 void AlsongUI::Draw(HWND hWnd, HDC hdc)
 {
-	int before = 5, after = 5;
+	int before, after;
+	unsigned int i;
+	int height = 0;
 	std::vector<std::string> lyric = LyricManagerInstance->GetLyric();
+	after = before = m_Setting.GetnLine() / 2 - lyric.size() / 2;
 	std::vector<std::string> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
-	std::vector<std::string> lyricafter = LyricManagerInstance->GetLyricAfter(after);
+	std::vector<std::string> lyricafter = LyricManagerInstance->GetLyricAfter(after + lyric.size() - 1 - (1 - m_Setting.GetnLine() % 2));
+	//현재 가사가 1줄 이상인 경우에는 두번째 줄부터
 	if(!lyric.size())
 		return;
 	RECT rt;
 	GetClientRect(hWnd, &rt);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
-	int h = 0, i;
+	HFONT hFont = m_Setting.CreateFont();
+	TEXTMETRIC tm;
+	HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
+	GetTextMetrics(hdc, &tm);
+	
 	for(i = 0; i < before - lyricbefore.size(); i ++)
-		h += 20;
+		height += tm.tmHeight;
 	for(i = 0; i < lyricbefore.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].c_str());
-		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
-		h += 20;
+		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
+		height += tm.tmHeight;
 	}
 	for(i = 0; i < lyric.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i].c_str());
-		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
-		h += 20;
+		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
+		height += tm.tmHeight;
 	}
-	for(i = 0; i < lyricafter.size(); i ++)
+	for(i = max(lyric.size() - 1, 0); i < lyricafter.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i].c_str());
-		TextOut(hdc, 0, h, nowlrcw.c_str(), nowlrcw.length());
-		h += 20;
+		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
+		height += tm.tmHeight;
 	}
 	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);
 }
