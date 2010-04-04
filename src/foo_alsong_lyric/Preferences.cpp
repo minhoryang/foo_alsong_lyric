@@ -299,6 +299,8 @@ BOOL Window_Setting::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 //			if(Setting->Script)
 //				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
+			InvalidateRect(hParent, NULL, TRUE);
+
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
