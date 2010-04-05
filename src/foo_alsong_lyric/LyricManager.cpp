@@ -429,7 +429,11 @@ void LyricManager::CountLyric()
 		time_iterator != m_Lyric.end() && time_iterator->time < m_Seconds * 100 + microsec;						//100 blah			
 		m_Lyricpos ++, time_iterator ++);
 	if(time_iterator == m_Lyric.end())
+	{
+		m_Lyricpos = m_Lyric.size() - 1;
+		RedrawHandler(); //Point to last lyric
 		return;
+	}
 	if(m_Lyricpos > 0)
 	{
 		m_Lyricpos --, time_iterator --;
@@ -443,13 +447,17 @@ void LyricManager::CountLyric()
 		{
 			microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;
 			int lyricpos_temp = m_Lyricpos;
-			while((int)time_iterator->time - (m_Seconds * 100 + microsec) < 0) lyricpos_temp ++, time_iterator ++;
+			while(time_iterator != m_Lyric.end() && (int)time_iterator->time - (m_Seconds * 100 + microsec) < 0) lyricpos_temp ++, time_iterator ++;
+			if(time_iterator == m_Lyric.end())
+				break;
 			boost::this_thread::sleep(boost::posix_time::microseconds(time_iterator->time - (m_Seconds * 100 + microsec)) * 10000);
 			if(boost::this_thread::interruption_requested())
 				break;
 			m_Lyricpos = lyricpos_temp;
 			RedrawHandler();
 		}
+		m_Lyricpos = m_Lyric.size() - 1;
+		RedrawHandler(); //Point to last lyric
 	}
 	catch(...)
 	{ //ignore exception
