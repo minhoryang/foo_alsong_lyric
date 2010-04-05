@@ -86,14 +86,19 @@ void LyricManager::on_playback_time(double p_time)
 
 void LyricManager::on_playback_pause(bool p_state)
 {
+	static long long microsec;
 	if(p_state == true && m_countthread)
 	{
 		m_countthread->interrupt();
 		m_countthread->join();
 		m_countthread.reset();
+		microsec = (boost::posix_time::microsec_clock::universal_time() - tick).fractional_seconds() / 10000;
 	}
 	else if(p_state == false && m_haslyric == 1)
+	{
+		tick = boost::posix_time::microsec_clock::universal_time() - (boost::posix_time::seconds(1) - boost::posix_time::microseconds(microsec * 1000000));
 		m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
+	}
 }
 
 std::vector<std::string> LyricManager::GetLyricBefore(int n)
