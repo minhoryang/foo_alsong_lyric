@@ -64,8 +64,7 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 		m_countthread.reset();
 	}
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
-	begin = boost::posix_time::microsec_clock::universal_time();
-	tick = begin; //0sec
+	tick = boost::posix_time::microsec_clock::universal_time();
 	m_Seconds = 0;
 }
 

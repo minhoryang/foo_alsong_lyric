@@ -53,7 +53,6 @@ private:
 	boost::signals2::signal<void ()> RedrawHandler;
 	boost::shared_ptr<boost::thread> m_fetchthread;
 	boost::shared_ptr<boost::thread> m_countthread;
-	boost::posix_time::ptime begin;
 	boost::posix_time::ptime tick;
 
 	static DWORD GetFileHash(metadb_handle_ptr track, CHAR *Hash);
