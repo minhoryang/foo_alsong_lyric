@@ -397,6 +397,7 @@ DWORD LyricManager::DownloadLyric(CHAR *Hash)
 			return false;
 		}
 	}
+	data.push_back('\0');
 
 	pugi::xml_document doc;
 	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
@@ -591,6 +592,7 @@ DWORD LyricManager::SearchLyric(const std::string &Artist, const std::string Tit
 		buf[nRecv] = 0;
 		data.data.insert(data.data.end(), buf, buf + nRecv);
 	}
+	data.data.push_back('\0');
 
 	data.doc.load(&*boost::find_first(data.data, "\r\n\r\n").begin());
 	data.node = data.doc.first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2Response/GetResembleLyric2Result/ST_GET_RESEMBLELYRIC2_RETURN"); //TODO: Test
@@ -663,6 +665,7 @@ int LyricManager::SearchLyricGetCount(const std::string &Artist, const std::stri
 		buf[nRecv] = 0;
 		data.insert(data.end(), buf, buf + nRecv);
 	}
+	data.push_back('\0');
 
 	pugi::xml_document doc;
 	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
@@ -911,6 +914,7 @@ DWORD LyricManager::UploadLyric(metadb_handle_ptr track, int UploadType, const L
 		buf[nRecv] = 0;
 		data.insert(data.end(), buf, buf + nRecv);
 	}
+	data.push_back('\0');
 
 	pugi::xml_document doc;
 	doc.load(&*boost::find_first(data, "\r\n\r\n").begin());
