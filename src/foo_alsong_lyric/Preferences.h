@@ -6,6 +6,22 @@ public:
 	Window_Setting() {}
 	~Window_Setting() {}
 
+	enum AlignPosition
+	{
+		ALIGN_LEFT = 1,
+		ALIGN_TOP = 1,
+		ALIGN_MODDLE = 2,
+		ALIGN_BOTTOM = 3,
+		ALIGN_RIGHT = 3,
+	};
+	
+	enum BgType
+	{
+		BG_SOLIDCOLOR = 0,
+		BG_IMAGE = 1,
+		BG_TRANSPARENT = 2,
+	};
+
 	HFONT CreateFont()
 	{
 		return font.create();
@@ -22,7 +38,7 @@ public:
 	{
 		return std::wstring(bgImage);
 	}
-	int GetBgType()
+	BgType GetBgType()
 	{
 		return bgType;
 	}
@@ -34,13 +50,13 @@ public:
 	{
 		return LineMargin;
 	}
-	BYTE GetVerticalAlign()
+	AlignPosition GetVerticalAlign()
 	{
-		return VerticalAlign;
+		return static_cast<AlignPosition>(VerticalAlign);
 	}
-	BYTE GetHorizentalAlign()
+	AlignPosition GetHorizentalAlign()
 	{
-		return HorizentalAlign;
+		return static_cast<AlignPosition>(HorizentalAlign);
 	}
 	int OpenFontPopup(HWND hWndFrom)
 	{
@@ -61,7 +77,7 @@ public:
 		COLORREF color;
 		if(color = OpenColorPopup(hWndFrom, fgColor) != -1)
 		{
-			bgType = 0;
+			bgType = BG_SOLIDCOLOR;
 			bkColor = color;
 			return color;
 		}
@@ -79,7 +95,7 @@ public:
 
 		if(GetOpenFileName(&ofn))
 		{
-			bgType = 1;
+			bgType = BG_IMAGE;
 			return true;
 		}
 		return false;
@@ -90,10 +106,11 @@ public:
 		bkColor = RGB(0, 0, 0);
 		fgColor = RGB(255, 255, 255);
 		bgImage[0] = 0;
+		bgType = BG_SOLIDCOLOR;
 		nLine = 3;
 		LineMargin = 100;
-		VerticalAlign = 2;
-		HorizentalAlign = 2;
+		VerticalAlign = ALIGN_MODDLE;
+		HorizentalAlign = ALIGN_MODDLE;
 	}
 
 	void OpenConfigPopup(HWND hParent);
@@ -123,7 +140,7 @@ private:
 	COLORREF bkColor;
 	COLORREF fgColor;
 	WCHAR bgImage[MAX_PATH];
-	int bgType; //0: 색, 1: 이미지, 2:투명한 배경
+	BgType bgType; //0: 색, 1: 이미지, 2:투명한 배경
 
 	DWORD nLine;
 	DWORD LineMargin;//%단위

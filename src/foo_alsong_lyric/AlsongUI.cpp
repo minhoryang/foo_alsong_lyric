@@ -42,7 +42,7 @@ LRESULT AlsongUI::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM
 		}
 		return 0;
 	case WM_ERASEBKGND:
-		return 0;
+		return TRUE;
 	}
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
@@ -66,6 +66,13 @@ void AlsongUI::Draw(HWND hWnd, HDC hdc)
 	TEXTMETRIC tm;
 	HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 	GetTextMetrics(hdc, &tm);
+
+	HWND wnd_parent = GetParent(hWnd);
+	POINT pt = {0, 0}, pt_old = {0,0};
+	MapWindowPoints(hWnd, wnd_parent, &pt, 1);
+	OffsetWindowOrgEx(hdc, pt.x, pt.y, &pt_old);
+	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
+	SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0); //notify parent to redraw background
 	
 	for(i = 0; i < before - lyricbefore.size(); i ++)
 		height += tm.tmHeight;
