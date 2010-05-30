@@ -1067,7 +1067,8 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 			if(hdr->code == LVN_ITEMCHANGED && hdr->idFrom == IDC_LYRICLIST)
 			{
 				int nSel;
-				nSel = SendMessage(GetDlgItem(hWnd, IDC_LYRICLIST), LVM_GETSELECTIONMARK, 0, 0);
+				NMLISTVIEW *nlv = (NMLISTVIEW *)lParam;
+				nSel = nlv->iItem;
 				LVITEM litem;
 				litem.mask = LVIF_PARAM;
 				litem.iItem = nSel;
