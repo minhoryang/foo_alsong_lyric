@@ -1146,8 +1146,11 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
 					LyricManager::SearchLyric(artist.toString(), title.toString(), page, searchresult);
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
-					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
-					if(lyriccount > 100)
+					if(page != 0)
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) & ~WS_DISABLED);
+					else
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
+					if(lyriccount / 100 != page)
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
@@ -1167,11 +1170,16 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					uSetDlgItemText(hWnd, IDC_STATUS, str.str().c_str());
 					LyricManager::SearchLyric(artist.toString(), title.toString(), page, searchresult);
 					LyricManager::PopulateListView(GetDlgItem(hWnd, IDC_LYRICLIST), searchresult);
-					SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
-					if(lyriccount > 100)
+					
+					if(page != 0)
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) & ~WS_DISABLED);
+					else
+						SetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
+					if(lyriccount / 100 != page)
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
 					else
 						SetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED);
+
 				}
 				break;
 			case IDC_SYNCEDIT:
