@@ -150,7 +150,14 @@ DWORD LyricManager::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	abort_callback_impl abort_callback;
 	pfc::string8 str = track->get_path();
 	
-	archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
+	try
+	{
+		archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
+	}
+	catch(...)
+	{
+		return false;
+	}
 	//TODO:cue일때 특별 처리(subsong_index가 있을 때)
 	char *fmt = (char *)str.get_ptr() + str.find_last('.') + 1;
 	/*
@@ -490,6 +497,12 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	RedrawHandler();
 
 	nRet = GetFileHash(track, Hash);
+	if(!nRet)
+	{
+		m_Lyric.push_back(lyricinfo(0, std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("파일을 열 수 없습니다.")))));
+		RedrawHandler();
+		return false;
+	}
 	m_Lyric[0] = lyricinfo(0, std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중..."))));
 	RedrawHandler();
 
