@@ -1188,6 +1188,25 @@ UINT CALLBACK LyricManager::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPAR
 					if(LyricManager::UploadLyric(track, 1, searchresult.Get(litem.lParam)))
 					{
 						MessageBox(hWnd, TEXT("등록 성공"), TEXT("안내"), MB_OK);
+
+						if(LyricManagerInstance->m_fetchthread)
+						{
+							LyricManagerInstance->m_fetchthread->interrupt();
+							LyricManagerInstance->m_fetchthread->join();
+							LyricManagerInstance->m_fetchthread.reset();
+						}
+						if(LyricManagerInstance->m_countthread)
+						{
+							LyricManagerInstance->m_countthread->interrupt();
+							LyricManagerInstance->m_countthread->join();
+							LyricManagerInstance->m_countthread.reset();
+						}
+						static_api_ptr_t<play_control> pc;
+						metadb_handle_ptr p_track;
+						pc->get_now_playing(p_track);
+						if(p_track == track)
+							LyricManagerInstance->m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, LyricManagerInstance, p_track)));
+
 						EndDialog(hWnd, 0);
 						return TRUE;
 					}
