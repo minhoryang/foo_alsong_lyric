@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Preferences.h"
+#include "UIPreference.h"
 
 extern cfg_bool cfg_save_to_lrc;
 extern cfg_bool cfg_load_from_lrc;

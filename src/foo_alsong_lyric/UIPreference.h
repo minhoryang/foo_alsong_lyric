@@ -1,10 +1,10 @@
 #pragma once
 
-class Window_Setting
+class UIPreference
 {
 public:
-	Window_Setting() {}
-	~Window_Setting() {}
+	UIPreference() {}
+	~UIPreference() {}
 
 	enum AlignPosition
 	{

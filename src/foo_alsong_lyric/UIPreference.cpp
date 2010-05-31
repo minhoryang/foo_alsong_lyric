@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ConfigStore.h"
 #include "resource.h"
-#include "Preferences.h"
+#include "UIPreference.h"
 
 static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
