@@ -18,18 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AlsongElement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AlsongPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AlsongUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AlsongWnd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigStore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,9 +33,6 @@
     <ClCompile Include="Plugin_Init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Preferences.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,20 +42,41 @@
     <ClCompile Include="pugixml\pugixpath.cpp">
       <Filter>pugixml</Filter>
     </ClCompile>
+    <ClCompile Include="Lyric.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoapHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlsongLyric.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIElement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPreference.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlsongLyricLinkDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlsongLyricSearch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AlsongElement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AlsongPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AlsongUI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AlsongWnd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigStore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,9 +84,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="md5.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Preferences.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -94,6 +97,39 @@
     </ClInclude>
     <ClInclude Include="pugixml\pugixml.hpp">
       <Filter>pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="Lyric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoapHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlsongLyric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPreference.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlsongLyricLinkDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlsongLyricSearch.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

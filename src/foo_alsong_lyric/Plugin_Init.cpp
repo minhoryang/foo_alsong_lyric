@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include "AlsongWnd.h"
+#include "UIWnd.h"
 #include "ConfigStore.h"
-#include "AlsongUI.h"
+#include "UIManager.h"
 #include "LyricManager.h"
 
 DECLARE_COMPONENT_VERSION(
@@ -12,7 +12,7 @@ DECLARE_COMPONENT_VERSION(
 "compiled: " __DATE__ "\n"
 "with Panel API version: " UI_EXTENSION_VERSION)
 
-class initquit_alsong : public initquit 
+class initquit_plugin : public initquit 
 {
 private:
 	ULONG_PTR gdiplus_token;
@@ -37,14 +37,14 @@ public:
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
 
-		AlsongWndInstance.Create();
+		WndInstance.Create();
 		if (cfg_outer_shown)
-			AlsongWndInstance.Show();
+			WndInstance.Show();
 	}
 
 	virtual void on_quit() 
 	{
-		AlsongWndInstance.Destroy();
+		WndInstance.Destroy();
 		TIMECAPS ptc;
 		timeGetDevCaps(&ptc, sizeof(TIMECAPS));
 		timeEndPeriod(ptc.wPeriodMin);
@@ -57,4 +57,4 @@ public:
 	}
 };
 
-static initquit_factory_t<initquit_alsong> alsong_initquit;
+static initquit_factory_t<initquit_plugin> plugin_initquit;

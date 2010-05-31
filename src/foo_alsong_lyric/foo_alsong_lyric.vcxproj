@@ -135,12 +135,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AlsongElement.cpp" />
-    <ClCompile Include="AlsongPanel.cpp" />
-    <ClCompile Include="AlsongUI.cpp" />
-    <ClCompile Include="AlsongWnd.cpp" />
+    <ClCompile Include="UIElement.cpp" />
+    <ClCompile Include="AlsongLyric.cpp" />
+    <ClCompile Include="UIPanel.cpp" />
+    <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="UIWnd.cpp" />
     <ClCompile Include="ConfigStore.cpp" />
+    <ClCompile Include="Lyric.cpp" />
     <ClCompile Include="LyricManager.cpp" />
+    <ClCompile Include="AlsongLyricLinkDialog.cpp" />
+    <ClCompile Include="AlsongLyricSearch.cpp" />
     <ClCompile Include="md5.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -149,7 +153,7 @@
     </ClCompile>
     <ClCompile Include="MenuItem.cpp" />
     <ClCompile Include="Plugin_Init.cpp" />
-    <ClCompile Include="Preferences.cpp" />
+    <ClCompile Include="UIPreference.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -166,20 +170,28 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="SoapHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AlsongElement.h" />
-    <ClInclude Include="AlsongPanel.h" />
-    <ClInclude Include="AlsongUI.h" />
-    <ClInclude Include="AlsongWnd.h" />
+    <ClInclude Include="UIElement.h" />
+    <ClInclude Include="AlsongLyric.h" />
+    <ClInclude Include="UIPanel.h" />
+    <ClInclude Include="UIManager.h" />
+    <ClInclude Include="UIWnd.h" />
     <ClInclude Include="ConfigStore.h" />
+    <ClInclude Include="Lyric.h" />
     <ClInclude Include="LyricManager.h" />
+    <ClInclude Include="AlsongLyricLinkDialog.h" />
+    <ClInclude Include="AlsongLyricSearch.h" />
     <ClInclude Include="md5.h" />
-    <ClInclude Include="Preferences.h" />
+    <ClInclude Include="UIPreference.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="pugixml\pugiconfig.hpp" />
     <ClInclude Include="pugixml\pugixml.hpp" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="SoapHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="foo_alsong_lyric.rc" />

@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "ConfigStore.h"
-#include "AlsongWnd.h"
+#include "UIWnd.h"
 #include "LyricManager.h"
+#include "AlsongLyricLinkDialog.h"
 
-class menu_command_alsong : public mainmenu_commands 
+class menu_command_plugin : public mainmenu_commands 
 {
 	virtual t_uint32 get_command_count() 
 	{
@@ -12,10 +13,10 @@ class menu_command_alsong : public mainmenu_commands
 
 	virtual GUID get_command(t_uint32 p_index) 
 	{
-		static const GUID guid_alsong_lyric_menu = { 0x66821da5, 0xfa15, 0x4002, { 0x99, 0xc5, 0x8c, 0x6a, 0x96, 0xf4, 0xe, 0xad } };
+		static const GUID guid_plugin_lyric_menu = { 0x66821da5, 0xfa15, 0x4002, { 0x99, 0xc5, 0x8c, 0x6a, 0x96, 0xf4, 0xe, 0xad } };
 
 		if(p_index == 0)
-			return guid_alsong_lyric_menu;
+			return guid_plugin_lyric_menu;
 		return pfc::guid_null;
 	}
 
@@ -44,9 +45,9 @@ class menu_command_alsong : public mainmenu_commands
 		if(p_index == 0 && core_api::assert_main_thread()) 
 		{
 			if (cfg_outer_shown)
-				AlsongWndInstance.Hide();
+				WndInstance.Hide();
 			else
-				AlsongWndInstance.Show();
+				WndInstance.Show();
 		}
 	}
 
@@ -67,9 +68,9 @@ class menu_command_alsong : public mainmenu_commands
 	}
 };
 
-static mainmenu_commands_factory_t<menu_command_alsong> alsong_main_menu;
+static mainmenu_commands_factory_t<menu_command_plugin> plugin_main_menu;
 
-class contextcommand_alsong : public contextmenu_item_simple 
+class contextcommand_plugin : public contextmenu_item_simple 
 {
 public:
 	virtual GUID get_parent()
@@ -91,7 +92,7 @@ public:
 	virtual void context_command(unsigned int p_index, metadb_handle_list_cref p_data, const GUID& p_caller) 
 	{
 		if(p_index == 0 && p_data.get_count() == 1)
-			LyricManager::OpenLyricModifyDialog(core_api::get_main_window(), p_data.get_item(0));
+			AlsongLyricLinkDialog::OpenLyricLinkDialog(core_api::get_main_window(), p_data.get_item(0));
 	}
 	
 	virtual bool context_get_display(unsigned int p_index, metadb_handle_list_cref p_data, pfc::string_base & p_out, unsigned & p_displayflags, const GUID & p_caller) 
@@ -127,4 +128,4 @@ public:
 	}
 };
 
-static contextmenu_item_factory_t<contextcommand_alsong> g_myitem_factory;
+static contextmenu_item_factory_t<contextcommand_plugin> g_myitem_factory;

@@ -15,7 +15,7 @@ extern cfg_bool cfg_outer_border;
 extern cfg_bool cfg_mimic_lyricshow;
 
 extern cfg_string cfg_outer_script;
-extern cfg_struct_t<Window_Setting> cfg_outer;
+extern cfg_struct_t<UIPreference> cfg_outer;
 
 extern cfg_bool cfg_outer_nolayered;
 extern cfg_bool cfg_lyric_savetofile;

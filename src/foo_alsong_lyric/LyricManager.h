@@ -1,75 +1,24 @@
 #pragma once
 
-#include "pugixml/pugixml.hpp"
-
-struct LyricResult
-{
-	LyricResult() : nInfo(-1) {}
-	operator int()
-	{
-		return nInfo != -1;
-	}
-
-	int nInfo;
-	std::string Artist;
-	std::string Album;
-	std::string Title;
-	std::string Registrant;
-	std::string Lyric;
-};
-
-class LyricSearchResult
-{
-	friend class LyricManager;
-private:
-	std::vector<char> data;
-	pugi::xml_document doc;
-	pugi::xml_node node;
-	std::map<int, LyricResult> LyricResultMap;
-public:
-	LyricResult &Get();
-	LyricResult &Get(int nInfo);
-};
+#include "Lyric.h"
 
 class LyricManager : public play_callback
 {
 private:
-	string m_Title;
-	string m_Album;
-	string m_Artist;
-	string m_Registrant;
-	struct lyricinfo
-	{
-		lyricinfo(DWORD t, const std::string &str) : time(t), lyric(str) {}
-		lyricinfo() : time(0), lyric("") {}
-		DWORD time;
-		std::string lyric;
-	};
-	vector<lyricinfo> m_Lyric;
-	int m_Lyricpos;
-	int m_Seconds;
-	int m_haslyric;
-
 	boost::signals2::signal<void ()> RedrawHandler;
 	boost::shared_ptr<boost::thread> m_fetchthread;
 	boost::shared_ptr<boost::thread> m_countthread;
-	boost::posix_time::ptime tick;
 
-	static DWORD GetFileHash(metadb_handle_ptr track, CHAR *Hash);
-	DWORD ParseLyric(const char *InputLyric, const char *Delimiter);
+	int m_Seconds;
+	metadb_handle_ptr m_track;
+	boost::posix_time::ptime m_Tick;
+	boost::mutex m_SecondLock; //lock tick/seconds
+	Lyric m_CurrentLyric; //current song's lyric
+	std::vector<LyricLine>::iterator m_LyricLine; //current visible line.
+	std::string m_Status;
+
 	void CountLyric();
-	DWORD DownloadLyric(CHAR *Hash);
 	DWORD FetchLyric(const metadb_handle_ptr &track);
-	void Clear();
-	
-	static SOCKET InitateConnect(CHAR *Address, int port);
-	static UINT CALLBACK LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-	static void PopulateListView(HWND hListView, LyricSearchResult &res);
-	
-	static DWORD UploadLyric(metadb_handle_ptr track, int UploadType, const LyricResult &Lyric);
-	static int SearchLyricGetCount(const std::string &Artist, const std::string &Title);
-	static DWORD SearchLyric(const std::string &Artist, const std::string Title, int nPage, LyricSearchResult &data);
-	
 public:
 	LyricManager();
 	~LyricManager();
@@ -79,14 +28,11 @@ public:
 		return RedrawHandler.connect(Handler);
 	}
 
-	std::vector<std::string> GetLyricBefore(int n); //이전 가사. n:줄수
-	std::vector<std::string> GetLyric(); //현재 표시할 가사 보여주기
-	std::vector<std::string> GetLyricAfter(int n); //다음가사. n:줄수
+	static void Reload(const metadb_handle_ptr &p_track);
 
-	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
-	DWORD LoadFromFile(WCHAR *LoadFrom, CHAR *fmt);
-
-	static void OpenLyricModifyDialog(HWND hWndParent, metadb_handle_ptr track = NULL);
+	std::vector<LyricLine> GetLyricBefore(int n); //이전 가사. n:줄수
+	std::vector<LyricLine> GetLyric(); //현재 표시할 가사 보여주기
+	std::vector<LyricLine> GetLyricAfter(int n); //다음가사. n:줄
 
 	// play_callback methods (the ones we're interested in)
 	virtual void on_playback_seek(double p_time);
@@ -105,4 +51,3 @@ public:
 
 extern LyricManager *LyricManagerInstance; //singleton. must created on on_init
 
-void md5( unsigned char *input, int ilen, unsigned char output[16] );

@@ -1,5 +1,5 @@
-#define _WIN32_WINDOWS 0x0501
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINDOWS 0x0500
+#define _WIN32_WINNT 0x0500
 
 #pragma warning(disable:4180) //Visual C++ bug
 
@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <exception>
 #define BOOST_BIND_ENABLE_STDCALL
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
@@ -24,6 +25,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time.hpp>
+#include "pugixml/pugixml.hpp"
 
 #define foreach BOOST_FOREACH
 #define reverse_foreach BOOST_REVERSE_FOREACH
