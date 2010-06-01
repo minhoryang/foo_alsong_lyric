@@ -47,6 +47,8 @@ std::vector<char> Socket::ReceiveUntilEOF()
 		}
 		buf[nRecv] = 0;
 		data.insert(data.end(), buf, buf + nRecv);
+		if(boost::this_thread::interruption_requested())
+			return std::vector<char>();
 	}
 	data.push_back('\0');
 

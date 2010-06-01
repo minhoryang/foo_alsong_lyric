@@ -61,6 +61,8 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 		m_countthread->join();
 		m_countthread.reset();
 	}
+	m_CurrentLyric.Clear();
+	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 	m_track = p_track;
 	m_Tick = boost::posix_time::microsec_clock::universal_time();
@@ -75,6 +77,9 @@ void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 		m_countthread->join();
 		m_countthread.reset();
 	}
+
+	m_CurrentLyric.Clear();
+	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
 	m_track.release();
 }
 
@@ -205,6 +210,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	RedrawHandler();
 
 	m_CurrentLyric = AlsongLyric::LyricFromAlsong(track);
+	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
 	
 	if(boost::this_thread::interruption_requested())
 		return false;
