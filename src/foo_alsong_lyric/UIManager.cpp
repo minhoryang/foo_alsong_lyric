@@ -7,10 +7,27 @@
 
 UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Setting), m_Script(Script)
 {
+	SetRect(&m_LyricArea, -1, -1, -1, -1);
+	SetRect(&m_LastPrint, -1, -1, -1, -1);
+	InitializeScript();
+	sq_setprintfunc(m_vmSys, &UIManager::ScriptDebugLog, &UIManager::ScriptDebugLog);
+
+	SqPlus::SQClassDef<UIManager>(TEXT("UIManager")).
+		func(&UIManager::SetLyricArea, TEXT("SetLyricArea")).
+		func(&UIManager::PrintLyric, TEXT("PrintLyric"));
+
+	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init(manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
+	SquirrelVM::RunScript(InitScript);
+
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(manager, line) { foreach(i,v in line) if(v != null) manager.PrintLyric(v); }"));
+	SquirrelVM::RunScript(DrawScript);
+
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Init"))(this);
 }
 
 UIManager::~UIManager()
 {
+	UnInitializeScript();
 }
 
 LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -18,6 +35,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	switch(iMessage)
 	{
 	case WM_CREATE:
+		m_hWnd = hWnd;
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
 		LyricManagerInstance->AddRedrawHandler(boost::bind(InvalidateRect, hWnd, (const RECT *)NULL, TRUE));
@@ -47,11 +65,22 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
+void UIManager::PrintLyric(const SQChar *text)
+{
+	if(!m_hDC)
+		return;
+	if(m_LastPrint.bottom == -1)
+		GetClientRect(m_hWnd, &m_LastPrint);
+	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
+	m_LastPrint.top += 20;
+}
+
 void UIManager::Draw(HWND hWnd, HDC hdc)
 {
+	m_hDC = hdc;
+
 	int before, after;
-	unsigned int i;
-	int height = 0;
+	unsigned int i, cnt = 0;
 	std::vector<LyricLine> lyric = LyricManagerInstance->GetLyric();
 	after = before = m_Setting->GetnLine() / 2 - lyric.size() / 2;
 	std::vector<LyricLine> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
@@ -59,13 +88,12 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	//현재 가사가 1줄 이상인 경우에는 두번째 줄부터
 	if(!lyric.size())
 		return;
+
 	RECT rt;
 	GetClientRect(hWnd, &rt);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
 	HFONT hFont = m_Setting->CreateFont();
-	TEXTMETRIC tm;
 	HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
-	GetTextMetrics(hdc, &tm);
 
 	HWND wnd_parent = GetParent(hWnd);
 	POINT pt = {0, 0}, pt_old = {0,0};
@@ -73,39 +101,36 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	OffsetWindowOrgEx(hdc, pt.x, pt.y, &pt_old);
 	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
 	SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0); //notify parent to redraw background
-	
+
+	SetRect(&m_LastPrint, -1, -1, -1, -1); //reset
+
+	SquirrelVM::SetVMSys(m_vmSys);
+
+	SquirrelObject lyrics = SquirrelVM::CreateArray(m_Setting->GetnLine());
+
 	for(i = 0; i < before - lyricbefore.size(); i ++)
-		height += tm.tmHeight;
+		lyrics.ArrayAppend(TEXT(""));
 	for(i = 0; i < lyricbefore.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].lyric.c_str());
-		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
-		height += tm.tmHeight;
+		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 	for(i = 0; i < lyric.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i].lyric.c_str());
-		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
-		height += tm.tmHeight;
+		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 	for(i = max(lyric.size() - 1, 0); i < lyricafter.size(); i ++)
 	{
 		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i].lyric.c_str());
-		TextOut(hdc, 0, height, nowlrcw.c_str(), nowlrcw.length());
-		height += tm.tmHeight;
+		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
-	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);
 
-	SquirrelVMSys vm = InitializeScript();
-	sq_setprintfunc(vm, &UIManager::ScriptDebugLog, &UIManager::ScriptDebugLog);
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(this, lyrics);
 
-	SqPlus::SQClassDef<UIManager>(TEXT("UIManager")).
-		func(&UIManager::SetLyricArea, TEXT("SetLyricArea"));
+	DeleteObject(SelectObject(m_hDC, hOldFont));
 
-	SquirrelObject helloWorld = SquirrelVM::CompileBuffer(TEXT("function Init(UIManager manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
-	
-	SquirrelVM::RunScript(helloWorld);
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Init"))(this);
+	m_hDC = NULL;
 }
 
 void UIManager::SetLyricArea(int x, int y, int width, int height)
@@ -118,8 +143,8 @@ void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
 	static SQChar temp[2048];
 	va_list vl;
 	va_start(vl, s);
+	scvsprintf(temp, s, vl);
 	console::formatter() << "foo_alsong_lyric: Squirrel print:" << pfc::stringcvt::string_utf8_from_wide(temp);
-	SCPUTS(temp);
 	va_end(vl);
 }
 
@@ -128,19 +153,17 @@ void UIManager::ShowConfig(HWND hWndParent)
 
 }
 
-SquirrelVMSys UIManager::InitializeScript()
+void UIManager::InitializeScript()
 {
-	SquirrelVMSys v;
 	SquirrelVM::Init();
-	SquirrelVM::GetVMSys(v);
-
-	return v;
+	SquirrelVM::GetVMSys(m_vmSys);
 }
 
-void UIManager::UnInitializeScript(SquirrelVMSys vm)
+void UIManager::UnInitializeScript()
 {
-	SquirrelVM::SetVMSys(vm);
+	SquirrelVM::SetVMSys(m_vmSys);
 	SquirrelVM::Shutdown();
+	m_vmSys.Reset();
 }
 
 bool UIManager::on_keydown(WPARAM wParam) 

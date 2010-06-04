@@ -51,7 +51,7 @@ public:
 		WSACleanup();
 		GdiplusShutdown(gdiplus_token);
 
-		SquirrelVM::AppFinalShutdown();
+//		SquirrelVM::AppFinalShutdown();
 		if(LyricManagerInstance)
 			delete LyricManagerInstance;
 	}

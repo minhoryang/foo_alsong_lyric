@@ -17,11 +17,16 @@ private:
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
 
-	void UnInitializeScript(SquirrelVMSys vm);
-	SquirrelVMSys InitializeScript();
+	void UnInitializeScript();
+	void InitializeScript();
 	void SetLyricArea(int x, int y, int width, int height);
+	void PrintLyric(const SQChar *text);
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
+	HWND m_hWnd;
+	HDC m_hDC;
+	RECT m_LastPrint;
+	SquirrelVMSys m_vmSys;
 	RECT m_LyricArea;
 	UIPreference *m_Setting;
 	pfc::string8 *m_Script;
@@ -30,5 +35,5 @@ private:
 	Bitmap *m_BackImageCache;
 };
 
-DECLARE_INSTANCE_TYPE_NAME(UIManager, UIManager)
+DECLARE_INSTANCE_TYPE(UIManager)
 
