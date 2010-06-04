@@ -19,7 +19,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init(manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(manager, line) { foreach(i,v in line) if(v != null) manager.PrintLyric(v); }"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(manager, line) { foreach(i,v in line) manager.PrintLyric(v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Init"))(this);
@@ -106,7 +106,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 
 	SquirrelVM::SetVMSys(m_vmSys);
 
-	SquirrelObject lyrics = SquirrelVM::CreateArray(m_Setting->GetnLine());
+	SquirrelObject lyrics = SquirrelVM::CreateArray(0);
 
 	for(i = 0; i < before - lyricbefore.size(); i ++)
 		lyrics.ArrayAppend(TEXT(""));
