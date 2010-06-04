@@ -66,7 +66,7 @@ HWND UIWnd::Create()
 {
 	assert(m_hWnd == NULL);
 
-	m_UI = new UIManager(cfg_outer.get_value(), cfg_outer_script);
+	m_UI = new UIManager(&cfg_outer.get_value(), &cfg_outer_script);
 
 	WNDCLASSEX wcex;
 	memset(&wcex, 0, sizeof(wcex));
@@ -173,6 +173,7 @@ void UIWnd::Destroy()
 			m_Propstore->Release();
 		}
 		DestroyWindow(m_hWnd);
+		delete m_UI;
 	}
 }
 

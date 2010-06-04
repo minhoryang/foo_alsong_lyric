@@ -5,7 +5,7 @@
 
 //TODO: DropSource
 
-UIManager::UIManager(UIPreference &Setting, pfc::string8 &Script) : m_Setting(Setting), m_Script(Script)
+UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Setting), m_Script(Script)
 {
 }
 
@@ -53,16 +53,16 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	unsigned int i;
 	int height = 0;
 	std::vector<LyricLine> lyric = LyricManagerInstance->GetLyric();
-	after = before = m_Setting.GetnLine() / 2 - lyric.size() / 2;
+	after = before = m_Setting->GetnLine() / 2 - lyric.size() / 2;
 	std::vector<LyricLine> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
-	std::vector<LyricLine> lyricafter = LyricManagerInstance->GetLyricAfter(after + lyric.size() - 1 - (1 - m_Setting.GetnLine() % 2));
+	std::vector<LyricLine> lyricafter = LyricManagerInstance->GetLyricAfter(after + lyric.size() - 1 - (1 - m_Setting->GetnLine() % 2));
 	//현재 가사가 1줄 이상인 경우에는 두번째 줄부터
 	if(!lyric.size())
 		return;
 	RECT rt;
 	GetClientRect(hWnd, &rt);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
-	HFONT hFont = m_Setting.CreateFont();
+	HFONT hFont = m_Setting->CreateFont();
 	TEXTMETRIC tm;
 	HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 	GetTextMetrics(hdc, &tm);
@@ -95,6 +95,32 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		height += tm.tmHeight;
 	}
 	//DrawText(hdc, nowlrcw.c_str(), nowlrcw.length(), NULL, NULL);
+
+	SquirrelVMSys vm = InitializeScript();
+	sq_setprintfunc(vm, &UIManager::ScriptDebugLog, &UIManager::ScriptDebugLog);
+
+	SqPlus::SQClassDef<UIManager>(TEXT("UIManager")).
+		func(&UIManager::SetLyricArea, TEXT("SetLyricArea"));
+
+	SquirrelObject helloWorld = SquirrelVM::CompileBuffer(TEXT("function Init(UIManager manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
+	
+	SquirrelVM::RunScript(helloWorld);
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Init"))(this);
+}
+
+void UIManager::SetLyricArea(int x, int y, int width, int height)
+{
+	SetRect(&m_LyricArea, x, y, width, height);
+}
+
+void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
+{
+	static SQChar temp[2048];
+	va_list vl;
+	va_start(vl, s);
+	console::formatter() << "foo_alsong_lyric: Squirrel print:" << pfc::stringcvt::string_utf8_from_wide(temp);
+	SCPUTS(temp);
+	va_end(vl);
 }
 
 void UIManager::ShowConfig(HWND hWndParent)
@@ -111,9 +137,9 @@ SquirrelVMSys UIManager::InitializeScript()
 	return v;
 }
 
-void UIManager::UnInitializeScript(SquirrelVMSys *vm)
+void UIManager::UnInitializeScript(SquirrelVMSys vm)
 {
-	SquirrelVM::SetVMSys(*vm);
+	SquirrelVM::SetVMSys(vm);
 	SquirrelVM::Shutdown();
 }
 
@@ -195,7 +221,7 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 
 		if (cmd == ID_FONT) 
 		{
-			if(m_Setting.OpenFontPopup(hWndFrom))
+			if(m_Setting->OpenFontPopup(hWndFrom))
 				InvalidateRect(hWndFrom, NULL, TRUE);
 		} 
 		else if(cmd == ID_TOPMOST)
@@ -207,22 +233,22 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 		}
 		else if(cmd == ID_BKCOLOR)
 		{			
-			if(m_Setting.OpenBkColorPopup(hWndFrom) != -1)
+			if(m_Setting->OpenBkColorPopup(hWndFrom) != -1)
 				InvalidateRect(hWndFrom, NULL, TRUE);
 		}
 		else if(cmd == ID_FGCOLOR)
 		{
-			if(m_Setting.OpenFgColorPopup(hWndFrom) != -1)
+			if(m_Setting->OpenFgColorPopup(hWndFrom) != -1)
 				InvalidateRect(hWndFrom, NULL, TRUE);
 		}
 		else if(cmd == ID_BGIMAGE)
 		{
-			if(m_Setting.OpenBgImagePopup(hWndFrom))
+			if(m_Setting->OpenBgImagePopup(hWndFrom))
 				InvalidateRect(hWndFrom, NULL, TRUE);
 		}
 		else if(cmd == ID_ADVSET)
 		{
-			m_Setting.OpenConfigPopup(hWndFrom);
+			m_Setting->OpenConfigPopup(hWndFrom);
 		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);

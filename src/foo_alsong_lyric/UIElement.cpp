@@ -4,14 +4,15 @@
 #include "UIManager.h"
 #include "ConfigStore.h"
 
-UIElement::UIElement()
+UIElement::UIElement() : m_UI(NULL)
 {
 
 }
 
 UIElement::~UIElement()
 {
-
+	if(m_UI)
+		delete m_UI;
 }
 
 ui_element_instance_ptr UIElement::instantiate(HWND p_parent,ui_element_config::ptr cfg,ui_element_instance_callback_ptr p_callback)
@@ -26,7 +27,7 @@ ui_element_instance_ptr UIElement::instantiate(HWND p_parent,ui_element_config::
 
 void UIElement::initialize_window(HWND parent)
 {
-	m_UI = new UIManager(m_Setting, m_Script);
+	m_UI = new UIManager(&m_Setting, &m_Script);
 
 	WNDCLASSEX wcex;
 	memset(&wcex, 0, sizeof(wcex));

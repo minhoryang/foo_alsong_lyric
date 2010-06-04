@@ -6,14 +6,15 @@
 #include "UIManager.h"
 #include "UIPreference.h"
 
-UIPanel::UIPanel()
+UIPanel::UIPanel() : m_UI(NULL)
 {
 	memset(&m_Setting, 0, sizeof(m_Setting));
 }
 
 UIPanel::~UIPanel()
 {
-
+	if(m_UI)
+		delete m_UI;
 }
 
 UIPanel::class_data & UIPanel::get_class_data() const 
@@ -87,6 +88,8 @@ void UIPanel::set_config(stream_reader * p_reader, t_size p_size, abort_callback
 			memcpy(&m_Setting, &Setting_temp, sizeof(UIPreference));
 		}
 	}
+
+	m_UI = new UIManager(&m_Setting, &m_Script);
 }
 
 void UIPanel::get_config(stream_writer * p_writer, abort_callback & p_abort) const

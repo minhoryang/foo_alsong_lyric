@@ -5,7 +5,8 @@
 class UIManager
 {
 public:
-	UIManager(UIPreference &Setting, pfc::string8 &Script);
+	UIManager() {}
+	UIManager(UIPreference *Setting, pfc::string8 *Script);
 	~UIManager();
 
 	LRESULT ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -16,14 +17,18 @@ private:
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
 
-	void UnInitializeScript(SquirrelVMSys *vm);
+	void UnInitializeScript(SquirrelVMSys vm);
 	SquirrelVMSys InitializeScript();
+	void SetLyricArea(int x, int y, int width, int height);
+	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
-	UIPreference &m_Setting;
-	pfc::string8 &m_Script;
+	RECT m_LyricArea;
+	UIPreference *m_Setting;
+	pfc::string8 *m_Script;
 
 	Bitmap *m_BackImage;
 	Bitmap *m_BackImageCache;
 };
 
-extern COLORREF acrCustClr[16];
+DECLARE_INSTANCE_TYPE_NAME(UIManager, UIManager)
+
