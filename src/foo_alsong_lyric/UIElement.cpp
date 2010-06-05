@@ -32,7 +32,7 @@ void UIElement::initialize_window(HWND parent)
 	WNDCLASSEX wcex;
 	memset(&wcex, 0, sizeof(wcex));
 	wcex.cbSize = sizeof(wcex);
-	wcex.style = CS_DBLCLKS;
+	wcex.style = CS_DBLCLKS | CS_VREDRAW | CS_HREDRAW;
 	wcex.lpfnWndProc = &WindowProc;
 	wcex.hInstance = NULL;
 	wcex.hIconSm = NULL;
