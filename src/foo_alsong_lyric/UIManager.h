@@ -31,6 +31,7 @@ private:
 class UIFont
 {
 private:
+	COLORREF m_Color;
 	HFONT m_Font;
 	bool m_Generated;
 	void Create(const TCHAR *fontfamily, int point, bool bold);
@@ -38,6 +39,8 @@ public:
 	UIFont(HFONT font);
 	UIFont(const TCHAR *fontfamily, int point, bool bold);
 	UIFont(const TCHAR *fontfamily, int point);
+	UIFont(const TCHAR *fontfamily, int point, COLORREF color);
+	UIFont(const TCHAR *fontfamily, int point, bool bold, COLORREF color);
 	~UIFont();
 
 	HFONT GethFont() const;

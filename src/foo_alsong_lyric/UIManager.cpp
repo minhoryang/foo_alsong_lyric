@@ -17,7 +17,9 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, bool)>();
+		overloadConstructor<UIFont(*)(const TCHAR *, int, bool)>().
+		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
+		overloadConstructor<UIFont(*)(const TCHAR *, int, bool, COLORREF)>();
 
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
@@ -269,12 +271,22 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	m_LastPrint.top += font.GetHeight(m_hDC);
 }
 
-UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold)
+UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold) : m_Color(0xFF000000)
 {
-	Create(fontfamily, point, true);
+	Create(fontfamily, point, bold);
 }
 
-UIFont::UIFont(const TCHAR *fontfamily, int point)
+UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold, COLORREF color) : m_Color(0xFF000000)
+{
+	Create(fontfamily, point, bold);
+}
+
+UIFont::UIFont(const TCHAR *fontfamily, int point) : m_Color(0xFF000000)
+{
+	Create(fontfamily, point, false);
+}
+
+UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color) : m_Color(color)
 {
 	Create(fontfamily, point, false);
 }
@@ -303,7 +315,7 @@ void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
 	ReleaseDC(NULL, hdc);
 }
 
-UIFont::UIFont(HFONT font) : m_Font(font)
+UIFont::UIFont(HFONT font) : m_Font(font), m_Color(0xFF000000)
 {
 	m_Generated = false;
 }
