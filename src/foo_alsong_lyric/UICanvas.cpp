@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "UICanvas.h"
 
-UICanvas::UICanvas(HDC hdc) : m_hDC(hdc), m_TextPos(-1, -1)
+UICanvas::UICanvas(HDC hdc) : m_hDC(hdc), m_TextPos(0, 0)
 {
 	GetClientRect(WindowFromDC(hdc), &m_DrawRect);
 }
@@ -39,8 +39,6 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 {
 	if(!m_hDC)
 		return;
-	if(m_TextPos.x == -1)
-		m_TextPos.x = m_TextPos.y = 0;
 
 	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor() & 0x00FFFFFF);
 	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
@@ -49,7 +47,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	RECT DrawRect;
 	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
 	int height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
-	m_LastPrint.top += height;
+	m_TextPos.y += height;
 
 	SetBkMode(m_hDC, oldMode);
 	SetTextColor(m_hDC, oldColor);
@@ -66,8 +64,6 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 {
 	if(!m_hDC)
 		return UISize(0, 0);
-	if(m_LastPrint.bottom == -1)
-		m_TextPos.x = m_TextPos.y = 0;
 
 	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
 
