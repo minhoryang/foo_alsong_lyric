@@ -7,28 +7,29 @@
 
 UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Setting), m_Script(Script)
 {
-	SetRect(&m_LyricArea, -1, -1, -1, -1);
-	SetRect(&m_LastPrint, -1, -1, -1, -1);
-	InitializeScript();
+	SquirrelVM::Init();
+	SquirrelVM::GetVMSys(m_vmSys);
+
 	sq_setprintfunc(m_vmSys, &UIManager::ScriptDebugLog, &UIManager::ScriptDebugLog);
 
-	SqPlus::SQClassDef<UIManager>(TEXT("UIManager")).
-		func(&UIManager::SetLyricArea, TEXT("SetLyricArea")).
-		func(&UIManager::DrawText, TEXT("DrawText"));
+	SqPlus::SQClassDefNoConstructor<UICanvas>(TEXT("UICanvas")).
+		func(&UICanvas::DrawText, TEXT("DrawText"));
 
-	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init(manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
+	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(managerline) { foreach(i,v in line) manager.DrawText(v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { foreach(i,v in lines) canvas.DrawText(v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	m_RootTable = SquirrelVM::GetRootTable();
-	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))(this);
+	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))();
 }
 
 UIManager::~UIManager()
 {
-	UnInitializeScript();
+	SquirrelVM::SetVMSys(m_vmSys);
+	SquirrelVM::Shutdown();
+	m_vmSys.Reset();
 }
 
 LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -36,7 +37,6 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	switch(iMessage)
 	{
 	case WM_CREATE:
-		m_hWnd = hWnd;
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
 		LyricManagerInstance->AddRedrawHandler(boost::bind(InvalidateRect, hWnd, (const RECT *)NULL, TRUE));
@@ -66,20 +66,8 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-void UIManager::DrawText(const SQChar *text)
-{
-	if(!m_hDC)
-		return;
-	if(m_LastPrint.bottom == -1)
-		GetClientRect(m_hWnd, &m_LastPrint);
-	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
-	m_LastPrint.top += 20;
-}
-
 void UIManager::Draw(HWND hWnd, HDC hdc)
 {
-	m_hDC = hdc;
-
 	int before, after;
 	unsigned int i, cnt = 0;
 	std::vector<LyricLine> lyric = LyricManagerInstance->GetLyric();
@@ -93,8 +81,6 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	RECT rt;
 	GetClientRect(hWnd, &rt);
 	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
-	HFONT hFont = m_Setting->CreateFont();
-	HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 
 	HWND wnd_parent = GetParent(hWnd);
 	POINT pt = {0, 0}, pt_old = {0,0};
@@ -103,10 +89,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
 	SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0); //notify parent to redraw background
 
-	SetRect(&m_LastPrint, -1, -1, -1, -1); //reset
-
 	SquirrelVM::SetVMSys(m_vmSys);
-
 	SquirrelObject lyrics = SquirrelVM::CreateArray(0);
 
 	for(i = 0; i < before - lyricbefore.size(); i ++)
@@ -127,16 +110,8 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(this, lyrics);
-
-	DeleteObject(SelectObject(m_hDC, hOldFont));
-
-	m_hDC = NULL;
-}
-
-void UIManager::SetLyricArea(int x, int y, int width, int height)
-{
-	SetRect(&m_LyricArea, x, y, width, height);
+	UICanvas canvas(hdc);
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(canvas, lyrics);
 }
 
 void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
@@ -152,19 +127,6 @@ void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
 void UIManager::ShowConfig(HWND hWndParent)
 {
 
-}
-
-void UIManager::InitializeScript()
-{
-	SquirrelVM::Init();
-	SquirrelVM::GetVMSys(m_vmSys);
-}
-
-void UIManager::UnInitializeScript()
-{
-	SquirrelVM::SetVMSys(m_vmSys);
-	SquirrelVM::Shutdown();
-	m_vmSys.Reset();
 }
 
 bool UIManager::on_keydown(WPARAM wParam) 
@@ -283,3 +245,22 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 	DestroyMenu(hMenu);
 }
 
+UICanvas::UICanvas(HDC hdc) : m_hDC(hdc)
+{
+	SetRect(&m_LastPrint, -1, -1, -1, -1);
+}
+
+UICanvas::~UICanvas()
+{
+
+}
+
+void UICanvas::DrawText(const SQChar *text)
+{
+	if(!m_hDC)
+		return;
+	if(m_LastPrint.bottom == -1)
+		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
+	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
+	m_LastPrint.top += 20;
+}

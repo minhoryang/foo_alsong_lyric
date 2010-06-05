@@ -17,18 +17,10 @@ private:
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
 
-	void UnInitializeScript();
-	void InitializeScript();
-	void SetLyricArea(int x, int y, int width, int height);
-	void DrawText(const SQChar *text);
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
-	HWND m_hWnd;
-	HDC m_hDC;
-	RECT m_LastPrint;
 	SquirrelVMSys m_vmSys;
 	SquirrelObject m_RootTable;
-	RECT m_LyricArea;
 	UIPreference *m_Setting;
 	pfc::string8 *m_Script;
 
@@ -36,5 +28,28 @@ private:
 	Bitmap *m_BackImageCache;
 };
 
-DECLARE_INSTANCE_TYPE(UIManager)
+class UIFont
+{
+private:
+	HFONT m_Font;
+public:
+	UIFont(HFONT font);
+	UIFont(const TCHAR *fontfamily);
+	~UIFont();
+};
 
+DECLARE_INSTANCE_TYPE(UIFont)
+
+class UICanvas
+{
+private:
+	HDC m_hDC;
+	RECT m_LastPrint;
+public:
+	UICanvas(HDC hdc);
+	~UICanvas();
+
+	void DrawText(const SQChar *text);
+};
+
+DECLARE_INSTANCE_TYPE(UICanvas)
