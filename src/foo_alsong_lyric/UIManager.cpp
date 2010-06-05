@@ -23,7 +23,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelVM::RunScript(DrawScript);
 
 	m_RootTable = SquirrelVM::GetRootTable();
-	m_RootTable.SetValue("manager", this);
+	m_RootTable.SetValue(TEXT("manager"), this);
 	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))();
 }
 
