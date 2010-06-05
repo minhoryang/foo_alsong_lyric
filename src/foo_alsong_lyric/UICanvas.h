@@ -9,6 +9,8 @@ struct UISize
 	UISize(int w, int h) : width(w), height(h) {}
 };
 
+DECLARE_INSTANCE_TYPE(UISize)
+
 struct UIPoint
 {
 	int x;
@@ -18,7 +20,7 @@ struct UIPoint
 	UIPoint(int _x, int _y) : x(_x), y(_y) {}
 };
 
-DECLARE_INSTANCE_TYPE(UISize)
+DECLARE_INSTANCE_TYPE(UIPoint)
 
 class UIFont
 {
