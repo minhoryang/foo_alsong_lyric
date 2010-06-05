@@ -32,10 +32,19 @@ class UIFont
 {
 private:
 	HFONT m_Font;
+	bool m_Generated;
+	void Create(const TCHAR *fontfamily, int point, bool bold);
 public:
 	UIFont(HFONT font);
-	UIFont(const TCHAR *fontfamily);
+	UIFont(const TCHAR *fontfamily, int point, bool bold);
+	UIFont(const TCHAR *fontfamily, int point);
 	~UIFont();
+
+	HFONT GethFont() const;
+	DWORD GetHeight(HDC hdc) const;
+
+	static int ConstructWithBold(const TCHAR *fontfamily, int point, bool bold, HSQUIRRELVM v);
+	static int Construct(const TCHAR *fontfamily, int point, HSQUIRRELVM v);
 };
 
 DECLARE_INSTANCE_TYPE(UIFont)
@@ -49,7 +58,7 @@ public:
 	UICanvas(HDC hdc);
 	~UICanvas();
 
-	void DrawText(const SQChar *text);
+	void DrawText(const UIFont &font, const SQChar *text);
 };
 
 DECLARE_INSTANCE_TYPE(UICanvas)

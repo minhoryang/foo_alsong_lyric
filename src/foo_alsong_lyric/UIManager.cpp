@@ -15,10 +15,14 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SqPlus::SQClassDefNoConstructor<UICanvas>(TEXT("UICanvas")).
 		func(&UICanvas::DrawText, TEXT("DrawText"));
 
+	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
+		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
+		overloadConstructor<UIFont(*)(const TCHAR *, int, bool)>();
+
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { foreach(i,v in lines) canvas.DrawText(v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10); foreach(i,v in lines) canvas.DrawText(font, v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	m_RootTable = SquirrelVM::GetRootTable();
@@ -111,7 +115,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	}
 
 	UICanvas canvas(hdc);
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(canvas, lyrics);
+	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
 }
 
 void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
@@ -255,12 +259,72 @@ UICanvas::~UICanvas()
 
 }
 
-void UICanvas::DrawText(const SQChar *text)
+void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 {
 	if(!m_hDC)
 		return;
 	if(m_LastPrint.bottom == -1)
 		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
 	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
-	m_LastPrint.top += 20;
+	m_LastPrint.top += font.GetHeight(m_hDC);
+}
+
+UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold)
+{
+	Create(fontfamily, point, true);
+}
+
+UIFont::UIFont(const TCHAR *fontfamily, int point)
+{
+	Create(fontfamily, point, false);
+}
+
+void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
+{
+	LOGFONT lf;
+	HDC hdc = GetDC(NULL);
+	lf.lfHeight = -MulDiv(point, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+	lf.lfWidth = 0;
+	lf.lfEscapement = 0;
+	lf.lfOrientation = 0;
+	lf.lfWeight = (bold ? FW_BOLD : FW_NORMAL);
+	lf.lfItalic = FALSE;
+	lf.lfUnderline = FALSE;
+	lf.lfStrikeOut = FALSE;
+	lf.lfCharSet = OEM_CHARSET;
+	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
+	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+	lf.lfQuality = CLEARTYPE_QUALITY;
+	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+	lstrcpy(lf.lfFaceName, fontfamily);
+	m_Font = CreateFontIndirect(&lf);
+	m_Generated = true;
+
+	ReleaseDC(NULL, hdc);
+}
+
+UIFont::UIFont(HFONT font) : m_Font(font)
+{
+	m_Generated = false;
+}
+
+UIFont::~UIFont()
+{
+	if(m_Generated)
+		DeleteObject(m_Font);
+}
+
+HFONT UIFont::GethFont() const
+{
+	return m_Font;
+}
+
+DWORD UIFont::GetHeight(HDC hdc) const
+{
+	TEXTMETRIC tm;
+	HFONT hOldFont = (HFONT)SelectObject(hdc, m_Font);
+	GetTextMetrics(hdc, &tm);
+	SelectObject(hdc, hOldFont);
+
+	return tm.tmHeight;
 }
