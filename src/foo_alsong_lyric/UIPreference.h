@@ -22,7 +22,7 @@ public:
 		BG_TRANSPARENT = 2,
 	};
 
-	HFONT CreateFont()
+	HFONT GetFont()
 	{
 		return font.create();
 	}
