@@ -53,7 +53,8 @@ public:
 
 	void DrawText(const UIFont &font, const SQChar *text);
 	UISize EstimateText(const UIFont &font, const SQChar *text);
-	void SetDrawTextOrigin(UIPoint pt);
+	UISize GetCanvasSize();
+	void SetDrawTextOrigin(const UIPoint &pt);
 
 	static void RegisterCanvas();
 };
