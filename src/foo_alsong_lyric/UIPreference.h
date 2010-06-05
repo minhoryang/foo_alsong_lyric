@@ -103,8 +103,8 @@ public:
 	void SetDefault()
 	{
 		font = t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
-		bkColor = RGB(0, 0, 0);
-		fgColor = RGB(255, 255, 255);
+		bkColor = RGB(255, 255, 255);
+		fgColor = RGB(0, 0, 0);
 		bgImage[0] = 0;
 		bgType = BG_SOLIDCOLOR;
 		nLine = 3;
@@ -150,3 +150,5 @@ private:
 
 	BYTE bReserved[1022]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
+
+DECLARE_INSTANCE_TYPE(UIPreference)
