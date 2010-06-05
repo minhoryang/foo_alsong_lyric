@@ -16,15 +16,14 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIManager::SetLyricArea, TEXT("SetLyricArea")).
 		func(&UIManager::DrawText, TEXT("DrawText"));
 
-	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { manager.SetLyricArea(0, 0, 300, 200); }"));
+	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init(manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(line) { foreach(i,v in line) manager.DrawText(v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(managerline) { foreach(i,v in line) manager.DrawText(v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	m_RootTable = SquirrelVM::GetRootTable();
-	m_RootTable.SetValue(TEXT("manager"), this);
-	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))();
+	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))(this);
 }
 
 UIManager::~UIManager()
@@ -128,8 +127,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 
-	m_RootTable.SetValue("manager", this);
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(lyrics);
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(this, lyrics);
 
 	DeleteObject(SelectObject(m_hDC, hOldFont));
 
