@@ -74,7 +74,7 @@ void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
 	lf.lfItalic = FALSE;
 	lf.lfUnderline = FALSE;
 	lf.lfStrikeOut = FALSE;
-	lf.lfCharSet = OEM_CHARSET;
+	lf.lfCharSet = DEFAULT_CHARSET;
 	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = CLEARTYPE_QUALITY;
