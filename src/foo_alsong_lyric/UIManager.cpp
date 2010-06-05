@@ -18,7 +18,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor()); foreach(i,v in lines) canvas.DrawText(font, v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor()); local h = 0; foreach(i,v in lines) {local sz = canvas.EstimateText(font, v); h += sz.height} foreach(i, v in lines){ canvas.DrawText(font, v);}}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).

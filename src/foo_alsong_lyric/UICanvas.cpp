@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "UICanvas.h"
 
-UICanvas::UICanvas(HDC hdc) : m_hDC(hdc)
+UICanvas::UICanvas(HDC hdc) : m_hDC(hdc), m_TextPos(-1, -1)
 {
-	SetRect(&m_LastPrint, -1, -1, -1, -1);
+	GetClientRect(WindowFromDC(hdc), &m_DrawRect);
 }
 
 UICanvas::~UICanvas()
@@ -14,31 +14,73 @@ UICanvas::~UICanvas()
 void UICanvas::RegisterCanvas()
 {
 	SqPlus::SQClassDefNoConstructor<UICanvas>(TEXT("UICanvas")).
-		func(&UICanvas::DrawText, TEXT("DrawText"));
+		func(&UICanvas::DrawText, TEXT("DrawText")).
+		func(&UICanvas::EstimateText, TEXT("EstimateText"));
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
 		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
 		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF, bool)>();
+
+	SqPlus::SQClassDefNoConstructor<UISize>(TEXT("UISize")).
+		overloadConstructor<UISize(*)()>().
+		overloadConstructor<UISize(*)(int, int)>().
+		var(&UISize::width, TEXT("width")).
+		var(&UISize::height, TEXT("height"));
+
+	SqPlus::SQClassDefNoConstructor<UIPoint>(TEXT("UIPoint")).
+		overloadConstructor<UIPoint(*)()>().
+		overloadConstructor<UIPoint(*)(int, int)>().
+		var(&UIPoint::x, TEXT("x")).
+		var(&UIPoint::y, TEXT("y"));
 }
 
 void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 {
 	if(!m_hDC)
 		return;
-	if(m_LastPrint.bottom == -1)
-		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
+	if(m_TextPos.x == -1)
+		m_TextPos.x = m_TextPos.y = 0;
 
 	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor() & 0x00FFFFFF);
 	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
 	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
 
-	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
-	m_LastPrint.top += font.GetHeight(m_hDC);
+	RECT DrawRect;
+	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
+	int height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+	m_LastPrint.top += height;
 
 	SetBkMode(m_hDC, oldMode);
 	SetTextColor(m_hDC, oldColor);
 	SelectObject(m_hDC, oldFont);
+}
+
+void UICanvas::SetDrawTextOrigin(UIPoint pt)
+{
+	m_TextPos.x = pt.x;
+	m_TextPos.y = pt.y;
+}
+
+UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
+{
+	if(!m_hDC)
+		return UISize(0, 0);
+	if(m_LastPrint.bottom == -1)
+		m_TextPos.x = m_TextPos.y = 0;
+
+	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
+
+	RECT DrawRect;
+	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
+	::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
+
+	SelectObject(m_hDC, oldFont);
+	UISize sz;
+	sz.width = DrawRect.right - DrawRect.left;
+	sz.height = DrawRect.bottom - DrawRect.top;
+
+	return sz;
 }
 
 UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color, bool bold) : m_Color(color)

@@ -1,5 +1,25 @@
 #pragma once
 
+struct UISize
+{
+	int width;
+	int height;
+
+	UISize() : width(0), height(0) {};
+	UISize(int w, int h) : width(w), height(h) {}
+};
+
+struct UIPoint
+{
+	int x;
+	int y;
+
+	UIPoint() : x(0), y(0) {};
+	UIPoint(int _x, int _y) : x(_x), y(_y) {}
+};
+
+DECLARE_INSTANCE_TYPE(UISize)
+
 class UIFont
 {
 private:
@@ -25,12 +45,15 @@ class UICanvas
 {
 private:
 	HDC m_hDC;
-	RECT m_LastPrint;
+	UIPoint m_TextPos;
+	RECT m_DrawRect;
 public:
 	UICanvas(HDC hdc);
 	~UICanvas();
 
 	void DrawText(const UIFont &font, const SQChar *text);
+	UISize EstimateText(const UIFont &font, const SQChar *text);
+	void SetDrawTextOrigin(UIPoint pt);
 
 	static void RegisterCanvas();
 };
