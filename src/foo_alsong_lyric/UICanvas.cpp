@@ -18,9 +18,8 @@ void UICanvas::RegisterCanvas()
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, bool)>().
 		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, bool, COLORREF)>();
+		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF, bool)>();
 }
 
 void UICanvas::DrawText(const UIFont &font, const SQChar *text)
@@ -30,7 +29,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	if(m_LastPrint.bottom == -1)
 		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
 
-	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor());
+	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor() & 0x00FFFFFF);
 	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
 	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
 
@@ -42,12 +41,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	SelectObject(m_hDC, oldFont);
 }
 
-UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold) : m_Color(0xFF000000)
-{
-	Create(fontfamily, point, bold);
-}
-
-UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold, COLORREF color) : m_Color(0xFF000000)
+UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color, bool bold) : m_Color(color)
 {
 	Create(fontfamily, point, bold);
 }

@@ -9,10 +9,9 @@ private:
 	void Create(const TCHAR *fontfamily, int point, bool bold);
 public:
 	UIFont(HFONT font);
-	UIFont(const TCHAR *fontfamily, int point, bool bold);
 	UIFont(const TCHAR *fontfamily, int point);
 	UIFont(const TCHAR *fontfamily, int point, COLORREF color);
-	UIFont(const TCHAR *fontfamily, int point, bool bold, COLORREF color);
+	UIFont(const TCHAR *fontfamily, int point, COLORREF color, bool bold);
 	~UIFont();
 
 	HFONT GethFont() const;

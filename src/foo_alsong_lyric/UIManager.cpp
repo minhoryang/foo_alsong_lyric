@@ -18,7 +18,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10); foreach(i,v in lines) canvas.DrawText(font, v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10, 0xFFABCDEF); foreach(i,v in lines) canvas.DrawText(font, v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	m_RootTable = SquirrelVM::GetRootTable();
