@@ -2,6 +2,7 @@
 #include "ConfigStore.h"
 #include "LyricManager.h"
 #include "UIManager.h"
+#include "UICanvas.h"
 
 //TODO: DropSource
 
@@ -12,14 +13,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 
 	sq_setprintfunc(m_vmSys, &UIManager::ScriptDebugLog, &UIManager::ScriptDebugLog);
 
-	SqPlus::SQClassDefNoConstructor<UICanvas>(TEXT("UICanvas")).
-		func(&UICanvas::DrawText, TEXT("DrawText"));
-
-	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
-		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, bool)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, bool, COLORREF)>();
+	UICanvas::RegisterCanvas();
 
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
@@ -249,94 +243,4 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 	catch (const exception_service_not_found &) {
 	}
 	DestroyMenu(hMenu);
-}
-
-UICanvas::UICanvas(HDC hdc) : m_hDC(hdc)
-{
-	SetRect(&m_LastPrint, -1, -1, -1, -1);
-}
-
-UICanvas::~UICanvas()
-{
-
-}
-
-void UICanvas::DrawText(const UIFont &font, const SQChar *text)
-{
-	if(!m_hDC)
-		return;
-	if(m_LastPrint.bottom == -1)
-		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
-	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
-	m_LastPrint.top += font.GetHeight(m_hDC);
-}
-
-UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold) : m_Color(0xFF000000)
-{
-	Create(fontfamily, point, bold);
-}
-
-UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold, COLORREF color) : m_Color(0xFF000000)
-{
-	Create(fontfamily, point, bold);
-}
-
-UIFont::UIFont(const TCHAR *fontfamily, int point) : m_Color(0xFF000000)
-{
-	Create(fontfamily, point, false);
-}
-
-UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color) : m_Color(color)
-{
-	Create(fontfamily, point, false);
-}
-
-void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
-{
-	LOGFONT lf;
-	HDC hdc = GetDC(NULL);
-	lf.lfHeight = -MulDiv(point, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-	lf.lfWidth = 0;
-	lf.lfEscapement = 0;
-	lf.lfOrientation = 0;
-	lf.lfWeight = (bold ? FW_BOLD : FW_NORMAL);
-	lf.lfItalic = FALSE;
-	lf.lfUnderline = FALSE;
-	lf.lfStrikeOut = FALSE;
-	lf.lfCharSet = OEM_CHARSET;
-	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
-	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-	lf.lfQuality = CLEARTYPE_QUALITY;
-	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-	lstrcpy(lf.lfFaceName, fontfamily);
-	m_Font = CreateFontIndirect(&lf);
-	m_Generated = true;
-
-	ReleaseDC(NULL, hdc);
-}
-
-UIFont::UIFont(HFONT font) : m_Font(font), m_Color(0xFF000000)
-{
-	m_Generated = false;
-}
-
-UIFont::~UIFont()
-{
-	if(m_Generated)
-		DeleteObject(m_Font);
-}
-
-HFONT UIFont::GethFont() const
-{
-	return m_Font;
-}
-
-DWORD UIFont::GetHeight(HDC hdc) const
-{
-	TEXTMETRIC tm;
-	HFONT hOldFont = (HFONT)SelectObject(hdc, m_Font);
-	GetTextMetrics(hdc, &tm);
-	SelectObject(hdc, hOldFont);
-
-	return tm.tmHeight;
 }
