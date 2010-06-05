@@ -14,15 +14,17 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 
 	SqPlus::SQClassDef<UIManager>(TEXT("UIManager")).
 		func(&UIManager::SetLyricArea, TEXT("SetLyricArea")).
-		func(&UIManager::PrintLyric, TEXT("PrintLyric"));
+		func(&UIManager::DrawText, TEXT("DrawText"));
 
-	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init(manager) { manager.SetLyricArea(0, 0, 300, 200); }"));
+	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { manager.SetLyricArea(0, 0, 300, 200); }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(manager, line) { foreach(i,v in line) manager.PrintLyric(v);}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(line) { foreach(i,v in line) manager.DrawText(v);}"));
 	SquirrelVM::RunScript(DrawScript);
 
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Init"))(this);
+	m_RootTable = SquirrelVM::GetRootTable();
+	m_RootTable.SetValue("manager", this);
+	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))();
 }
 
 UIManager::~UIManager()
@@ -65,7 +67,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-void UIManager::PrintLyric(const SQChar *text)
+void UIManager::DrawText(const SQChar *text)
 {
 	if(!m_hDC)
 		return;
@@ -126,7 +128,8 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 
-	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(this, lyrics);
+	m_RootTable.SetValue("manager", this);
+	SqPlus::SquirrelFunction<void>(SquirrelVM::GetRootTable(), TEXT("Draw"))(lyrics);
 
 	DeleteObject(SelectObject(m_hDC, hOldFont));
 

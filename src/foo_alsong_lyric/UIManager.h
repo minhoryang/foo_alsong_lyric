@@ -20,13 +20,14 @@ private:
 	void UnInitializeScript();
 	void InitializeScript();
 	void SetLyricArea(int x, int y, int width, int height);
-	void PrintLyric(const SQChar *text);
+	void DrawText(const SQChar *text);
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
 	HWND m_hWnd;
 	HDC m_hDC;
 	RECT m_LastPrint;
 	SquirrelVMSys m_vmSys;
+	SquirrelObject m_RootTable;
 	RECT m_LyricArea;
 	UIPreference *m_Setting;
 	pfc::string8 *m_Script;
