@@ -39,12 +39,13 @@ void LyricManager::on_playback_seek(double p_time)
 		m_countthread->interrupt();
 		m_countthread->join();
 		m_countthread.reset();
+	
+		m_SecondLock.lock();
+		m_Seconds = (int)p_time;
+		m_Tick = boost::posix_time::microsec_clock::universal_time() - boost::posix_time::microseconds((int)(p_time - m_Seconds) * 1000000);
+		m_SecondLock.unlock();
+		m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 	}
-	m_SecondLock.lock();
-	m_Seconds = (int)p_time;
-	m_Tick = boost::posix_time::microsec_clock::universal_time() - boost::posix_time::microseconds((int)(p_time - m_Seconds) * 1000000);
-	m_SecondLock.unlock();
-	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 }
 
 void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
