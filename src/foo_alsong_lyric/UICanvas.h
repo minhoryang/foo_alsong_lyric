@@ -17,6 +17,7 @@ public:
 
 	HFONT GethFont() const;
 	DWORD GetHeight(HDC hdc) const;
+	COLORREF GetColor() const;
 };
 
 DECLARE_INSTANCE_TYPE(UIFont)

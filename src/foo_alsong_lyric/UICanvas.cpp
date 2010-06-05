@@ -29,8 +29,17 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 		return;
 	if(m_LastPrint.bottom == -1)
 		GetClientRect(WindowFromDC(m_hDC), &m_LastPrint);
+
+	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor());
+	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
+	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
+
 	TextOut(m_hDC, m_LastPrint.left, m_LastPrint.top, text, lstrlen(text));
 	m_LastPrint.top += font.GetHeight(m_hDC);
+
+	SetBkMode(m_hDC, oldMode);
+	SetTextColor(m_hDC, oldColor);
+	SelectObject(m_hDC, oldFont);
 }
 
 UIFont::UIFont(const TCHAR *fontfamily, int point, bool bold) : m_Color(0xFF000000)
@@ -86,6 +95,11 @@ UIFont::~UIFont()
 {
 	if(m_Generated)
 		DeleteObject(m_Font);
+}
+
+COLORREF UIFont::GetColor() const
+{
+	return m_Color;
 }
 
 HFONT UIFont::GethFont() const
