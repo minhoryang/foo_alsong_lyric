@@ -14,3 +14,12 @@ public:
 
 	boost::shared_ptr<pugi::xml_document> Execute();
 };
+
+class SoapReceiveException : public std::exception
+{
+	virtual const char *what() const
+	{
+		return "Exception occured while receiving soap data";
+	}
+};
+

@@ -205,13 +205,20 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 {
 	m_CurrentLyric.Clear();
 
-	m_Status = std::string(std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중..."))));
+	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
 	if(boost::this_thread::interruption_requested())
 		return false;
 	RedrawHandler();
 
-	m_CurrentLyric = AlsongLyric::LyricFromAlsong(track);
-	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
+	try
+	{
+		m_CurrentLyric = AlsongLyric::LyricFromAlsong(track);
+		m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
+	}
+	catch(std::exception e)
+	{
+		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중 예외 발생 : "))) + e.what();
+	}
 	
 	if(boost::this_thread::interruption_requested())
 		return false;
@@ -219,7 +226,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 
 	if(!m_CurrentLyric.HasLyric())
 	{
-		m_Status = std::string(std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다."))));
+		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
 		RedrawHandler();
 		return false;
 	}

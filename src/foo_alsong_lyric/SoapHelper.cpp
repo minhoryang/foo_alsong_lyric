@@ -58,6 +58,8 @@ boost::shared_ptr<pugi::xml_document> SoapHelper::Execute()
 	s.Send(str.str().c_str(), str.str().length());
 
 	std::vector<char> data = s.ReceiveUntilEOF();
+	if(data.size() == 0)
+		throw SoapReceiveException();
 
 	boost::shared_ptr<pugi::xml_document> ret = boost::shared_ptr<pugi::xml_document>(new pugi::xml_document());
 	ret->load(&*boost::find_first(data, "\r\n\r\n").begin());
