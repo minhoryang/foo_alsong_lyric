@@ -50,6 +50,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	case WM_CONTEXTMENU:
 	case WM_NCRBUTTONUP:
 		on_contextmenu(hWnd);
+		break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		on_keydown(wParam);
