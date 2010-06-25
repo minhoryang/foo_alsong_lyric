@@ -101,10 +101,13 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 
 	for(i = 0; i < before - lyricbefore.size(); i ++)
 		lyrics.ArrayAppend(TEXT(" "));
-	for(i = 0; i < lyricbefore.size(); i ++)
+	if(lyric.size() < m_Setting->GetnLine())
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].lyric.c_str());
-		lyrics.ArrayAppend(nowlrcw.c_str());
+		for(i = 0; i < lyricbefore.size(); i ++)
+		{
+			std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].lyric.c_str());
+			lyrics.ArrayAppend(nowlrcw.c_str());
+		}
 	}
 	for(i = 0; i < lyric.size(); i ++)
 	{

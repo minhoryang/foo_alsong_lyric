@@ -116,7 +116,15 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 		std::vector<LyricLine> ret;
 		int cnt;
 		std::vector<LyricLine>::iterator it;
-		for(it = m_LyricLine - 1, cnt = 0; (cnt < n) && (!m_CurrentLyric.IsBeginOfLyric(it)); cnt ++, it --)
+		if(!m_CurrentLyric.IsBeginOfLyric(m_LyricLine - 1))
+		{
+			for(it = m_LyricLine - 1; !m_CurrentLyric.IsBeginOfLyric(it - 1) && it->time == (it - 1)->time; it --);
+			if(!m_CurrentLyric.IsBeginOfLyric(it))
+				it --;
+		}
+		else
+			it = m_LyricLine - 1;
+		for(cnt = 0; (cnt < n) && (!m_CurrentLyric.IsBeginOfLyric(it)); cnt ++, it --)
 			ret.push_back(*it);
 		if(m_CurrentLyric.IsBeginOfLyric(it) && n - ret.size() > 0)
 			ret.push_back(*it);
@@ -133,8 +141,10 @@ std::vector<LyricLine> LyricManager::GetLyric()
 	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
-		for(std::vector<LyricLine>::iterator it = m_LyricLine; !m_CurrentLyric.IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
+		for(std::vector<LyricLine>::iterator it = m_LyricLine; !m_CurrentLyric.IsBeginOfLyric(it) && it->time == m_LyricLine->time; it --)
 			ret.push_back(*it);
+
+		std::reverse(ret.begin(), ret.end());
 
 		return ret;
 	}
@@ -159,9 +169,9 @@ std::vector<LyricLine> LyricManager::GetLyricAfter(int n)
 void LyricManager::CountLyric()
 {
 	long long microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;	//sec:0, microsec:10
-																												//0					<-- m_LyricPos
+																												//0	
 																												//0   some song
-	m_LyricLine = m_CurrentLyric.GetIteratorAt((unsigned int(m_Seconds * 100 + microsec)));						//0
+	m_LyricLine = m_CurrentLyric.GetIteratorAt((unsigned int(m_Seconds * 100 + microsec)));						//0				<-- m_LyricPos
 																												//100 blah			
 	if(m_CurrentLyric.IsEndOfLyric(m_LyricLine))
 	{
