@@ -141,7 +141,10 @@ std::vector<LyricLine> LyricManager::GetLyric()
 	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
-		for(std::vector<LyricLine>::iterator it = m_LyricLine; !m_CurrentLyric.IsBeginOfLyric(it) && it->time == m_LyricLine->time; it --)
+		std::vector<LyricLine>::iterator it;
+		for(it = m_LyricLine; !m_CurrentLyric.IsBeginOfLyric(it) && it->time == m_LyricLine->time; it --)
+			ret.push_back(*it);
+		if(m_CurrentLyric.IsBeginOfLyric(it))
 			ret.push_back(*it);
 
 		std::reverse(ret.begin(), ret.end());
