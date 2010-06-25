@@ -34,6 +34,7 @@
 #define IDC_BUTTON3                     1033
 #define IDC_NEXT                        1033
 #define IDC_PANELSET                    1033
+#define IDC_FONTCHANGE                  1033
 #define IDC_PREV                        1034
 #define IDC_STATUS                      1035
 #define IDC_LRCPATH                     1036
@@ -44,15 +45,22 @@
 #define IDC_BUTTON2                     1040
 #define IDC_OUTERSET                    1040
 #define IDC_NEWLYRIC                    1040
+#define IDC_FGCOLOR                     1040
 #define IDC_OUTERNOTIFY_STATIC          1042
 #define IDC_UISCRIPT                    1043
 #define IDC_VERTICALALIGN               1044
 #define IDC_COMBO2                      1045
 #define IDC_HORIZENTALALIGN             1045
 #define IDC_SYNCEDIT                    1047
-#define IDC_CHECK4                      1048
 #define IDC_NOLAYERED                   1048
 #define IDC_SAVETOFILE                  1048
+#define IDC_BKCOLOR                     1049
+#define IDC_FGINDICATOR                 1050
+#define IDC_BKINDICATOR                 1051
+#define IDC_FONTINDICATOR               1052
+#define IDC_BGIMAGE                     1053
+#define IDC_PICTUREINDICATOR            1055
+#define IDC_BGPICTURE                   1056
 
 // Next default values for new objects
 // 
@@ -60,7 +68,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1049
+#define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

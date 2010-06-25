@@ -166,29 +166,13 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 {//TODO:메뉴 다 지우고 설정만
 	enum 
 	{
-		ID_FONT = 1,
-		ID_TOPMOST,
-		ID_BKCOLOR,
-		ID_FGCOLOR,
-		ID_BGIMAGE,
-		ID_ADVSET,
+		ID_SETTING,
 		ID_CONTEXT_FIRST,
 		ID_CONTEXT_LAST = ID_CONTEXT_FIRST + 1000,
 	};
 
 	HMENU hMenu = CreatePopupMenu();
-	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("폰트 선택..."));
-	if(GetParent(hWndFrom) == NULL)//if top level
-	{
-		if(cfg_outer_topmost)
-			AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_TOPMOST, TEXT("항상 위에 보이기"));
-		else
-			AppendMenu(hMenu, MF_STRING, ID_TOPMOST, TEXT("항상 위에 보이기"));
-	}
-	AppendMenu(hMenu, MF_STRING, ID_BKCOLOR, TEXT("배경색 선택..."));
-	AppendMenu(hMenu, MF_STRING, ID_FGCOLOR, TEXT("글자색 선택..."));
-	AppendMenu(hMenu, MF_STRING, ID_BGIMAGE, TEXT("배경그림 선택..."));
-	AppendMenu(hMenu, MF_STRING, ID_ADVSET, TEXT("고급 설정..."));
+	AppendMenu(hMenu, MF_STRING, ID_SETTING, TEXT("설정..."));
 
 	try 
 	{
@@ -215,37 +199,8 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 		int cmd = TrackPopupMenu(hMenu, TPM_NONOTIFY | TPM_RETURNCMD | TPM_RIGHTBUTTON, 
 			pt.x, pt.y, 0, hWndFrom, 0);
 
-		if (cmd == ID_FONT) 
-		{
-			if(m_Setting->OpenFontPopup(hWndFrom))
-				InvalidateRect(hWndFrom, NULL, TRUE);
-		} 
-		else if(cmd == ID_TOPMOST)
-		{
-			cfg_outer_topmost = !cfg_outer_topmost;
-
-			SetWindowLong(hWndFrom, GWL_EXSTYLE, (cfg_outer_topmost ? GetWindowLong(hWndFrom, GWL_EXSTYLE) | WS_EX_TOPMOST : GetWindowLong(hWndFrom, GWL_EXSTYLE) & ~WS_EX_TOPMOST));
-			SetWindowPos(hWndFrom, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
-		}
-		else if(cmd == ID_BKCOLOR)
-		{			
-			if(m_Setting->OpenBkColorPopup(hWndFrom) != -1)
-				InvalidateRect(hWndFrom, NULL, TRUE);
-		}
-		else if(cmd == ID_FGCOLOR)
-		{
-			if(m_Setting->OpenFgColorPopup(hWndFrom) != -1)
-				InvalidateRect(hWndFrom, NULL, TRUE);
-		}
-		else if(cmd == ID_BGIMAGE)
-		{
-			if(m_Setting->OpenBgImagePopup(hWndFrom))
-				InvalidateRect(hWndFrom, NULL, TRUE);
-		}
-		else if(cmd == ID_ADVSET)
-		{
+		if(cmd == ID_SETTING)
 			m_Setting->OpenConfigPopup(hWndFrom);
-		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
 

@@ -261,8 +261,27 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 			SendMessage(GetDlgItem(hWnd, IDC_MANUALSCRIPT), WM_CLOSE, 0, 0);
 			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
+
+			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
 		}
 
+		break;
+	case WM_CTLCOLORSTATIC:
+		if((HWND)lParam == GetDlgItem(hWnd, IDC_FGINDICATOR))
+			return (INT_PTR)CreateSolidBrush(GetFgColor());
+		if((HWND)lParam == GetDlgItem(hWnd, IDC_BKINDICATOR))
+			return (INT_PTR)CreateSolidBrush(GetBkColor());
+		return FALSE;
+	case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hWnd, &ps);
+			Gdiplus::Graphics g((HDC)hdc);
+			Gdiplus::Image im(GetBgImagePath().c_str());
+
+			g.DrawImage(&im, 20, 270, 200, 120);
+			EndPaint(hWnd, &ps);
+		}
 		break;
 	case WM_HSCROLL:
 		if(GetParent(hParent) == NULL)
@@ -278,6 +297,26 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	case WM_COMMAND:
 		if(HIWORD(wParam) == EN_CHANGE || HIWORD(wParam) == BN_CLICKED || HIWORD(wParam) == CBN_SELCHANGE)
 			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
+		if(HIWORD(wParam) == BN_CLICKED)
+		{
+			switch(LOWORD(wParam))
+			{
+			case IDC_BKCOLOR:
+				OpenBkColorPopup(hWnd);
+				break;
+			case IDC_FONTCHANGE:
+				OpenFontPopup(hWnd);
+				SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
+				break;
+			case IDC_FGCOLOR:
+				OpenFgColorPopup(hWnd);
+				break;
+			case IDC_BGIMAGE:
+				OpenBgImagePopup(hWnd);
+				InvalidateRect(GetDlgItem(hWnd, IDC_BGPICTURE), NULL, TRUE);
+				break;
+			}
+		}
 		break;
 	case WM_NOTIFY:
 		if(((LPNMHDR)lParam)->code == PSN_APPLY)
