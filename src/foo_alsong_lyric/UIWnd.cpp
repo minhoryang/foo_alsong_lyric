@@ -66,6 +66,8 @@ HWND UIWnd::Create()
 {
 	assert(m_hWnd == NULL);
 
+	if(cfg_outer.get_value().GetnLine() == 0)
+		cfg_outer.get_value().SetDefault();
 	m_UI = new UIManager(&cfg_outer.get_value(), &cfg_outer_script);
 
 	WNDCLASSEX wcex;
