@@ -130,8 +130,6 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 			if(m_CurrentLyric.IsBeginOfLyric(it))
 				break;
 		}
-		if(m_CurrentLyric.IsBeginOfLyric(it) && n - ret.size() > 0)
-			ret.push_back(*it);
 
 		std::reverse(ret.begin(), ret.end());
 
