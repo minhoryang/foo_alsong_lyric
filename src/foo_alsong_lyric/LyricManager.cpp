@@ -192,7 +192,10 @@ void LyricManager::CountLyric()
 			while(!m_CurrentLyric.IsEndOfLyric(tempit) && (int)tempit->time - (m_Seconds * 100 + microsec) < 0) tempit ++;
 			while(!m_CurrentLyric.IsEndOfLyric(tempit) && tempit->time == 0) tempit ++;
 			if(m_CurrentLyric.IsEndOfLyric(tempit))
+			{
+				m_SecondLock.unlock();
 				break;
+			}
 
 			boost::posix_time::microseconds ms = boost::posix_time::microseconds(tempit->time - (m_Seconds * 100 + microsec));
 			m_SecondLock.unlock();
