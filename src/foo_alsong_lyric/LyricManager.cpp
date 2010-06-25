@@ -118,6 +118,8 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 		std::vector<LyricLine>::iterator it;
 		for(it = m_LyricLine - 1, cnt = 0; (cnt < n) && (!m_CurrentLyric.IsBeginOfLyric(it)); cnt ++, it --)
 			ret.push_back(*it);
+		if(m_CurrentLyric.IsBeginOfLyric(it) && n - ret.size() > 0)
+			ret.push_back(*it);
 
 		std::reverse(ret.begin(), ret.end());
 
@@ -182,11 +184,11 @@ void LyricManager::CountLyric()
 			m_SecondLock.lock();
 
 			microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
-			while(!m_CurrentLyric.IsEndOfLyric(m_LyricLine) && (int)m_LyricLine->time - (m_Seconds * 100 + microsec) < 0) m_LyricLine ++;
+			while(!m_CurrentLyric.IsEndOfLyric(m_LyricLine + 1) && (int)(m_LyricLine + 1)->time - (m_Seconds * 100 + microsec) < 0) m_LyricLine ++;
 			if(m_CurrentLyric.IsEndOfLyric(m_LyricLine))
 				break;
 
-			boost::posix_time::microseconds ms = boost::posix_time::microseconds(m_LyricLine->time - (m_Seconds * 100 + microsec));
+			boost::posix_time::microseconds ms = boost::posix_time::microseconds((m_LyricLine + 1)->time - (m_Seconds * 100 + microsec));
 			m_SecondLock.unlock();
 
 			boost::this_thread::sleep(ms * 10000);
