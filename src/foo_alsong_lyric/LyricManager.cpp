@@ -136,14 +136,8 @@ std::vector<LyricLine> LyricManager::GetLyric()
 	{
 		std::vector<LyricLine> ret;
 		std::vector<LyricLine>::iterator it;
-		for(it = m_LyricLine; it->time == m_LyricLine->time; it ++)
-		{
+		for(it = m_LyricLine; !m_CurrentLyric.IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
 			ret.push_back(*it);
-			if(m_CurrentLyric.IsEndOfLyric(it))
-				break;
-		}
-
-		std::reverse(ret.begin(), ret.end());
 
 		return ret;
 	}
