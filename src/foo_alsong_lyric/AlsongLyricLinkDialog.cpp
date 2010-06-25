@@ -244,7 +244,8 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 						static_api_ptr_t<play_control> pc;
 						metadb_handle_ptr p_track;
 						pc->get_now_playing(p_track);
-						LyricManager::Reload(p_track);
+						if(p_track == m_track)
+							LyricManager::Reload(p_track);
 
 						EndDialog(m_hWnd, 0);
 						return TRUE;
