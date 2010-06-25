@@ -326,7 +326,8 @@ DWORD AlsongLyric::LyricToAlsong(metadb_handle_ptr track, const AlsongLyric &Lyr
 	helper.AddParameter("ns1:strMACAddress", Local_Mac);
 	helper.AddParameter("ns1:strIPAddress", Local_IP);
 
-	const char *res = helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/UploadLyricResponse/UploadLyricResult").child_value();
+	std::string temp = helper.Execute()->first_element_by_path("/soap:Envelope/soap:Body/UploadLyricResponse/UploadLyricResult").first_child().value();
+	const char *res = temp.c_str();
 	if(boost::find_first(res, "Successed"))
 		return true;
 	return false;
