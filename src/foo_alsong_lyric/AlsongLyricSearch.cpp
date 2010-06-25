@@ -9,6 +9,7 @@ AlsongLyricSearchResult::AlsongLyricSearchResult(boost::shared_ptr<pugi::xml_doc
 {
 	m_Document = data;
 	m_LyricNode = m_Document->first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2Response/GetResembleLyric2Result/ST_GET_RESEMBLELYRIC2_RETURN"); //TODO: Test
+	m_LyricResultMap[-1] = AlsongLyric();
 }
 
 AlsongLyric &AlsongLyricSearchResult::Get()

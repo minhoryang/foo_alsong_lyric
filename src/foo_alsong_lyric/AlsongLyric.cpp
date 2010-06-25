@@ -8,7 +8,7 @@
 
 AlsongLyric::AlsongLyric(const pugi::xml_node &node)
 {
-	if(node.child("strAlbum").child_value())
+	if(!node.child("strInfoID").child_value())
 	{ //getlyric
 		m_Title = node.child("strTitle").child_value();
 		m_Artist = node.child("strArtist").child_value();
