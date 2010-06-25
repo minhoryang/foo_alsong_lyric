@@ -111,7 +111,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	}
 	for(i = 0; i < lyric.size(); i ++)
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyric[i].lyric.c_str());
+		std::wstring nowlrcw = std::wstring(1, (wchar_t)1) + pfc::stringcvt::string_wide_from_utf8_fast(lyric[i].lyric.c_str()).get_ptr();
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 	for(i = max(lyric.size() - 1, 0); i < lyricafter.size(); i ++)

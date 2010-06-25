@@ -27,16 +27,17 @@ class UIFont
 private:
 	COLORREF m_Color;
 	HFONT m_Font;
+	HFONT m_BoldFont;
 	bool m_Generated;
-	void Create(const TCHAR *fontfamily, int point, bool bold);
+	void Create(const TCHAR *fontfamily, int point);
 public:
 	UIFont(HFONT font);
 	UIFont(const TCHAR *fontfamily, int point);
 	UIFont(const TCHAR *fontfamily, int point, COLORREF color);
-	UIFont(const TCHAR *fontfamily, int point, COLORREF color, bool bold);
 	~UIFont();
 
 	HFONT GethFont() const;
+	HFONT GetBoldFont() const;
 	DWORD GetHeight(HDC hdc) const;
 	COLORREF GetColor() const;
 };

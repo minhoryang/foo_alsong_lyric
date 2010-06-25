@@ -21,8 +21,7 @@ void UICanvas::RegisterCanvas()
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF, bool)>();
+		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>();
 
 	SqPlus::SQClassDefNoConstructor<UISize>(TEXT("UISize")).
 		overloadConstructor<UISize(*)()>().
@@ -44,16 +43,26 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 
 	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor() & 0x00FFFFFF);
 	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
-	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
 
 	RECT DrawRect;
 	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
-	int height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+	int height;
+	if(text[0] == 1)
+	{//bold
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
+		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+		SelectObject(m_hDC, oldFont);
+	}
+	else
+	{
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
+		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+		SelectObject(m_hDC, oldFont);
+	}
 	m_TextPos.y += height;
 
 	SetBkMode(m_hDC, oldMode);
 	SetTextColor(m_hDC, oldColor);
-	SelectObject(m_hDC, oldFont);
 }
 
 void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
@@ -74,13 +83,22 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 	if(!m_hDC)
 		return UISize(0, 0);
 
-	HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-
 	RECT DrawRect;
 	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
-	::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
 
-	SelectObject(m_hDC, oldFont);
+	if(text[0] == 1)
+	{//bold
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
+		::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
+		SelectObject(m_hDC, oldFont);
+	}
+	else
+	{
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
+		::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
+		SelectObject(m_hDC, oldFont);
+	}
+
 	UISize sz;
 	sz.width = DrawRect.right - DrawRect.left;
 	sz.height = DrawRect.bottom - DrawRect.top;
@@ -88,22 +106,17 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 	return sz;
 }
 
-UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color, bool bold) : m_Color(color)
-{
-	Create(fontfamily, point, bold);
-}
-
 UIFont::UIFont(const TCHAR *fontfamily, int point) : m_Color(0xFF000000)
 {
-	Create(fontfamily, point, false);
+	Create(fontfamily, point);
 }
 
 UIFont::UIFont(const TCHAR *fontfamily, int point, COLORREF color) : m_Color(color)
 {
-	Create(fontfamily, point, false);
+	Create(fontfamily, point);
 }
 
-void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
+void UIFont::Create(const TCHAR *fontfamily, int point)
 {
 	LOGFONT lf;
 	HDC hdc = GetDC(NULL);
@@ -111,7 +124,7 @@ void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
 	lf.lfWidth = 0;
 	lf.lfEscapement = 0;
 	lf.lfOrientation = 0;
-	lf.lfWeight = (bold ? FW_BOLD : FW_NORMAL);
+	lf.lfWeight = FW_NORMAL;
 	lf.lfItalic = FALSE;
 	lf.lfUnderline = FALSE;
 	lf.lfStrikeOut = FALSE;
@@ -122,6 +135,8 @@ void UIFont::Create(const TCHAR *fontfamily, int point, bool bold)
 	lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 	lstrcpy(lf.lfFaceName, fontfamily);
 	m_Font = CreateFontIndirect(&lf);
+	lf.lfWeight = FW_BOLD;
+	m_BoldFont = CreateFontIndirect(&lf);
 	m_Generated = true;
 
 	ReleaseDC(NULL, hdc);
@@ -135,7 +150,10 @@ UIFont::UIFont(HFONT font) : m_Font(font), m_Color(0xFF000000)
 UIFont::~UIFont()
 {
 	if(m_Generated)
+	{
 		DeleteObject(m_Font);
+		DeleteObject(m_BoldFont);
+	}
 }
 
 COLORREF UIFont::GetColor() const
@@ -146,6 +164,11 @@ COLORREF UIFont::GetColor() const
 HFONT UIFont::GethFont() const
 {
 	return m_Font;
+}
+
+HFONT UIFont::GetBoldFont() const
+{
+	return m_BoldFont;
 }
 
 DWORD UIFont::GetHeight(HDC hdc) const
