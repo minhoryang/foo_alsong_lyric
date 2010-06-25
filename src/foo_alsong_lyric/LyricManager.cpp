@@ -124,8 +124,12 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 		}
 		else
 			it = m_LyricLine - 1;
-		for(cnt = 0; (cnt < n) && (!m_CurrentLyric.IsBeginOfLyric(it)); cnt ++, it --)
+		for(cnt = 0; (cnt < n); cnt ++, it --)
+		{
 			ret.push_back(*it);
+			if(m_CurrentLyric.IsBeginOfLyric(it))
+				break;
+		}
 		if(m_CurrentLyric.IsBeginOfLyric(it) && n - ret.size() > 0)
 			ret.push_back(*it);
 
@@ -142,10 +146,12 @@ std::vector<LyricLine> LyricManager::GetLyric()
 	{
 		std::vector<LyricLine> ret;
 		std::vector<LyricLine>::iterator it;
-		for(it = m_LyricLine; !m_CurrentLyric.IsBeginOfLyric(it) && it->time == m_LyricLine->time; it --)
+		for(it = m_LyricLine; it->time == m_LyricLine->time; it --)
+		{
 			ret.push_back(*it);
-		if(m_CurrentLyric.IsBeginOfLyric(it))
-			ret.push_back(*it);
+			if(m_CurrentLyric.IsBeginOfLyric(it))
+				break;
+		}
 
 		std::reverse(ret.begin(), ret.end());
 
@@ -198,6 +204,7 @@ void LyricManager::CountLyric()
 
 			microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
 			while(!m_CurrentLyric.IsEndOfLyric(m_LyricLine + 1) && (int)(m_LyricLine + 1)->time - (m_Seconds * 100 + microsec) < 0) m_LyricLine ++;
+			while(!m_CurrentLyric.IsEndOfLyric(m_LyricLine + 1) && m_LyricLine->time == 0) m_LyricLine ++;
 			if(m_CurrentLyric.IsEndOfLyric(m_LyricLine))
 				break;
 
