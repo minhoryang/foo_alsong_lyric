@@ -27,6 +27,8 @@ void AlsongLyricLinkDialog::OpenLyricLinkDialog(HWND hWndParent, const metadb_ha
 	if(g_LyricLinkDialog)
 		return;
 	g_LyricLinkDialog = new AlsongLyricLinkDialog(hWndParent, track);
+	delete g_LyricLinkDialog;
+	g_LyricLinkDialog = NULL;
 }
 
 void AlsongLyricLinkDialog::PopulateListView(HWND hListView, AlsongLyricSearchResult &res)
@@ -72,8 +74,6 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 	{
 	case WM_CLOSE:
 		EndDialog(m_hWnd, 0);
-		delete this;
-		g_LyricLinkDialog = NULL;
 		return TRUE;
 	case WM_DESTROY:
 		return TRUE;
