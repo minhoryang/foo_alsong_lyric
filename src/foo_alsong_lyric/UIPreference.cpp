@@ -2,139 +2,183 @@
 #include "ConfigStore.h"
 #include "resource.h"
 #include "UIPreference.h"
+#include "UIWnd.h"
 
 static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
-int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
+class preferences_page_instance_alsong_lyric : public preferences_page_instance
 {
-	switch (message)
+private:
+	HWND m_hWnd;
+	HWND hProp;
+	preferences_page_callback::ptr m_callback;
+public:
+	preferences_page_instance_alsong_lyric(HWND parent, preferences_page_callback::ptr callback) : m_callback(callback)
 	{
-	case PSCB_PRECREATE:
-		{
-			LPDLGTEMPLATE lpTemplate = (LPDLGTEMPLATE)lParam;
-			DWORD dwOldProtect;
-			VirtualProtect(lpTemplate, sizeof(DLGTEMPLATE), PAGE_READWRITE, &dwOldProtect);
+		m_hWnd = uCreateDialog(IDD_PREF, parent, _PrefConfigProc, (LPARAM)this);
+	}
 
-			lpTemplate->style = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU | WS_VISIBLE | DS_3DLOOK;
-			lpTemplate->dwExtendedStyle = 0;
+	virtual t_uint32 get_state()
+	{
+		return 0;
+	}
+
+	virtual HWND get_wnd()
+	{
+		return m_hWnd;
+	}
+
+	virtual void apply()
+	{
+		SendMessage(hProp, PSM_APPLY, NULL, NULL);
+	}
+
+	virtual void reset()
+	{
+		
+	}
+
+	static int CALLBACK PropCallback(HWND hWnd, UINT message, LPARAM lParam)
+	{
+		switch (message)
+		{
+		case PSCB_PRECREATE:
+			{
+				LPDLGTEMPLATE lpTemplate = (LPDLGTEMPLATE)lParam;
+				DWORD dwOldProtect;
+				VirtualProtect(lpTemplate, sizeof(DLGTEMPLATE), PAGE_READWRITE, &dwOldProtect);
+
+				lpTemplate->style = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU | WS_VISIBLE | DS_3DLOOK;
+				lpTemplate->dwExtendedStyle = 0;
+				return TRUE;
+			}
+		case PSCB_INITIALIZED:
+			{
+				ShowWindow(GetDlgItem(hWnd, 0x00000001), SW_HIDE);
+				ShowWindow(GetDlgItem(hWnd, 0x00000002), SW_HIDE);
+				ShowWindow(GetDlgItem(hWnd, 0x00003021), SW_HIDE);
+
+				//Property sheet bug. See http://support.microsoft.com/kb/149501
+				SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_CONTROLPARENT);
+				SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+			}
+		}
+
+		return 0;
+	}
+
+	BOOL PrefConfigProc(UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		switch(iMessage)
+		{
+		case WM_INITDIALOG:
+			{
+				PROPSHEETPAGE pages[2];
+				HPROPSHEETPAGE hpages[2];
+				pages[0].dwSize = sizeof(PROPSHEETPAGE);
+				pages[0].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+				pages[0].hInstance = core_api::get_my_instance();
+				pages[0].pszTemplate = MAKEINTRESOURCE(IDD_COMMON_PREF);
+				pages[0].pfnDlgProc = &preferences_page_instance_alsong_lyric::CommonConfigProc;
+				pages[0].pszTitle = TEXT("공통 설정");
+				pages[0].lParam = NULL;
+
+				pages[1].dwSize = sizeof(PROPSHEETPAGE);
+				pages[1].dwFlags = PSP_DEFAULT | PSP_USETITLE;
+				pages[1].hInstance = core_api::get_my_instance();
+				pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
+				pages[1].pfnDlgProc = &UIPreference::ConfigProcDispatcher;
+				pages[1].pszTitle = TEXT("외부 창 설정");
+				pages[1].lParam = (LPARAM)(&cfg_outer.get_value());
+
+				hpages[0] = CreatePropertySheetPage(&pages[0]);
+				hpages[1] = CreatePropertySheetPage(&pages[1]);
+
+				PROPSHEETHEADER psh;
+				psh.dwSize = sizeof(psh);
+				psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_USECALLBACK | PSH_MODELESS;
+				psh.hwndParent = m_hWnd;
+				psh.hInstance = core_api::get_my_instance();
+				psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
+				psh.pszCaption = TEXT("알송 가사 설정");
+				psh.nPages = 2;
+				psh.nStartPage = 0;
+				psh.pfnCallback = &preferences_page_instance_alsong_lyric::PropCallback;
+				psh.phpage = hpages;
+
+				hProp = (HWND)PropertySheet(&psh);
+			}
+			return TRUE;
+		case WM_SIZE:
+			{
+				RECT rt;
+				GetWindowRect(m_hWnd, &rt);
+				HWND hTab = (HWND)SendMessage(hProp, PSM_GETTABCONTROL, 0, 0);
+				MoveWindow(hProp, 0, 0, rt.right - rt.left, rt.bottom - rt.top, TRUE);
+				MoveWindow(hTab, 10, 3, rt.right - rt.left - 15, rt.bottom - rt.top - 5, TRUE);
+			}
+			return TRUE;
+		case WM_DESTROY:
+			SendMessage(hProp, PSM_APPLY, NULL, NULL);//마지막 위치 저장 -> 열때 탭복구
 			return TRUE;
 		}
-	case PSCB_INITIALIZED:
-		{
-			ShowWindow(GetDlgItem(hWnd, 0x00000001), SW_HIDE);
-			ShowWindow(GetDlgItem(hWnd, 0x00000002), SW_HIDE);
-			ShowWindow(GetDlgItem(hWnd, 0x00003021), SW_HIDE);
-
-			//Property sheet bug. See http://support.microsoft.com/kb/149501
-			SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_CONTROLPARENT);
-			SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-		}
-	}
-
-	return 0;
-}
-
-static BOOL CALLBACK PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static HWND hProp;
-	switch(iMessage)
-	{
-	case WM_INITDIALOG:
-		{
-			PROPSHEETPAGE pages[2];
-			HPROPSHEETPAGE hpages[2];
-			pages[0].dwSize = sizeof(PROPSHEETPAGE);
-			pages[0].dwFlags = PSP_DEFAULT | PSP_USETITLE;
-			pages[0].hInstance = core_api::get_my_instance();
-			pages[0].pszTemplate = MAKEINTRESOURCE(IDD_COMMON_PREF);
-			pages[0].pfnDlgProc = ConfigProc;
-			pages[0].pszTitle = TEXT("공통 설정");
-			pages[0].lParam = NULL;
-
-			pages[1].dwSize = sizeof(PROPSHEETPAGE);
-			pages[1].dwFlags = PSP_DEFAULT | PSP_USETITLE;
-			pages[1].hInstance = core_api::get_my_instance();
-			pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
-			pages[1].pfnDlgProc = &UIPreference::ConfigProcDispatcher;
-			pages[1].pszTitle = TEXT("외부 창 설정");
-			pages[1].lParam = (LPARAM)(&cfg_outer.get_value());
-
-			hpages[0] = CreatePropertySheetPage(&pages[0]);
-			hpages[1] = CreatePropertySheetPage(&pages[1]);
-
-			PROPSHEETHEADER psh;
-			psh.dwSize = sizeof(psh);
-			psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_USECALLBACK | PSH_MODELESS;
-			psh.hwndParent = hWnd;
-			psh.hInstance = core_api::get_my_instance();
-			psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
-			psh.pszCaption = TEXT("알송 가사 설정");
-			psh.nPages = 2;
-			psh.nStartPage = 0;
-			psh.pfnCallback = PropCallback;
-			psh.phpage = hpages;
-
-			hProp = (HWND)PropertySheet(&psh);
-		}
-		break;
-	case WM_SIZE:
-		{
-			RECT rt;
-			GetWindowRect(hWnd, &rt);
-			HWND hTab = (HWND)SendMessage(hProp, PSM_GETTABCONTROL, 0, 0);
-			MoveWindow(hProp, 0, 0, rt.right - rt.left, rt.bottom - rt.top, TRUE);
-			MoveWindow(hTab, 10, 3, rt.right - rt.left - 15, rt.bottom - rt.top - 5, TRUE);
-		}
-	case WM_DESTROY:
-		SendMessage(hProp, PSM_APPLY, NULL, NULL);//마지막 위치 저장 -> 열때 탭복구
-		break;
-	default:
 		return FALSE;
 	}
-	return TRUE;
-}
 
-static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	switch (iMessage)
+	static BOOL CALLBACK _PrefConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
-	case WM_INITDIALOG:
-		CheckDlgButton(hWnd, IDC_SAVELRC, cfg_save_to_lrc);
-		CheckDlgButton(hWnd, IDC_LOADFROMLRC, cfg_load_from_lrc);
-		uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
-		CheckDlgButton(hWnd, IDC_MIMIC, cfg_mimic_lyricshow);
-		CheckDlgButton(hWnd, IDC_SAVETOFILE, cfg_lyric_savetofile);
-		break;
-
-	case WM_NOTIFY:
-		if(((LPNMHDR)lParam)->code == PSN_APPLY)
+		static preferences_page_instance_alsong_lyric *_this = NULL;
+		if(iMessage == WM_INITDIALOG)
 		{
-			cfg_load_from_lrc = (IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC) ? true : false);
-			cfg_save_to_lrc = (IsDlgButtonChecked(hWnd, IDC_SAVELRC) ? true : false);
-			cfg_lrc_save_path = uGetDlgItemText(hWnd, IDC_LRCPATH).get_ptr();
-			cfg_mimic_lyricshow = (IsDlgButtonChecked(hWnd, IDC_MIMIC) ? true : false);
-
-			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
+			_this = (preferences_page_instance_alsong_lyric *)lParam;
+			_this->m_hWnd = hWnd;
 		}
-		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
-		{
-			SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
-		}
-		break;
-	default:
+		if(_this)
+			return _this->PrefConfigProc(iMessage, wParam, lParam);
+		
 		return FALSE;
 	}
-	return TRUE;
-}
+
+	static BOOL CALLBACK CommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		switch (iMessage)
+		{
+		case WM_INITDIALOG:
+			CheckDlgButton(hWnd, IDC_SAVELRC, cfg_save_to_lrc);
+			CheckDlgButton(hWnd, IDC_LOADFROMLRC, cfg_load_from_lrc);
+			uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
+			CheckDlgButton(hWnd, IDC_MIMIC, cfg_mimic_lyricshow);
+			CheckDlgButton(hWnd, IDC_SAVETOFILE, cfg_lyric_savetofile);
+			break;
+
+		case WM_NOTIFY:
+			if(((LPNMHDR)lParam)->code == PSN_APPLY)
+			{
+				cfg_load_from_lrc = (IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC) ? true : false);
+				cfg_save_to_lrc = (IsDlgButtonChecked(hWnd, IDC_SAVELRC) ? true : false);
+				cfg_lrc_save_path = uGetDlgItemText(hWnd, IDC_LRCPATH).get_ptr();
+				cfg_mimic_lyricshow = (IsDlgButtonChecked(hWnd, IDC_MIMIC) ? true : false);
+
+				SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
+			}
+			else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
+			{
+				SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
+			}
+			break;
+		default:
+			return FALSE;
+		}
+		return TRUE;
+	}
+};
 
 // {A58D6A8E-5932-4def-AD63-44185988B105}
 static const GUID guid_prefs_alsong_lyric = { 0xa58d6a8e, 0x5932, 0x4def, { 0xad, 0x63, 0x44, 0x18, 0x59, 0x88, 0xb1, 0x5 } };
 
-class preferences_page_alsong_lyric : public preferences_page
+class preferences_page_alsong_lyric : public preferences_page_v3
 {
-private:
-	HWND hWnd;
 public:
 	virtual const char * get_name()
 	{
@@ -151,20 +195,9 @@ public:
 		return preferences_page::guid_tools;
 	}
 
-	virtual bool reset_query()
+	virtual preferences_page_instance::ptr instantiate(HWND parent, preferences_page_callback::ptr callback)
 	{
-		return false;
-	}
-
-	virtual void reset()
-	{
-		return;
-	}
-
-	virtual HWND create(HWND parent)
-	{
-		hWnd = uCreateDialog(IDD_PREF, parent, PrefConfigProc, 0);
-		return hWnd;
+		return new service_impl_t<preferences_page_instance_alsong_lyric>(parent, callback);
 	}
 };
 
@@ -329,7 +362,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
-				UpdateOuterWindowStyle(hParent);
+				UpdateOuterWindowStyle(WndInstance.GetHWND());
 			}
 
 			VerticalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
@@ -354,7 +387,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_layered = old_layered;
 				cfg_outer_border = old_border;
 
-				UpdateOuterWindowStyle(hParent);
+				UpdateOuterWindowStyle(WndInstance.GetHWND());
 			}
 		}
 		break;
