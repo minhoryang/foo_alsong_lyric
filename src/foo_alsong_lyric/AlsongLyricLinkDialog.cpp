@@ -72,6 +72,8 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 	{
 	case WM_CLOSE:
 		EndDialog(m_hWnd, 0);
+		delete this;
+		g_LyricLinkDialog = NULL;
 		return TRUE;
 	case WM_DESTROY:
 		return TRUE;
