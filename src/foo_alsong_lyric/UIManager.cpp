@@ -79,6 +79,10 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	unsigned int i, cnt = 0;
 	std::vector<LyricLine> lyric = LyricManagerInstance->GetLyric();
 	after = before = m_Setting->GetnLine() / 2 - lyric.size() / 2;
+	if(after < 0)
+		after = 0;
+	if(before < 0)
+		before = 0;
 	std::vector<LyricLine> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
 	std::vector<LyricLine> lyricafter = LyricManagerInstance->GetLyricAfter(after + lyric.size() - 1 - (1 - m_Setting->GetnLine() % 2));
 	//현재 가사가 1줄 이상인 경우에는 두번째 줄부터
