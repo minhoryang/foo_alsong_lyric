@@ -41,13 +41,13 @@ DWORD AlsongLyric::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	BYTE MD5[16];
 	BYTE temp[255]; 
 
-	service_ptr_t<file> file;
+	service_ptr_t<file> sourcefile;
 	abort_callback_impl abort_callback;
 	pfc::string8 str = track->get_path();
 	
 	try
 	{
-		archive_impl::g_open(file, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
+		archive_impl::g_open(sourcefile, str, foobar2000_io::filesystem::open_mode_read, abort_callback);
 	}
 	catch(...)
 	{
@@ -55,134 +55,146 @@ DWORD AlsongLyric::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 	}
 	//TODO:cue일때 특별 처리(subsong_index가 있을 때)
 	char *fmt = (char *)str.get_ptr() + str.find_last('.') + 1;
-	/*
-	file_info_impl info;
-	track->get_info(info);
-	const char *ttmp = info.info_get("referenced_offset");*/
-	//아래코드 이용해서 cue에서 raw 뽑아와서 hash생성
-	/*bool void g_decode_file(char const * p_path, abort_callback & p_abort)
-{
-    try
-    {
-        input_helper helper;
-        file_info_impl info;
 
-        // open input
-        helper.open(service_ptr_t<file>(), make_playable_location(p_path, 0), input_flag_simpledecode, p_abort);
-
-        helper.get_info(0, info, p_abort);
-        if (info.get_length() <= 0)
-            throw pfc::exception("Track length invalid");
-
-        audio_chunk_impl chunk;
-
-        if (!helper.run(chunk, p_abort)) return false;
-
-
-        t_uint64 length_samples = audio_math::time_to_samples(info.get_length(), chunk.get_sample_rate());
-        //chunk.get_channels();
-
-        while (true)
-        {
-            // Store the data somewhere.
-
-            bool decode_done = !helper.run(chunk, p_abort);
-            if (decode_done) break;
-        }
-
-        // We now have the full data.
-
-        return true;
-    }
-    catch (const exception_aborted &) {throw;}
-    catch (const std::exception & exc)
-    {
-        console::formatter() << exc << ": " << p_path;
-        return false;
-    }
-};
-*/
-
-	try
+	try 
 	{
-		if(!StrCmpIA(fmt, "mp3"))
+
+		if(!StrCmpIA(fmt, "cue"))
 		{
-			while(1) //ID3가 여러개 있을수도 있음
-			{ //ID3는 보통 맨 처음에 있음
-				file->seek(Start, abort_callback);
-				file->read(temp, 3, abort_callback);
-				if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
-				{
-					file->read(temp, 7, abort_callback);
-#define ID3_TAGSIZE(x) ((*(x) << 21) | (*((x) + 1) << 14) | (*((x) + 2) << 7) | *((x) + 3))
-					Start += ID3_TAGSIZE(temp + 3) + 10;
-#undef ID3_TAGSIZE
-				}
-				else
-					break;
-			}
-			file->seek(Start, abort_callback);
-			for(;;Start ++)
+			file_info_impl info;
+			track->get_info(info);
+			const char *realfile = info.info_get("referenced_file");
+			const char *ttmp = info.info_get("referenced_offset");
+			int m, s, ms;
+			if(ttmp == NULL)
+				m = s = ms = 0;
+			else
 			{
-				BYTE temp;
-				file->read_lendian_t(temp, abort_callback);
-				if(temp == 0xFF) //MP3 Header까지
-					break;
-			}
-		}
-		else if(!StrCmpIA(fmt, "ogg"))
-		{
-			//처음 나오는 vorbis setup header 검색
-			i = 0;
-			CHAR SetupHeader[7] = {0x05, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73}; //Vorbis Setup Header
-			CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
-			while(1)
-			{
-				file->seek(i, abort_callback);
-				file->read(temp, 7, abort_callback);
-				if(!memcmp(temp, SetupHeader, 7))
+				std::stringstream stream(ttmp);
+				char unused;
+				stream >> m >> unused >> s >> unused >> ms;
+				const char *pregap = info.info_get("pregap");
+				if(pregap)
 				{
-					file->seek(i + 7 + 1, abort_callback);
-					file->read(temp, 3, abort_callback);
-					if(!memcmp(temp, BCV, 3)) //Setup Header와 BCV 사이에 뭔가 바이트가 하나 더 있다.
-					{
-						//여기부터다
-						Start = i + 7 + 1 + 3;
-						break;
-					}
+					std::stringstream stream(pregap);
+					int pm, ps, pms;
+					stream >> pm >> unused >> ps >> unused >> pms;
+					m += pm;
+					s += ps;
+					ms += pms;
 				}
-				i ++;
-				if(i > file->get_size(abort_callback))
-					return false; //에러
 			}
 
+			audio_chunk_impl chunk;
+			pfc::string realfilename = pfc::io::path::getDirectory(str) + "\\" + realfile;
+
+			input_helper helper;
+
+			// open input
+			helper.open(service_ptr_t<file>(), make_playable_location(realfilename.get_ptr(), 0), input_flag_simpledecode, abort_callback);
+
+			helper.get_info(0, info, abort_callback);
+			helper.seek(m * 60 + s + ms * 0.01, abort_callback);
+
+			if (!helper.run(chunk, abort_callback)) return false;		
+
+			t_uint64 length_samples = audio_math::time_to_samples(info.get_length(), chunk.get_sample_rate());
+			//chunk.get_channels();
+			std::vector<double> buf;
+			while (true)
+			{
+				// Store the data somewhere.
+				audio_sample *sample = chunk.get_data();
+				int len = chunk.get_data_length();
+				buf.insert(buf.end(), sample, sample + len);
+				if(buf.size() > 0x28000 / sizeof(double))
+					break;
+
+				bool decode_done = !helper.run(chunk, abort_callback);
+				if (decode_done) break;
+			}
+
+			md5((unsigned char *)&buf[0], min(buf.size() * sizeof(double), 0x28000), MD5);
 		}
-		else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
-			Start = 0;
 		else
+		{
+			if(!StrCmpIA(fmt, "mp3"))
+			{
+				while(1) //ID3가 여러개 있을수도 있음
+				{ //ID3는 보통 맨 처음에 있음
+					sourcefile->seek(Start, abort_callback);
+					sourcefile->read(temp, 3, abort_callback);
+					if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
+					{
+						sourcefile->read(temp, 7, abort_callback);
+	#define ID3_TAGSIZE(x) ((*(x) << 21) | (*((x) + 1) << 14) | (*((x) + 2) << 7) | *((x) + 3))
+						Start += ID3_TAGSIZE(temp + 3) + 10;
+	#undef ID3_TAGSIZE
+					}
+					else
+						break;
+				}
+				sourcefile->seek(Start, abort_callback);
+				for(;;Start ++)
+				{
+					BYTE temp;
+					sourcefile->read_lendian_t(temp, abort_callback);
+					if(temp == 0xFF) //MP3 Header까지
+						break;
+				}
+			}
+			else if(!StrCmpIA(fmt, "ogg"))
+			{
+				//처음 나오는 vorbis setup header 검색
+				i = 0;
+				CHAR SetupHeader[7] = {0x05, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73}; //Vorbis Setup Header
+				CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
+				while(1)
+				{
+					sourcefile->seek(i, abort_callback);
+					sourcefile->read(temp, 7, abort_callback);
+					if(!memcmp(temp, SetupHeader, 7))
+					{
+						sourcefile->seek(i + 7 + 1, abort_callback);
+						sourcefile->read(temp, 3, abort_callback);
+						if(!memcmp(temp, BCV, 3)) //Setup Header와 BCV 사이에 뭔가 바이트가 하나 더 있다.
+						{
+							//여기부터다
+							Start = i + 7 + 1 + 3;
+							break;
+						}
+					}
+					i ++;
+					if(i > sourcefile->get_size(abort_callback))
+						return false; //에러
+				}
+
+			}
+			else if(!StrCmpIA(fmt, "wav") || !StrCmpIA(fmt, "flac") || !StrCmpIA(fmt, "ape")) //wav나 flac, ape. 죄다 시작부터
+				Start = 0;
+			else
+				return false;
+		}
+		BYTE *buf = (BYTE *)malloc(0x28000);
+
+		try
+		{
+			sourcefile->seek(Start, abort_callback);
+			sourcefile->read(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), abort_callback);
+		}
+		catch(...)
+		{
+			free(buf);
 			return false;
-	}
-	catch(...)
-	{
-		return false;
-	}
+		}
 
-	BYTE *buf = (BYTE *)malloc(0x28000);
-
-	try
-	{
-		file->seek(Start, abort_callback);
-		file->read(buf, min(0x28000, (size_t)file->get_size(abort_callback) - Start), abort_callback);
-	}
-	catch(...)
-	{
+		md5(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
 		free(buf);
+	}
+	catch(...)
+	{
 		return false;
 	}
-
-	md5(buf, min(0x28000, (size_t)file->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
-
-	free(buf);
 
 	CHAR HexArray[] = "0123456789abcdef";
 
