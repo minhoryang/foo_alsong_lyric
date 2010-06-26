@@ -116,7 +116,7 @@ HWND UIWnd::Create()
 		}
 		ICustomDestinationList *destlist = NULL;
 		CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
-		if(destlist)
+		if(destlist) //main window list
 		{
 			UINT MinSlot;
 			IObjectArray *removed;
@@ -146,6 +146,45 @@ HWND UIWnd::Create()
 			destlist->AddUserTasks(arr);
 			destlist->CommitList();
 			
+			destlist->Release();
+			tasks->Release();
+			arr->Release();
+			link->Release();
+			removed->Release();
+		}
+		destlist = NULL;
+		CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
+		if(destlist) //alsong window list
+		{
+			UINT MinSlot;
+			IObjectArray *removed;
+			destlist->SetAppID(appid);
+			destlist->BeginList(&MinSlot, IID_IObjectArray, (void **)&removed);
+			IObjectCollection *tasks;
+			CoCreateInstance(CLSID_EnumerableObjectCollection, NULL, CLSCTX_INPROC_SERVER, IID_IObjectCollection, (void **)&tasks);
+
+			//"c:\Program Files (x86)\foobar2000\foobar2000.exe" /command:"알송 실시간 가사"
+			IShellLink *link;
+			CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void **)&link);
+			wchar_t name[255];
+			GetModuleFileName(GetModuleHandle(L"foobar2000.exe"), name, 255);
+			link->SetPath(name);
+			link->SetArguments(L"/command:\"Alsong Lyric Window Config\"");
+
+			IPropertyStore *propstore;
+			link->QueryInterface(IID_IPropertyStore, (void **)&propstore);
+			PROPVARIANT pv;
+			InitPropVariantFromString(L"알송 실시간 가사 설정", &pv);
+			propstore->SetValue(PKEY_Title, pv);
+			propstore->Commit();
+			propstore->Release();
+
+			tasks->AddObject(link);
+			IObjectArray *arr;
+			tasks->QueryInterface(IID_IObjectArray, (void **)&arr);
+			destlist->AddUserTasks(arr);
+			destlist->CommitList();
+
 			destlist->Release();
 			tasks->Release();
 			arr->Release();

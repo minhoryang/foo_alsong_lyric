@@ -8,15 +8,18 @@ class menu_command_plugin : public mainmenu_commands
 {
 	virtual t_uint32 get_command_count() 
 	{
-		return 1;
+		return 2;
 	}
 
 	virtual GUID get_command(t_uint32 p_index) 
 	{
 		static const GUID guid_plugin_lyric_menu = { 0x66821da5, 0xfa15, 0x4002, { 0x99, 0xc5, 0x8c, 0x6a, 0x96, 0xf4, 0xe, 0xad } };
+		static const GUID guid_plugin_window_config = { 0x300e3322, 0xc22, 0x4354, { 0xa7, 0x5, 0x28, 0xfb, 0x48, 0xc4, 0xc9, 0xd0 } };
 
 		if(p_index == 0)
 			return guid_plugin_lyric_menu;
+		else if(p_index == 1)
+			return guid_plugin_window_config;
 		return pfc::guid_null;
 	}
 
@@ -24,6 +27,8 @@ class menu_command_plugin : public mainmenu_commands
 	{
 		if(p_index == 0)
 			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 실시간 가사"), lstrlen(TEXT("알송 실시간 가사")));
+		if(p_index == 1)
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("Alsong Lyric Window Config"), lstrlen(TEXT("Alsong Lyric Window Config")));
 	}
 
 	virtual bool get_description(t_uint32 p_index, pfc::string_base & p_out) 
@@ -49,14 +54,23 @@ class menu_command_plugin : public mainmenu_commands
 			else
 				WndInstance.Show();
 		}
+		else if(p_index == 1)
+		{
+			cfg_outer.get_value().OpenConfigPopup(core_api::get_main_window());
+		}
 	}
 
 	virtual bool get_display(t_uint32 p_index, pfc::string_base & p_text, t_uint32 & p_flags)
 	{
-		p_flags = 0;
-		if(is_checked(p_index))
-			p_flags |= flag_checked;
-		get_name(p_index, p_text);
+		if(p_index == 0)
+		{
+			p_flags = 0;
+			if(is_checked(p_index))
+				p_flags |= flag_checked;
+			get_name(p_index, p_text);
+		}
+		else
+			return false;
 		return true;
 	}
 
