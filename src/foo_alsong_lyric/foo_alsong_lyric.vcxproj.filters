@@ -137,6 +137,9 @@
     <ClInclude Include="UICanvas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LRCLyric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="foo_alsong_lyric.rc">

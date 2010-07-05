@@ -175,6 +175,7 @@
     <ClCompile Include="SoapHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LRCLyric.h" />
     <ClInclude Include="UICanvas.h" />
     <ClInclude Include="UIElement.h" />
     <ClInclude Include="AlsongLyric.h" />
