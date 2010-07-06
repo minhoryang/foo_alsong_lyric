@@ -174,22 +174,23 @@ DWORD AlsongLyric::GetFileHash(metadb_handle_ptr track, CHAR *Hash)
 				Start = 0;
 			else
 				return false;
-		}
-		BYTE *buf = (BYTE *)malloc(0x28000);
 
-		try
-		{
-			sourcefile->seek(Start, abort_callback);
-			sourcefile->read(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), abort_callback);
-		}
-		catch(...)
-		{
+			BYTE *buf = (BYTE *)malloc(0x28000);
+
+			try
+			{
+				sourcefile->seek(Start, abort_callback);
+				sourcefile->read(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), abort_callback);
+			}
+			catch(...)
+			{
+				free(buf);
+				return false;
+			}
+
+			md5(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
 			free(buf);
-			return false;
 		}
-
-		md5(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 일수도
-		free(buf);
 	}
 	catch(...)
 	{
