@@ -65,10 +65,10 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 	}
 	if(m_CurrentLyric)
 	{
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 		m_CurrentLyric->Clear();
 		m_CurrentLyric.reset();
 	}
-	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 	m_track = p_track;
 	m_Tick = boost::posix_time::microsec_clock::universal_time();
@@ -220,7 +220,11 @@ void LyricManager::CountLyric()
 
 DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 {
-	m_CurrentLyric->Clear();
+	if(m_CurrentLyric)
+	{
+		m_CurrentLyric->Clear();
+		m_CurrentLyric.reset();
+	}
 
 	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
 	if(boost::this_thread::interruption_requested())
