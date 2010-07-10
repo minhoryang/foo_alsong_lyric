@@ -63,7 +63,11 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 		m_countthread->join();
 		m_countthread.reset();
 	}
-	m_CurrentLyric->Clear();
+	if(m_CurrentLyric)
+	{
+		m_CurrentLyric->Clear();
+		m_CurrentLyric.reset();
+	}
 	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 	m_track = p_track;
