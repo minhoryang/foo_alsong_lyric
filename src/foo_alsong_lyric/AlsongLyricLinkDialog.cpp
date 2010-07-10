@@ -6,6 +6,7 @@
 #include "LyricManager.h"
 #include "AlsongLyric.h"
 #include "AlsongLyricSearch.h"
+#include "LyricSourceAlsong.h"
 
 AlsongLyricLinkDialog *g_LyricLinkDialog = NULL; //only one dialog
 
@@ -239,7 +240,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					litem.iItem = nSel;
 					litem.iSubItem = 0;
 					ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
-					if(AlsongLyric::LyricToAlsong(m_track, m_searchresult.Get(litem.lParam)))
+					if(LyricSourceAlsong().Save(m_track, m_searchresult.Get(litem.lParam)))
 					{
 						MessageBox(m_hWnd, TEXT("등록 성공"), TEXT("안내"), MB_OK);
 

@@ -14,7 +14,7 @@ private:
 	boost::posix_time::ptime m_Tick;
 	boost::mutex m_SecondLock; //lock tick/seconds
 	Lyric m_CurrentLyric; //current song's lyric
-	std::vector<LyricLine>::iterator m_LyricLine; //current visible line.
+	std::vector<LyricLine>::const_iterator m_LyricLine; //current visible line.
 	std::string m_Status;
 
 	void CountLyric();

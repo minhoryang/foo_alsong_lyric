@@ -3,6 +3,7 @@
 #include "LyricManager.h"
 #include "Lyric.h"
 #include "AlsongLyric.h"
+#include "LyricSourceAlsong.h"
 
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
@@ -115,7 +116,7 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
-		std::vector<LyricLine>::iterator it = m_LyricLine - 1;
+		std::vector<LyricLine>::const_iterator it = m_LyricLine - 1;
 		for(cnt = 0; (cnt < n); cnt ++, it --)
 		{
 			ret.push_back(*it);
@@ -135,7 +136,7 @@ std::vector<LyricLine> LyricManager::GetLyric()
 	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
-		std::vector<LyricLine>::iterator it;
+		std::vector<LyricLine>::const_iterator it;
 		for(it = m_LyricLine; !m_CurrentLyric.IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
 			ret.push_back(*it);
 
@@ -150,7 +151,7 @@ std::vector<LyricLine> LyricManager::GetLyricAfter(int n)
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
-		std::vector<LyricLine>::iterator it;
+		std::vector<LyricLine>::const_iterator it;
 		for(it = m_LyricLine + 1, cnt = 0; (cnt < n) && !m_CurrentLyric.IsEndOfLyric(it); cnt ++, it ++)
 			ret.push_back(*it);
 
@@ -166,7 +167,7 @@ void LyricManager::CountLyric()
 	if(m_Seconds == 0)																									//0   some song
 		m_LyricLine = m_CurrentLyric.GetIteratorAt(0);																	//0				
 	else																												//100 blah			
-		m_LyricLine = m_CurrentLyric.GetIteratorAt(m_Seconds * 100 + microsec);
+		m_LyricLine = m_CurrentLyric.GetIteratorAt(int(m_Seconds * 100 + microsec));
 	if(m_CurrentLyric.IsEndOfLyric(m_LyricLine))
 	{
 		m_LyricLine --;
@@ -188,7 +189,7 @@ void LyricManager::CountLyric()
 			m_SecondLock.lock();
 
 			microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
-			std::vector<LyricLine>::iterator tempit = m_LyricLine;
+			std::vector<LyricLine>::const_iterator tempit = m_LyricLine;
 			while(!m_CurrentLyric.IsEndOfLyric(tempit) && (int)tempit->time - (m_Seconds * 100 + microsec) < 0) tempit ++;
 			while(!m_CurrentLyric.IsEndOfLyric(tempit) && tempit->time == 0) tempit ++;
 			if(m_CurrentLyric.IsEndOfLyric(tempit))
@@ -224,7 +225,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 
 	try
 	{
-		m_CurrentLyric = AlsongLyric::LyricFromAlsong(track);
+		m_CurrentLyric = LyricSourceAlsong().Get(track);
 		m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
 	}
 	catch(std::exception e)

@@ -35,51 +35,48 @@ public:
 	~Lyric();
 
 	void Clear();
-	void SaveToFile(WCHAR *SaveTo, CHAR *fmt);
 	
-	std::vector<LyricLine>::iterator GetIteratorAt(unsigned int time); //returns lyric right after time.
+	std::vector<LyricLine>::const_iterator GetIteratorAt(unsigned int time) const; //returns lyric right after time.
 	
-	std::string GetRawLyric()
+	std::string GetRawLyric() const
 	{
 		return m_Lyric;
 	}
 
-	std::string GetTitle()
+	std::string GetTitle() const
 	{
 		return m_Title;
 	}
 
-	std::string GetAlbum()
+	std::string GetAlbum() const
 	{
 		return m_Album;
 	}
 
-	std::string GetArtist()
+	std::string GetArtist() const
 	{
 		return m_Artist;
 	}
 
-	std::string GetRegistrant()
+	std::string GetRegistrant() const
 	{
 		return m_Registrant;
 	}
 
-	int IsEndOfLyric(std::vector<LyricLine>::iterator it)
+	int IsEndOfLyric(std::vector<LyricLine>::const_iterator it) const
 	{
 		return it == m_LyricLines.end();
 	}
 
-	int IsBeginOfLyric(std::vector<LyricLine>::iterator it)
+	int IsBeginOfLyric(std::vector<LyricLine>::const_iterator it) const
 	{
 		return it == m_LyricLines.begin();
 	}
 
-	int HasLyric()
+	int HasLyric() const
 	{
 		return m_LyricLines.size() != 0;
 	}
 
-	int IsValidIterator(std::vector<LyricLine>::iterator);
-
-	static Lyric LyricFromFile(WCHAR *LoadFrom, CHAR *fmt);
+	int IsValidIterator(std::vector<LyricLine>::const_iterator) const;
 };

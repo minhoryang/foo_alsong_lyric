@@ -135,6 +135,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LyricSourceAlsong.cpp" />
     <ClCompile Include="UICanvas.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="AlsongLyric.cpp" />
@@ -175,6 +176,8 @@
     <ClCompile Include="SoapHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LyricSource.h" />
+    <ClInclude Include="LyricSourceAlsong.h" />
     <ClInclude Include="LRCLyric.h" />
     <ClInclude Include="UICanvas.h" />
     <ClInclude Include="UIElement.h" />
