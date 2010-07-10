@@ -2,15 +2,14 @@
 
 #include "Lyric.h"
 
-class AlsongLyric : public Lyric //alsong specific
+class AlsongLyric : public Lyric
 {
 private:
 	int m_nInfoID;
 public:
-	AlsongLyric() {}
 	AlsongLyric(const pugi::xml_node &node);
-
-	int GetnInfo() const
+	AlsongLyric() {}
+	int GetInternalID() const
 	{
 		return m_nInfoID;
 	}

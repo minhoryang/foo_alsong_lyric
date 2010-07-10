@@ -13,7 +13,7 @@ private:
 	metadb_handle_ptr m_track;
 	boost::posix_time::ptime m_Tick;
 	boost::mutex m_SecondLock; //lock tick/seconds
-	Lyric m_CurrentLyric; //current song's lyric
+	boost::shared_ptr<Lyric> m_CurrentLyric; //current song's lyric
 	std::vector<LyricLine>::const_iterator m_LyricLine; //current visible line.
 	std::string m_Status;
 

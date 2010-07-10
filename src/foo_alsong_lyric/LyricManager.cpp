@@ -63,8 +63,8 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 		m_countthread->join();
 		m_countthread.reset();
 	}
-	m_CurrentLyric.Clear();
-	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
+	m_CurrentLyric->Clear();
+	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 	m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, this, p_track)));
 	m_track = p_track;
 	m_Tick = boost::posix_time::microsec_clock::universal_time();
@@ -80,8 +80,8 @@ void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 		m_countthread.reset();
 	}
 
-	m_CurrentLyric.Clear();
-	m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
+	m_CurrentLyric->Clear();
+	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 	m_track.release();
 }
 
@@ -103,7 +103,7 @@ void LyricManager::on_playback_pause(bool p_state)
 		m_countthread.reset();
 		microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
 	}
-	else if(p_state == false && m_CurrentLyric.HasLyric())
+	else if(p_state == false && m_CurrentLyric->HasLyric())
 	{
 		m_Tick = boost::posix_time::microsec_clock::universal_time() - (boost::posix_time::seconds(1) - boost::posix_time::microseconds(microsec * 1000000));
 		m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
@@ -112,7 +112,7 @@ void LyricManager::on_playback_pause(bool p_state)
 
 std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 {
-	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine) && !m_CurrentLyric.IsBeginOfLyric(m_LyricLine))
+	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
@@ -120,7 +120,7 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 		for(cnt = 0; (cnt < n); cnt ++, it --)
 		{
 			ret.push_back(*it);
-			if(m_CurrentLyric.IsBeginOfLyric(it))
+			if(m_CurrentLyric->IsBeginOfLyric(it))
 				break;
 		}
 
@@ -133,11 +133,11 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 
 std::vector<LyricLine> LyricManager::GetLyric()
 {
-	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine))
+	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		std::vector<LyricLine>::const_iterator it;
-		for(it = m_LyricLine; !m_CurrentLyric.IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
+		for(it = m_LyricLine; !m_CurrentLyric->IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
 			ret.push_back(*it);
 
 		return ret;
@@ -147,12 +147,12 @@ std::vector<LyricLine> LyricManager::GetLyric()
 
 std::vector<LyricLine> LyricManager::GetLyricAfter(int n)
 {
-	if(m_CurrentLyric.HasLyric() && m_CurrentLyric.IsValidIterator(m_LyricLine) && !m_CurrentLyric.IsEndOfLyric(m_LyricLine))
+	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
 		std::vector<LyricLine>::const_iterator it;
-		for(it = m_LyricLine + 1, cnt = 0; (cnt < n) && !m_CurrentLyric.IsEndOfLyric(it); cnt ++, it ++)
+		for(it = m_LyricLine + 1, cnt = 0; (cnt < n) && !m_CurrentLyric->IsEndOfLyric(it); cnt ++, it ++)
 			ret.push_back(*it);
 
 		return ret;
@@ -165,34 +165,34 @@ void LyricManager::CountLyric()
 	long long microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;	//sec:0, microsec:10
 																														//0				<-- m_LyricPos
 	if(m_Seconds == 0)																									//0   some song
-		m_LyricLine = m_CurrentLyric.GetIteratorAt(0);																	//0				
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);																	//0				
 	else																												//100 blah			
-		m_LyricLine = m_CurrentLyric.GetIteratorAt(int(m_Seconds * 100 + microsec));
-	if(m_CurrentLyric.IsEndOfLyric(m_LyricLine))
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(int(m_Seconds * 100 + microsec));
+	if(m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 	{
 		m_LyricLine --;
 		RedrawHandler(); //Point to last lyric
 		return;
 	}
 
-	if(!m_CurrentLyric.IsBeginOfLyric(m_LyricLine))
+	if(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
 	{
 		m_LyricLine --;
-		while(!m_CurrentLyric.IsBeginOfLyric(m_LyricLine) && m_LyricLine->time == 0) m_LyricLine --;//point to last visible line
-		while(!m_CurrentLyric.IsBeginOfLyric(m_LyricLine) && (m_LyricLine - 1)->time == m_LyricLine->time) m_LyricLine --;
+		while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && m_LyricLine->time == 0) m_LyricLine --;//point to last visible line
+		while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && (m_LyricLine - 1)->time == m_LyricLine->time) m_LyricLine --;
 	}
 	RedrawHandler();
 	try
 	{
-		while(!m_CurrentLyric.IsEndOfLyric(m_LyricLine))
+		while(!m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 		{
 			m_SecondLock.lock();
 
 			microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
 			std::vector<LyricLine>::const_iterator tempit = m_LyricLine;
-			while(!m_CurrentLyric.IsEndOfLyric(tempit) && (int)tempit->time - (m_Seconds * 100 + microsec) < 0) tempit ++;
-			while(!m_CurrentLyric.IsEndOfLyric(tempit) && tempit->time == 0) tempit ++;
-			if(m_CurrentLyric.IsEndOfLyric(tempit))
+			while(!m_CurrentLyric->IsEndOfLyric(tempit) && (int)tempit->time - (m_Seconds * 100 + microsec) < 0) tempit ++;
+			while(!m_CurrentLyric->IsEndOfLyric(tempit) && tempit->time == 0) tempit ++;
+			if(m_CurrentLyric->IsEndOfLyric(tempit))
 			{
 				m_SecondLock.unlock();
 				break;
@@ -216,7 +216,7 @@ void LyricManager::CountLyric()
 
 DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 {
-	m_CurrentLyric.Clear();
+	m_CurrentLyric->Clear();
 
 	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
 	if(boost::this_thread::interruption_requested())
@@ -226,7 +226,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	try
 	{
 		m_CurrentLyric = LyricSourceAlsong().Get(track);
-		m_LyricLine = m_CurrentLyric.GetIteratorAt(0);
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 	}
 	catch(std::exception e)
 	{
@@ -237,7 +237,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		return false;
 	RedrawHandler();
 
-	if(!m_CurrentLyric.HasLyric())
+	if(!m_CurrentLyric->HasLyric())
 	{
 		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
 		RedrawHandler();

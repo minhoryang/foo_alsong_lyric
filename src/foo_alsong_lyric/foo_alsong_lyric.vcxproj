@@ -135,6 +135,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LyricSearchResultAlsong.cpp" />
     <ClCompile Include="LyricSourceAlsong.cpp" />
     <ClCompile Include="UICanvas.cpp" />
     <ClCompile Include="UIElement.cpp" />
@@ -146,7 +147,6 @@
     <ClCompile Include="Lyric.cpp" />
     <ClCompile Include="LyricManager.cpp" />
     <ClCompile Include="AlsongLyricLinkDialog.cpp" />
-    <ClCompile Include="AlsongLyricSearch.cpp" />
     <ClCompile Include="md5.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -176,12 +176,14 @@
     <ClCompile Include="SoapHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AlsongLyric.h" />
+    <ClInclude Include="LyricSearchResult.h" />
+    <ClInclude Include="LyricSearchResultAlsong.h" />
     <ClInclude Include="LyricSource.h" />
     <ClInclude Include="LyricSourceAlsong.h" />
     <ClInclude Include="LRCLyric.h" />
     <ClInclude Include="UICanvas.h" />
     <ClInclude Include="UIElement.h" />
-    <ClInclude Include="AlsongLyric.h" />
     <ClInclude Include="UIPanel.h" />
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="UIWnd.h" />
@@ -189,7 +191,6 @@
     <ClInclude Include="Lyric.h" />
     <ClInclude Include="LyricManager.h" />
     <ClInclude Include="AlsongLyricLinkDialog.h" />
-    <ClInclude Include="AlsongLyricSearch.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="UIPreference.h" />
     <ClInclude Include="resource.h" />

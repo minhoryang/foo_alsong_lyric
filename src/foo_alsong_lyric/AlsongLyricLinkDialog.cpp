@@ -5,7 +5,6 @@
 #include "Lyric.h"
 #include "LyricManager.h"
 #include "AlsongLyric.h"
-#include "AlsongLyricSearch.h"
 #include "LyricSourceAlsong.h"
 
 AlsongLyricLinkDialog *g_LyricLinkDialog = NULL; //only one dialog
@@ -32,12 +31,13 @@ void AlsongLyricLinkDialog::OpenLyricLinkDialog(HWND hWndParent, const metadb_ha
 	g_LyricLinkDialog = NULL;
 }
 
-void AlsongLyricLinkDialog::PopulateListView(HWND hListView, AlsongLyricSearchResult &res)
+void AlsongLyricLinkDialog::PopulateListView()
 {
-	AlsongLyric lrc;
+	HWND hListView = GetDlgItem(m_hWnd, IDC_LYRICLIST);
+	Lyric &lrc = m_searchresult->Get();
 	int n = 0;
 	ListView_DeleteAllItems(hListView);
-	while((lrc = res.Get()), lrc.HasLyric())
+	do
 	{
 		std::wstring artist = pfc::stringcvt::string_wide_from_utf8(lrc.GetArtist().c_str()).get_ptr();
 		std::wstring title = pfc::stringcvt::string_wide_from_utf8(lrc.GetTitle().c_str()).get_ptr();
@@ -46,13 +46,13 @@ void AlsongLyricLinkDialog::PopulateListView(HWND hListView, AlsongLyricSearchRe
 		item.iItem = n ++;
 		item.iSubItem = 0;
 		item.pszText = const_cast<WCHAR *>(artist.c_str());
-		item.lParam = lrc.GetnInfo();
+		item.lParam = lrc.GetInternalID();
 		ListView_InsertItem(hListView, &item);
 		item.iSubItem = 1;
 		item.mask = LVIF_TEXT;
 		item.pszText = const_cast<WCHAR *>(title.c_str());
 		ListView_SetItem(hListView, &item);
-	}
+	}while((lrc = m_searchresult->Get()), lrc.HasLyric());
 }
 
 UINT CALLBACK AlsongLyricLinkDialog::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -120,7 +120,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 				litem.iItem = nSel;
 				litem.iSubItem = 0;
 				ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
-				AlsongLyric res = m_searchresult.Get((int)litem.lParam);
+				Lyric &res = m_searchresult->Get((int)litem.lParam);
 				std::string lyric = res.GetRawLyric();
 				boost::replace_all(lyric, "<br>", "\r\n");
 				uSetDlgItemText(m_hWnd, IDC_LYRIC, lyric.c_str());
@@ -150,12 +150,12 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					}
 
 					m_page = 0;
-					m_lyriccount = AlsongLyricSearch::SearchLyricGetCount(artist.toString(), title.toString());
+					m_lyriccount = LyricSourceAlsong().SearchLyricGetCount(artist.toString(), title.toString());
 					std::stringstream str;
 					str << m_page * 100 + 1 << "~" << min(m_lyriccount, (m_page + 1) * 100) << "/" << m_lyriccount;
 					uSetDlgItemText(m_hWnd, IDC_STATUS, str.str().c_str());
-					m_searchresult = AlsongLyricSearch::SearchLyric(artist.toString(), title.toString(), 0);
-					PopulateListView(GetDlgItem(m_hWnd, IDC_LYRICLIST), m_searchresult);
+					m_searchresult = LyricSourceAlsong().SearchLyric(artist.toString(), title.toString(), 0);
+					PopulateListView();
 					SetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
 					if(m_lyriccount > 100)
 						SetWindowLong(GetDlgItem(m_hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_NEXT), GWL_STYLE) & ~WS_DISABLED);
@@ -191,8 +191,8 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					std::stringstream str;
 					str << m_page * 100 + 1 << "~" << min(m_lyriccount, (m_page + 1) * 100) << "/" << m_lyriccount;
 					uSetDlgItemText(m_hWnd, IDC_STATUS, str.str().c_str());
-					m_searchresult = AlsongLyricSearch::SearchLyric(artist.toString(), title.toString(), 0);
-					PopulateListView(GetDlgItem(m_hWnd, IDC_LYRICLIST), m_searchresult);
+					m_searchresult = LyricSourceAlsong().SearchLyric(artist.toString(), title.toString(), 0);
+					PopulateListView();
 					if(m_page != 0)
 						SetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE) & ~WS_DISABLED);
 					else
@@ -215,8 +215,8 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					std::stringstream str;
 					str << m_page * 100 + 1 << "~" << min(m_lyriccount, (m_page + 1) * 100) << "/" << m_lyriccount;
 					uSetDlgItemText(m_hWnd, IDC_STATUS, str.str().c_str());
-					m_searchresult = AlsongLyricSearch::SearchLyric(artist.toString(), title.toString(), 0);
-					PopulateListView(GetDlgItem(m_hWnd, IDC_LYRICLIST), m_searchresult);
+					m_searchresult = LyricSourceAlsong().SearchLyric(artist.toString(), title.toString(), 0);
+					PopulateListView();
 
 					if(m_page != 0)
 						SetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE) & ~WS_DISABLED);
@@ -240,7 +240,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					litem.iItem = nSel;
 					litem.iSubItem = 0;
 					ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
-					if(LyricSourceAlsong().Save(m_track, m_searchresult.Get(litem.lParam)))
+					if(LyricSourceAlsong().Save(m_track, m_searchresult->Get(litem.lParam)))
 					{
 						MessageBox(m_hWnd, TEXT("등록 성공"), TEXT("안내"), MB_OK);
 

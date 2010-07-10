@@ -72,13 +72,13 @@
     <ClCompile Include="AlsongLyricLinkDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AlsongLyricSearch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UICanvas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LyricSourceAlsong.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LyricSearchResultAlsong.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,9 +113,6 @@
     <ClInclude Include="SoapHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AlsongLyric.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UIElement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -134,9 +131,6 @@
     <ClInclude Include="AlsongLyricLinkDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AlsongLyricSearch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UICanvas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -147,6 +141,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LyricSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricSearchResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricSearchResultAlsong.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlsongLyric.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

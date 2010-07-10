@@ -79,4 +79,6 @@ public:
 	}
 
 	int IsValidIterator(std::vector<LyricLine>::const_iterator) const;
+
+	virtual int GetInternalID() const = 0;
 };
