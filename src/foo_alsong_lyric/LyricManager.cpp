@@ -112,7 +112,7 @@ void LyricManager::on_playback_pause(bool p_state)
 
 std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 {
-	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
+	if(m_CurrentLyric && m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
@@ -133,7 +133,7 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 
 std::vector<LyricLine> LyricManager::GetLyric()
 {
-	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine))
+	if(m_CurrentLyric && m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		std::vector<LyricLine>::const_iterator it;
@@ -147,7 +147,7 @@ std::vector<LyricLine> LyricManager::GetLyric()
 
 std::vector<LyricLine> LyricManager::GetLyricAfter(int n)
 {
-	if(m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsEndOfLyric(m_LyricLine))
+	if(m_CurrentLyric && m_CurrentLyric->HasLyric() && m_CurrentLyric->IsValidIterator(m_LyricLine) && !m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 	{
 		std::vector<LyricLine> ret;
 		int cnt;
