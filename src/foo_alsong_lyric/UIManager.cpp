@@ -18,7 +18,15 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
-	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(TEXT("function Draw(canvas, lines) { local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor()); local h = 0; foreach(i,v in lines) {local sz = canvas.EstimateText(font, v); h += sz.height} local sz = canvas.GetCanvasSize(); canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2)); foreach(i, v in lines){ canvas.DrawText(font, v);}}"));
+	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(
+		TEXT("function Draw(canvas, lines) { ")
+		TEXT("local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor());")
+		TEXT("local h = 0; foreach(i,v in lines) {")
+		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}")
+		TEXT("local sz = canvas.GetCanvasSize();")
+		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());")
+		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2));")
+		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
