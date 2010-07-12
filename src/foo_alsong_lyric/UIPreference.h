@@ -65,7 +65,7 @@ public:
 	int OpenFgColorPopup(HWND hWndFrom)
 	{
 		COLORREF color;
-		if(color = OpenColorPopup(hWndFrom, fgColor) != -1)
+		if((color = OpenColorPopup(hWndFrom, fgColor)) != -1)
 		{
 			fgColor = color;
 			return color;
@@ -75,7 +75,7 @@ public:
 	int OpenBkColorPopup(HWND hWndFrom)
 	{
 		COLORREF color;
-		if(color = OpenColorPopup(hWndFrom, fgColor) != -1)
+		if((color = OpenColorPopup(hWndFrom, fgColor)) != -1)
 		{
 			bgType = BG_SOLIDCOLOR;
 			bkColor = color;

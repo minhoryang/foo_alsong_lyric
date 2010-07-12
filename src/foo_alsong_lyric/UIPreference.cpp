@@ -336,6 +336,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 			case IDC_BKCOLOR:
 				OpenBkColorPopup(hWnd);
+				InvalidateRect(GetDlgItem(hWnd, IDC_BKINDICATOR), NULL, TRUE);
 				break;
 			case IDC_FONTCHANGE:
 				OpenFontPopup(hWnd);
@@ -343,6 +344,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				break;
 			case IDC_FGCOLOR:
 				OpenFgColorPopup(hWnd);
+				InvalidateRect(GetDlgItem(hWnd, IDC_FGINDICATOR), NULL, TRUE);
 				break;
 			case IDC_BGIMAGE:
 				OpenBgImagePopup(hWnd);
