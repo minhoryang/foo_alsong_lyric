@@ -17,7 +17,8 @@ void UICanvas::RegisterCanvas()
 		func(&UICanvas::DrawText, TEXT("DrawText")).
 		func(&UICanvas::EstimateText, TEXT("EstimateText")).
 		func(&UICanvas::SetDrawTextOrigin, TEXT("SetDrawTextOrigin")).
-		func(&UICanvas::GetCanvasSize, TEXT("GetCanvasSize"));
+		func(&UICanvas::GetCanvasSize, TEXT("GetCanvasSize")).
+		func(&UICanvas::Fill, TEXT("Fill"));
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
@@ -34,6 +35,18 @@ void UICanvas::RegisterCanvas()
 		overloadConstructor<UIPoint(*)(int, int)>().
 		var(&UIPoint::x, TEXT("x")).
 		var(&UIPoint::y, TEXT("y"));
+}
+
+void UICanvas::Fill(int x, int y, int width, int height, COLORREF color)
+{
+	if(!m_hDC)
+		return;
+
+	RECT rt;
+	SetRect(&rt, x, y, width + x, height + y);
+	HBRUSH brush = CreateSolidBrush(color);
+	FillRect(m_hDC, &rt, brush);
+	DeleteObject(brush);
 }
 
 void UICanvas::DrawText(const UIFont &font, const SQChar *text)
