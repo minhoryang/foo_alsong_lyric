@@ -59,6 +59,7 @@ public:
 	UISize GetCanvasSize();
 	void SetDrawTextOrigin(const UIPoint &pt);
 	void Fill(int x, int y, int width, int height, COLORREF color);
+	void DrawImage(int x, int y, int width, int height, const SQChar *path);
 
 	static void RegisterCanvas();
 };

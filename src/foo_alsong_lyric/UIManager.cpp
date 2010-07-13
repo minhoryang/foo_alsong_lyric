@@ -24,14 +24,18 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("local h = 0; foreach(i,v in lines) {")
 		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}")
 		TEXT("local sz = canvas.GetCanvasSize();")
+		TEXT("if(WndSetting.GetBgType() == 0)")
 		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());")
+		TEXT("else canvas.DrawImage(0, 0, sz.width, sz.height, WndSetting.GetBackImage());")
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2));")
 		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
 		func(&UIPreference::GetBkColor, TEXT("GetBackColor")).
-		func(&UIPreference::GetFgColor, TEXT("GetFontColor"));
+		func(&UIPreference::GetFgColor, TEXT("GetFontColor")).
+		func(&UIPreference::GetBgImagePath, TEXT("GetBackImage")).
+		func(&UIPreference::GetBgType, TEXT("GetBgType"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 

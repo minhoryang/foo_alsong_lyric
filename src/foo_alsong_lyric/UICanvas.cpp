@@ -18,7 +18,8 @@ void UICanvas::RegisterCanvas()
 		func(&UICanvas::EstimateText, TEXT("EstimateText")).
 		func(&UICanvas::SetDrawTextOrigin, TEXT("SetDrawTextOrigin")).
 		func(&UICanvas::GetCanvasSize, TEXT("GetCanvasSize")).
-		func(&UICanvas::Fill, TEXT("Fill"));
+		func(&UICanvas::Fill, TEXT("Fill")).
+		func(&UICanvas::DrawImage, TEXT("DrawImage"));
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
@@ -35,6 +36,13 @@ void UICanvas::RegisterCanvas()
 		overloadConstructor<UIPoint(*)(int, int)>().
 		var(&UIPoint::x, TEXT("x")).
 		var(&UIPoint::y, TEXT("y"));
+}
+
+void UICanvas::DrawImage(int x, int y, int width, int height, const SQChar *path)
+{
+	Gdiplus::Bitmap bitmap(path);
+	Gdiplus::Graphics g(m_hDC);
+	g.DrawImage(&bitmap, x, y, width, height);
 }
 
 void UICanvas::Fill(int x, int y, int width, int height, COLORREF color)

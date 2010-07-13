@@ -34,13 +34,13 @@ public:
 	{
 		return fgColor;
 	}
-	std::wstring GetBgImagePath()
+	WCHAR *GetBgImagePath()
 	{
-		return std::wstring(bgImage);
+		return bgImage;
 	}
-	BgType GetBgType()
+	int GetBgType()
 	{
-		return bgType;
+		return (int)bgType;
 	}
 	unsigned int GetnLine()
 	{
@@ -50,13 +50,13 @@ public:
 	{
 		return LineMargin;
 	}
-	AlignPosition GetVerticalAlign()
+	int GetVerticalAlign()
 	{
-		return static_cast<AlignPosition>(VerticalAlign);
+		return VerticalAlign;
 	}
-	AlignPosition GetHorizentalAlign()
+	int GetHorizentalAlign()
 	{
-		return static_cast<AlignPosition>(HorizentalAlign);
+		return HorizentalAlign;
 	}
 	int OpenFontPopup(HWND hWndFrom)
 	{

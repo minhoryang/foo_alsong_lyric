@@ -310,7 +310,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
 			Gdiplus::Graphics g((HDC)hdc);
-			Gdiplus::Image im(GetBgImagePath().c_str());
+			Gdiplus::Image im(GetBgImagePath());
 
 			g.DrawImage(&im, 20, 270, 200, 120);
 			EndPaint(hWnd, &ps);
