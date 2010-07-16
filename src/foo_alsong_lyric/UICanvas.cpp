@@ -3,7 +3,7 @@
 
 UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 {
-	GetWindowRect(hWnd, &m_DrawRect);
+	GetClientRect(hWnd, &m_DrawRect);
 
 	//double buffer
 	m_hDC = CreateCompatibleDC(hdc);//TODO: move to canvas.
@@ -16,7 +16,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 UICanvas::~UICanvas()
 {
 	RECT rt;
-	GetWindowRect(m_hWnd, &rt);
+	GetClientRect(m_hWnd, &rt);
 	BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
 	DeleteObject(SelectObject(m_hDC, m_hOldBitmap));
 	DeleteDC(m_hDC);
@@ -117,7 +117,7 @@ void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
 UISize UICanvas::GetCanvasSize()
 {
 	RECT rt;
-	GetWindowRect(m_hWnd, &rt);
+	GetClientRect(m_hWnd, &rt);
 	return UISize(rt.right, rt.bottom);
 }
 
