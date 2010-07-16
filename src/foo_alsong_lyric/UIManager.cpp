@@ -19,16 +19,17 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelVM::RunScript(InitScript);
 
 	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(
-		TEXT("function Draw(canvas, lines) { ")
-		TEXT("local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor());")
-		TEXT("local h = 0; foreach(i,v in lines) {")
-		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}")
-		TEXT("local sz = canvas.GetCanvasSize();")
-		TEXT("if(WndSetting.GetBgType() == 0)")
-		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());")
-		TEXT("else canvas.DrawImage(0, 0, sz.width, sz.height, WndSetting.GetBackImage());")
-		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2));")
-		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}"));
+		TEXT("function Draw(canvas, lines) { \n")
+		TEXT("local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor());\n")
+		TEXT("local h = 0; foreach(i,v in lines) {\n")
+		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}\n")
+		TEXT("local sz = canvas.GetCanvasSize();\n")
+		TEXT("if(WndSetting.GetBgType() == 0)\n")
+		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());\n")
+		TEXT("else if(WndSetting.GetBgType() == 1) canvas.DrawImage(0, 0, sz.width, sz.height, WndSetting.GetBackImage());\n")
+		TEXT("else if(WndSetting.GetBgType() == 2) canvas.SetTransparent();\n")
+		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2));\n")
+		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}\n"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
@@ -101,23 +102,6 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	if(!lyric.size())
 		return;
 
-	RECT rt;
-	GetClientRect(hWnd, &rt);
-
-	//double buffer
-	HDC hMemDC = CreateCompatibleDC(hdc);
-	HBITMAP hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
-	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
-
-	FillRect(hMemDC, &rt, (HBRUSH)(COLOR_WINDOW + 1));
-
-	HWND wnd_parent = GetParent(hWnd);
-	POINT pt = {0, 0}, pt_old = {0,0};
-	MapWindowPoints(hWnd, wnd_parent, &pt, 1);
-	OffsetWindowOrgEx(hMemDC, pt.x, pt.y, &pt_old);
-	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hMemDC, 0);
-	SetWindowOrgEx(hMemDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
-
 	SquirrelVM::SetVMSys(m_vmSys);
 	SquirrelObject lyrics = SquirrelVM::CreateArray(0);
 
@@ -142,14 +126,8 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 
-	{
-		UICanvas canvas(hMemDC, &rt);
-		SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
-	}
-
-	BitBlt(hdc, 0, 0, rt.right, rt.bottom, hMemDC, 0, 0, SRCCOPY);
-	DeleteObject(SelectObject(hMemDC, hOldBitmap));
-	DeleteDC(hMemDC);
+	UICanvas canvas(hWnd, hdc);
+	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
 }
 
 void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
@@ -160,11 +138,6 @@ void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
 	scvsprintf(temp, s, vl);
 	console::formatter() << "foo_alsong_lyric: Squirrel print:" << pfc::stringcvt::string_utf8_from_wide(temp);
 	va_end(vl);
-}
-
-void UIManager::ShowConfig(HWND hWndParent)
-{
-
 }
 
 bool UIManager::on_keydown(WPARAM wParam) 
@@ -188,6 +161,11 @@ bool UIManager::on_keydown(WPARAM wParam)
 	}
 
 	return rv;
+}
+
+void UIManager::ShowConfig(HWND hWndParent)
+{
+	m_Setting->OpenConfigPopup(hWndParent);
 }
 
 void UIManager::on_contextmenu(HWND hWndFrom)
@@ -228,7 +206,7 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 			pt.x, pt.y, 0, hWndFrom, 0);
 
 		if(cmd == ID_SETTING)
-			m_Setting->OpenConfigPopup(hWndFrom);
+			ShowConfig(hWndFrom);
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
 

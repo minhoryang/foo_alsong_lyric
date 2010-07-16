@@ -1,15 +1,25 @@
 #include "stdafx.h"
 #include "UICanvas.h"
 
-UICanvas::UICanvas(HDC hdc, RECT *DrawRect) : m_hDC(hdc), m_TextPos(0, 0)
+UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 {
-	memcpy(&m_DrawRect, DrawRect, sizeof(RECT));
-	memcpy(&m_CanvasSize, DrawRect, sizeof(RECT));
+	GetWindowRect(hWnd, &m_DrawRect);
+
+	//double buffer
+	m_hDC = CreateCompatibleDC(hdc);//TODO: move to canvas.
+	HBITMAP hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
+	m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, hBitmap);
+
+	FillRect(m_hDC, &m_DrawRect, (HBRUSH)(COLOR_WINDOW + 1));
 }
 
 UICanvas::~UICanvas()
 {
-
+	RECT rt;
+	GetWindowRect(m_hWnd, &rt);
+	BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
+	DeleteObject(SelectObject(m_hDC, m_hOldBitmap));
+	DeleteDC(m_hDC);
 }
 
 void UICanvas::RegisterCanvas()
@@ -20,7 +30,8 @@ void UICanvas::RegisterCanvas()
 		func(&UICanvas::SetDrawTextOrigin, TEXT("SetDrawTextOrigin")).
 		func(&UICanvas::GetCanvasSize, TEXT("GetCanvasSize")).
 		func(&UICanvas::Fill, TEXT("Fill")).
-		func(&UICanvas::DrawImage, TEXT("DrawImage"));
+		func(&UICanvas::DrawImage, TEXT("DrawImage")).
+		func(&UICanvas::SetTransparent, TEXT("SetTransparent"));
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
@@ -58,6 +69,16 @@ void UICanvas::Fill(int x, int y, int width, int height, COLORREF color)
 	DeleteObject(brush);
 }
 
+void UICanvas::SetTransparent()
+{
+	HWND wnd_parent = GetParent(m_hWnd);
+	POINT pt = {0, 0}, pt_old = {0,0};
+	MapWindowPoints(m_hWnd, wnd_parent, &pt, 1);
+	OffsetWindowOrgEx(m_hDC, pt.x, pt.y, &pt_old);
+	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
+	SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
+}
+
 void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 {
 	if(!m_hDC)
@@ -72,13 +93,13 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	if(text[0] == 1)
 	{//bold
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
-		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX);
 		SelectObject(m_hDC, oldFont);
 	}
 	else
 	{
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK);
+		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX);
 		SelectObject(m_hDC, oldFont);
 	}
 	m_TextPos.y += height;
@@ -95,7 +116,9 @@ void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
 
 UISize UICanvas::GetCanvasSize()
 {
-	return UISize(m_CanvasSize.right, m_CanvasSize.bottom);
+	RECT rt;
+	GetWindowRect(m_hWnd, &rt);
+	return UISize(rt.right, rt.bottom);
 }
 
 UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
@@ -109,13 +132,13 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 	if(text[0] == 1)
 	{//bold
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
-		::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
+		::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT | DT_NOPREFIX);
 		SelectObject(m_hDC, oldFont);
 	}
 	else
 	{
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-		::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT);
+		::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT | DT_NOPREFIX);
 		SelectObject(m_hDC, oldFont);
 	}
 

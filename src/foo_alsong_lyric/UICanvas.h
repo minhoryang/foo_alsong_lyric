@@ -48,11 +48,13 @@ class UICanvas
 {
 private:
 	HDC m_hDC;
+	HDC m_destDC;
 	UIPoint m_TextPos;
 	RECT m_DrawRect;
-	RECT m_CanvasSize;
+	HBITMAP m_hOldBitmap;
+	HWND m_hWnd;
 public:
-	UICanvas::UICanvas(HDC hdc, RECT *DrawRect);
+	UICanvas::UICanvas(HWND hWnd, HDC hdc);
 	~UICanvas();
 
 	void DrawText(const UIFont &font, const SQChar *text);
@@ -61,6 +63,7 @@ public:
 	void SetDrawTextOrigin(const UIPoint &pt);
 	void Fill(int x, int y, int width, int height, COLORREF color);
 	void DrawImage(int x, int y, int width, int height, const SQChar *path);
+	void SetTransparent();
 
 	static void RegisterCanvas();
 };
