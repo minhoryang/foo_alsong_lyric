@@ -31,10 +31,14 @@ private:
 	bool m_Generated;
 	void Create(const TCHAR *fontfamily, int point);
 public:
-	UIFont(HFONT font);
+	UIFont();
+	UIFont(const UIFont &font);
+	UIFont(HFONT font, COLORREF color);
 	UIFont(const TCHAR *fontfamily, int point);
 	UIFont(const TCHAR *fontfamily, int point, COLORREF color);
 	~UIFont();
+
+	UIFont &operator =(const UIFont &font);
 
 	HFONT GethFont() const;
 	HFONT GetBoldFont() const;

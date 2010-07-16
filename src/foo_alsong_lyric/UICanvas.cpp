@@ -35,7 +35,9 @@ void UICanvas::RegisterCanvas()
 
 	SqPlus::SQClassDefNoConstructor<UIFont>(TEXT("UIFont")).
 		overloadConstructor<UIFont(*)(const TCHAR *, int)>().
-		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>();
+		overloadConstructor<UIFont(*)(const TCHAR *, int, COLORREF)>().
+		overloadConstructor<UIFont(*)(const UIFont &)>().
+		overloadConstructor<UIFont(*)()>();
 
 	SqPlus::SQClassDefNoConstructor<UISize>(TEXT("UISize")).
 		overloadConstructor<UISize(*)()>().
@@ -149,6 +151,10 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 	return sz;
 }
 
+UIFont::UIFont() : m_Color(0x00000000), m_BoldFont(NULL), m_Font(NULL), m_Generated(FALSE)
+{
+}
+
 UIFont::UIFont(const TCHAR *fontfamily, int point) : m_Color(0xFF000000)
 {
 	Create(fontfamily, point);
@@ -185,9 +191,21 @@ void UIFont::Create(const TCHAR *fontfamily, int point)
 	ReleaseDC(NULL, hdc);
 }
 
-UIFont::UIFont(HFONT font) : m_Font(font), m_Color(0xFF000000)
+UIFont::UIFont(HFONT font, COLORREF color) : m_Font(font), m_Color(color), m_Generated(true)
 {
-	m_Generated = false;
+	LOGFONT lf;
+	int ret = GetObject(font, sizeof(lf), &lf);
+	lf.lfWeight = FW_BOLD;
+	m_BoldFont = CreateFontIndirect(&lf);
+}
+
+UIFont::UIFont(const UIFont &font)
+{
+	m_Generated = font.m_Generated;
+	m_Font = font.m_Font;
+	m_Color = font.m_Color;
+	m_BoldFont = font.m_BoldFont;
+	const_cast<UIFont &>(font).m_Generated = false;
 }
 
 UIFont::~UIFont()
@@ -197,6 +215,17 @@ UIFont::~UIFont()
 		DeleteObject(m_Font);
 		DeleteObject(m_BoldFont);
 	}
+}
+
+UIFont &UIFont::operator =(const UIFont &font)
+{
+	m_Generated = font.m_Generated;
+	m_Font = font.m_Font;
+	m_Color = font.m_Color;
+	m_BoldFont = font.m_BoldFont;
+	const_cast<UIFont &>(font).m_Generated = false;
+
+	return *this;
 }
 
 COLORREF UIFont::GetColor() const

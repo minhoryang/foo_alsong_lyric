@@ -1,5 +1,7 @@
 #pragma once
 
+#include "UICanvas.h"
+
 class UIPreference
 {
 public:
@@ -25,6 +27,10 @@ public:
 	HFONT GetFont()
 	{
 		return font.create();
+	}
+	UIFont GetUIFont()
+	{
+		return UIFont(font.create(), GetFgColor());
 	}
 	COLORREF GetBkColor()
 	{

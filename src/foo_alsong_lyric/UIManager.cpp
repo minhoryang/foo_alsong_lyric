@@ -20,7 +20,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 
 	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(
 		TEXT("function Draw(canvas, lines) { \n")
-		TEXT("local font = UIFont(\"¸¼Àº °íµñ\", 10, WndSetting.GetFontColor());\n")
+		TEXT("local font = WndSetting.GetFont();\n")
 		TEXT("local h = 0; foreach(i,v in lines) {\n")
 		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}\n")
 		TEXT("local sz = canvas.GetCanvasSize();\n")
@@ -36,7 +36,8 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIPreference::GetBkColor, TEXT("GetBackColor")).
 		func(&UIPreference::GetFgColor, TEXT("GetFontColor")).
 		func(&UIPreference::GetBgImagePath, TEXT("GetBackImage")).
-		func(&UIPreference::GetBgType, TEXT("GetBgType"));
+		func(&UIPreference::GetBgType, TEXT("GetBgType")).
+		func(&UIPreference::GetUIFont, TEXT("GetFont"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 
