@@ -296,6 +296,13 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
 
 			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
+
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("색"));
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("그림"));
+			if(GetParent(hParent) != NULL)
+				SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("없음"));
+
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_SETCURSEL, GetBgType(), NULL);
 		}
 
 		break;
@@ -348,7 +355,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				break;
 			case IDC_BGIMAGE:
 				OpenBgImagePopup(hWnd);
-				InvalidateRect(GetDlgItem(hWnd, IDC_BGPICTURE), NULL, TRUE);
+				InvalidateRect(hWnd, NULL, TRUE);
 				break;
 			}
 		}
@@ -369,6 +376,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 			VerticalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
 			HorizentalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
+			bgType = static_cast<BgType>(SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_GETCURSEL, NULL, NULL));
 //			if(Setting->Script)
 //				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
