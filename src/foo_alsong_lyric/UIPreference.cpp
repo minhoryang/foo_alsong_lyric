@@ -211,7 +211,7 @@ void UpdateOuterWindowStyle(HWND hWnd)
 	//100%투명도 아닐경우에만 적용. 항상위 강제
 	if(cfg_outer_layered == true && cfg_outer_transparency != 100 && cfg_outer_nolayered == false)
 	{
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST);
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_LAYERED);
 		if(cfg_outer_shown)
 			SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 		else
