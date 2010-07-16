@@ -83,9 +83,11 @@ void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 		m_countthread->join();
 		m_countthread.reset();
 	}
-
-	m_CurrentLyric->Clear();
-	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
+	if(m_CurrentLyric)
+	{
+		m_CurrentLyric->Clear();
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
+	}
 	m_track.release();
 }
 
