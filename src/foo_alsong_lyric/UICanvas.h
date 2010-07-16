@@ -50,8 +50,9 @@ private:
 	HDC m_hDC;
 	UIPoint m_TextPos;
 	RECT m_DrawRect;
+	RECT m_CanvasSize;
 public:
-	UICanvas(HDC hdc);
+	UICanvas::UICanvas(HDC hdc, RECT *DrawRect);
 	~UICanvas();
 
 	void DrawText(const UIFont &font, const SQChar *text);

@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "UICanvas.h"
 
-UICanvas::UICanvas(HDC hdc) : m_hDC(hdc), m_TextPos(0, 0)
+UICanvas::UICanvas(HDC hdc, RECT *DrawRect) : m_hDC(hdc), m_TextPos(0, 0)
 {
-	GetClientRect(WindowFromDC(hdc), &m_DrawRect);
+	memcpy(&m_DrawRect, DrawRect, sizeof(RECT));
+	memcpy(&m_CanvasSize, DrawRect, sizeof(RECT));
 }
 
 UICanvas::~UICanvas()
@@ -94,9 +95,7 @@ void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
 
 UISize UICanvas::GetCanvasSize()
 {
-	RECT rt;
-	GetClientRect(WindowFromDC(m_hDC), &rt);
-	return UISize(rt.right, rt.bottom);
+	return UISize(m_CanvasSize.right, m_CanvasSize.bottom);
 }
 
 UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)

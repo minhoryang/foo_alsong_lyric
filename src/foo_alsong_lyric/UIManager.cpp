@@ -103,14 +103,20 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 
 	RECT rt;
 	GetClientRect(hWnd, &rt);
-	FillRect(hdc, &rt, (HBRUSH)(COLOR_WINDOW + 1));
+
+	//double buffer
+	HDC hMemDC = CreateCompatibleDC(hdc);
+	HBITMAP hBitmap = CreateCompatibleBitmap(hdc, rt.right, rt.bottom);
+	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemDC, hBitmap);
+
+	FillRect(hMemDC, &rt, (HBRUSH)(COLOR_WINDOW + 1));
 
 	HWND wnd_parent = GetParent(hWnd);
 	POINT pt = {0, 0}, pt_old = {0,0};
 	MapWindowPoints(hWnd, wnd_parent, &pt, 1);
-	OffsetWindowOrgEx(hdc, pt.x, pt.y, &pt_old);
-	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hdc, 0);
-	SetWindowOrgEx(hdc, pt_old.x, pt_old.y, 0); //notify parent to redraw background
+	OffsetWindowOrgEx(hMemDC, pt.x, pt.y, &pt_old);
+	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)hMemDC, 0);
+	SetWindowOrgEx(hMemDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
 
 	SquirrelVM::SetVMSys(m_vmSys);
 	SquirrelObject lyrics = SquirrelVM::CreateArray(0);
@@ -136,8 +142,14 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 
-	UICanvas canvas(hdc);
-	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
+	{
+		UICanvas canvas(hMemDC, &rt);
+		SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
+	}
+
+	BitBlt(hdc, 0, 0, rt.right, rt.bottom, hMemDC, 0, 0, SRCCOPY);
+	DeleteObject(SelectObject(hMemDC, hOldBitmap));
+	DeleteDC(hMemDC);
 }
 
 void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)
