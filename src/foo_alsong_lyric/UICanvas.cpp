@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "UICanvas.h"
 
-UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
+UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transparent(false)
 {
 	GetClientRect(hWnd, &m_DrawRect);
 
@@ -17,7 +17,21 @@ UICanvas::~UICanvas()
 {
 	RECT rt;
 	GetClientRect(m_hWnd, &rt);
-	BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
+
+	if(m_transparent && GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
+	{
+		BLENDFUNCTION blend = {0};
+		blend.BlendOp = AC_SRC_OVER;
+		blend.SourceConstantAlpha = 255;
+		blend.AlphaFormat = AC_SRC_ALPHA;
+		POINT ptPos = {0, 0};
+		SIZE sizeWnd = {rt.right, rt.bottom};
+		POINT ptSrc = {0, 0};
+		UpdateLayeredWindow(m_hWnd, m_destDC, &ptPos, &sizeWnd, m_hDC, &ptSrc, RGB(255, 255, 255), &blend, ULW_COLORKEY);
+	}
+	else
+		BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
+
 	DeleteObject(SelectObject(m_hDC, m_hOldBitmap));
 	DeleteDC(m_hDC);
 }
@@ -74,11 +88,15 @@ void UICanvas::Fill(int x, int y, int width, int height, COLORREF color)
 void UICanvas::SetTransparent()
 {
 	HWND wnd_parent = GetParent(m_hWnd);
-	POINT pt = {0, 0}, pt_old = {0,0};
-	MapWindowPoints(m_hWnd, wnd_parent, &pt, 1);
-	OffsetWindowOrgEx(m_hDC, pt.x, pt.y, &pt_old);
-	BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
-	SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
+	if(wnd_parent)
+	{
+		POINT pt = {0, 0}, pt_old = {0,0};
+		MapWindowPoints(m_hWnd, wnd_parent, &pt, 1);
+		OffsetWindowOrgEx(m_hDC, pt.x, pt.y, &pt_old);
+		BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
+		SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
+	}
+	m_transparent = true;
 }
 
 void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align)

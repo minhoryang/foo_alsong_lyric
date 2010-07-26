@@ -57,6 +57,7 @@ private:
 	RECT m_DrawRect;
 	HBITMAP m_hOldBitmap;
 	HWND m_hWnd;
+	bool m_transparent;
 public:
 	UICanvas::UICanvas(HWND hWnd, HDC hdc);
 	~UICanvas();

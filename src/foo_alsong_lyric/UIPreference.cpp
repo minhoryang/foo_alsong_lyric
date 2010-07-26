@@ -225,7 +225,10 @@ void UpdateOuterWindowStyle(HWND hWnd)
 		else
 			SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 	}
-	SetLayeredWindowAttributes(hWnd, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
+	if(cfg_outer.get_value().GetBgType() != UIPreference::BG_TRANSPARENT)
+		SetLayeredWindowAttributes(hWnd, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
+	else
+		SetLayeredWindowAttributes(hWnd, NULL, 255, LWA_COLORKEY);
 
 	InvalidateRect(hWnd, NULL, TRUE);
 }
@@ -299,8 +302,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("색"));
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("그림"));
-			if(GetParent(hParent) != NULL)
-				SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("없음"));
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("없음"));
 
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_SETCURSEL, GetBgType(), NULL);
 		}
