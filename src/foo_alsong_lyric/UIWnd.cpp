@@ -114,83 +114,8 @@ HWND UIWnd::Create()
 			InitPropVariantFromBoolean(true, &propvar);
 			m_Propstore->SetValue(PKEY_AppUserModel_PreventPinning, propvar); //not to pin
 		}
-		ICustomDestinationList *destlist = NULL;
-		CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
-		if(destlist) //main window list
-		{
-			UINT MinSlot;
-			IObjectArray *removed;
-			destlist->BeginList(&MinSlot, IID_IObjectArray, (void **)&removed);
-			IObjectCollection *tasks;
-			CoCreateInstance(CLSID_EnumerableObjectCollection, NULL, CLSCTX_INPROC_SERVER, IID_IObjectCollection, (void **)&tasks);
-			
-			//"c:\Program Files (x86)\foobar2000\foobar2000.exe" /command:"알송 실시간 가사"
-			IShellLink *link;
-			CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void **)&link);
-			wchar_t name[255];
-			GetModuleFileName(GetModuleHandle(L"foobar2000.exe"), name, 255);
-			link->SetPath(name);
-			link->SetArguments(L"/command:\"알송 실시간 가사\"");
-			
-			IPropertyStore *propstore;
-			link->QueryInterface(IID_IPropertyStore, (void **)&propstore);
-			PROPVARIANT pv;
-			InitPropVariantFromString(L"알송 실시간 가사", &pv);
-			propstore->SetValue(PKEY_Title, pv);
-			propstore->Commit();
-			propstore->Release();
-
-			tasks->AddObject(link);
-			IObjectArray *arr;
-			tasks->QueryInterface(IID_IObjectArray, (void **)&arr);
-			destlist->AddUserTasks(arr);
-			destlist->CommitList();
-			
-			destlist->Release();
-			tasks->Release();
-			arr->Release();
-			link->Release();
-			removed->Release();
-		}
-		destlist = NULL;
-		CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
-		if(destlist) //alsong window list
-		{
-			UINT MinSlot;
-			IObjectArray *removed;
-			destlist->SetAppID(appid);
-			destlist->BeginList(&MinSlot, IID_IObjectArray, (void **)&removed);
-			IObjectCollection *tasks;
-			CoCreateInstance(CLSID_EnumerableObjectCollection, NULL, CLSCTX_INPROC_SERVER, IID_IObjectCollection, (void **)&tasks);
-
-			//"c:\Program Files (x86)\foobar2000\foobar2000.exe" /command:"알송 실시간 가사"
-			IShellLink *link;
-			CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void **)&link);
-			wchar_t name[255];
-			GetModuleFileName(GetModuleHandle(L"foobar2000.exe"), name, 255);
-			link->SetPath(name);
-			link->SetArguments(L"/command:\"Alsong Lyric Window Config\"");
-
-			IPropertyStore *propstore;
-			link->QueryInterface(IID_IPropertyStore, (void **)&propstore);
-			PROPVARIANT pv;
-			InitPropVariantFromString(L"알송 실시간 가사 설정", &pv);
-			propstore->SetValue(PKEY_Title, pv);
-			propstore->Commit();
-			propstore->Release();
-
-			tasks->AddObject(link);
-			IObjectArray *arr;
-			tasks->QueryInterface(IID_IObjectArray, (void **)&arr);
-			destlist->AddUserTasks(arr);
-			destlist->CommitList();
-
-			destlist->Release();
-			tasks->Release();
-			arr->Release();
-			link->Release();
-			removed->Release();
-		}
+		AddTaskList(L"알송 실시간 가사", L"알송 실시간 가사 창", L"");
+		AddTaskList(L"Alsong Lyric Window Config", L"알송 실시간 가사 창 설정", appid);
 	}
 	SetLayeredWindowAttributes(m_hWnd, 0, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 	ShowWindow(m_hWnd, SW_HIDE);
@@ -198,6 +123,53 @@ HWND UIWnd::Create()
 	AppendMenu(hMenu, MF_STRING, 1000, TEXT("고급 설정..."));
 	
 	return m_hWnd;
+}
+
+int UIWnd::AddTaskList(std::wstring command, std::wstring display, std::wstring appid)
+{
+	ICustomDestinationList *destlist = NULL;
+	CoCreateInstance(CLSID_DestinationList, NULL, CLSCTX_INPROC_SERVER, IID_ICustomDestinationList, (void **)&destlist);
+	if(destlist) //main window list
+	{
+		UINT MinSlot;
+		IObjectArray *removed;
+		if(appid.size())
+			destlist->SetAppID(appid.c_str());
+		destlist->BeginList(&MinSlot, IID_IObjectArray, (void **)&removed);
+		IObjectCollection *tasks;
+		CoCreateInstance(CLSID_EnumerableObjectCollection, NULL, CLSCTX_INPROC_SERVER, IID_IObjectCollection, (void **)&tasks);
+
+		IShellLink *link;
+		CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void **)&link);
+		wchar_t name[255];
+		GetModuleFileName(GetModuleHandle(L"foobar2000.exe"), name, 255);
+		link->SetPath(name);
+		link->SetArguments((std::wstring(L"/command:\"") + command + L"\"").c_str());
+
+		IPropertyStore *propstore;
+		link->QueryInterface(IID_IPropertyStore, (void **)&propstore);
+		PROPVARIANT pv;
+		InitPropVariantFromString(display.c_str(), &pv);
+		propstore->SetValue(PKEY_Title, pv);
+		propstore->Commit();
+		propstore->Release();
+
+		tasks->AddObject(link);
+		IObjectArray *arr;
+		tasks->QueryInterface(IID_IObjectArray, (void **)&arr);
+		destlist->AddUserTasks(arr);
+		destlist->CommitList();
+
+		destlist->Release();
+		tasks->Release();
+		arr->Release();
+		link->Release();
+		removed->Release();
+		
+		return 1;
+	}
+
+	return 0;
 }
 
 void UIWnd::Destroy() 

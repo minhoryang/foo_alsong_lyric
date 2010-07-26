@@ -8,6 +8,7 @@ private:
 	HWND m_hWnd;
 	UIManager *m_UI;
 	IPropertyStore *m_Propstore;
+	int AddTaskList(std::wstring command, std::wstring display, std::wstring appid);
 public:
 	void Show();
 	void Hide();
