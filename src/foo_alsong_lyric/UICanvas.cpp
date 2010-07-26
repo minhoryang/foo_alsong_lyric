@@ -81,7 +81,7 @@ void UICanvas::SetTransparent()
 	SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
 }
 
-void UICanvas::DrawText(const UIFont &font, const SQChar *text)
+void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align)
 {
 	if(!m_hDC)
 		return;
@@ -92,16 +92,17 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text)
 	RECT DrawRect;
 	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
 	int height;
+	int alignopt = (align == 1 ? DT_LEFT : align == 2 ? DT_CENTER : DT_RIGHT);
 	if(text[0] == 1)
 	{//bold
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
-		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX);
+		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX | alignopt);
 		SelectObject(m_hDC, oldFont);
 	}
 	else
 	{
 		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX);
+		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX | alignopt);
 		SelectObject(m_hDC, oldFont);
 	}
 	m_TextPos.y += height;

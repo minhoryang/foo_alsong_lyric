@@ -33,7 +33,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("starty = (sz.height - h) / 2;\n")
 		TEXT("else if(WndSetting.GetVAlign() == 3) starty = sz.height - h;\n")
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
-		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}\n"));
+		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v, WndSetting.GetHAlign());}}\n"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
