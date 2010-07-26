@@ -28,7 +28,11 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());\n")
 		TEXT("else if(WndSetting.GetBgType() == 1) canvas.DrawImage(0, 0, sz.width, sz.height, WndSetting.GetBackImage());\n")
 		TEXT("else if(WndSetting.GetBgType() == 2) canvas.SetTransparent();\n")
-		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, (sz.height - h) / 2));\n")
+		TEXT("local starty = 0;\n")
+		TEXT("if(WndSetting.GetVAlign() == 2)\n")
+		TEXT("starty = (sz.height - h) / 2;\n")
+		TEXT("else if(WndSetting.GetVAlign() == 3) starty = sz.height - h;\n")
+		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
 		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v);}}\n"));
 	SquirrelVM::RunScript(DrawScript);
 
@@ -37,7 +41,9 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIPreference::GetFgColor, TEXT("GetFontColor")).
 		func(&UIPreference::GetBgImagePath, TEXT("GetBackImage")).
 		func(&UIPreference::GetBgType, TEXT("GetBgType")).
-		func(&UIPreference::GetUIFont, TEXT("GetFont"));
+		func(&UIPreference::GetUIFont, TEXT("GetFont")).
+		func(&UIPreference::GetHorizentalAlign, TEXT("GetHAlign")).
+		func(&UIPreference::GetVerticalAlign, TEXT("GetVAlign"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 
