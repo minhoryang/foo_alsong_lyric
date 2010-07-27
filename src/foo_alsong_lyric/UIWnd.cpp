@@ -86,11 +86,11 @@ HWND UIWnd::Create()
 	
 	m_hWnd = CreateWindowEx(
 		(cfg_outer_topmost ? WS_EX_TOPMOST : 0) | 
-		(cfg_outer_layered ? WS_EX_TRANSPARENT | WS_EX_TOPMOST : 0) | 
-		WS_EX_LAYERED,
+		(cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | 
+		(cfg_outer_nolayered ? 0 : WS_EX_LAYERED),
 		TEXT("UILyricWindow"),
 		TEXT("°¡»ç Ã¢"),
-		(cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX),
+		(cfg_outer_border || cfg_outer.get_value().GetBgType() == UIPreference::BG_TRANSPARENT ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX),
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		500, 200,
 		NULL,

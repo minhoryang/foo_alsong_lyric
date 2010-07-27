@@ -205,11 +205,11 @@ static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences
 
 void UpdateOuterWindowStyle(HWND hWnd)
 {
-	SetWindowLong(hWnd, GWL_STYLE, (cfg_outer_border ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
+	SetWindowLong(hWnd, GWL_STYLE, (cfg_outer_border || cfg_outer.get_value().GetBgType() == UIPreference::BG_TRANSPARENT ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
 	//TODO: 작업 표시줄, Alt+Tab에서 없애기
 
 	//100%투명도 아닐경우에만 적용. 항상위 강제
-	if(cfg_outer_layered == true && cfg_outer_transparency != 100 && cfg_outer_nolayered == false)
+	if(cfg_outer_layered == true && cfg_outer_transparency != 100)
 	{
 		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_LAYERED);
 		if(cfg_outer_shown)
@@ -219,7 +219,7 @@ void UpdateOuterWindowStyle(HWND hWnd)
 	}
 	else
 	{
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST) & (cfg_outer_nolayered ? ~WS_EX_LAYERED : 0xFFFFFFFF));
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT & (cfg_outer_topmost ? 0xFFFFFFFF : ~WS_EX_TOPMOST) & ~WS_EX_LAYERED);
 		if(cfg_outer_shown)
 			SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 		else
@@ -228,7 +228,10 @@ void UpdateOuterWindowStyle(HWND hWnd)
 	if(cfg_outer.get_value().GetBgType() != UIPreference::BG_TRANSPARENT)
 		SetLayeredWindowAttributes(hWnd, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 	else
-		SetLayeredWindowAttributes(hWnd, NULL, 255, LWA_COLORKEY);
+	{
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+	}
 
 	InvalidateRect(hWnd, NULL, TRUE);
 }

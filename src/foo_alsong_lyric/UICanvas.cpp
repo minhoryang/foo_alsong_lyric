@@ -10,7 +10,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transpar
 	HBITMAP hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
 	m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, hBitmap);
 
-	FillRect(m_hDC, &m_DrawRect, (HBRUSH)(COLOR_WINDOW + 1));
+	//FillRect(m_hDC, &m_DrawRect, (HBRUSH)(COLOR_WINDOW + 1));
 }
 
 UICanvas::~UICanvas()
@@ -24,10 +24,9 @@ UICanvas::~UICanvas()
 		blend.BlendOp = AC_SRC_OVER;
 		blend.SourceConstantAlpha = 255;
 		blend.AlphaFormat = AC_SRC_ALPHA;
-		POINT ptPos = {0, 0};
 		SIZE sizeWnd = {rt.right, rt.bottom};
 		POINT ptSrc = {0, 0};
-		UpdateLayeredWindow(m_hWnd, m_destDC, &ptPos, &sizeWnd, m_hDC, &ptSrc, RGB(255, 255, 255), &blend, ULW_COLORKEY);
+		UpdateLayeredWindow(m_hWnd, m_destDC, NULL, &sizeWnd, m_hDC, &ptSrc, NULL, &blend, ULW_ALPHA);
 	}
 	else
 		BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
@@ -95,6 +94,12 @@ void UICanvas::SetTransparent()
 		OffsetWindowOrgEx(m_hDC, pt.x, pt.y, &pt_old);
 		BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
 		SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
+	}
+	else
+	{
+		Gdiplus::Graphics g(m_hDC);
+		Gdiplus::SolidBrush brush(Gdiplus::Color(128, 255, 255, 255));
+		g.FillRectangle(&brush, 0, 0, m_DrawRect.right, m_DrawRect.bottom);
 	}
 	m_transparent = true;
 }
