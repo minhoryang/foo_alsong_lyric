@@ -58,6 +58,7 @@ private:
 	HBITMAP m_hOldBitmap;
 	HWND m_hWnd;
 	bool m_transparent;
+	int *m_bits;
 public:
 	UICanvas::UICanvas(HWND hWnd, HDC hdc);
 	~UICanvas();

@@ -7,7 +7,28 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transpar
 
 	//double buffer
 	m_hDC = CreateCompatibleDC(hdc);//TODO: move to canvas.
-	HBITMAP hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
+	HBITMAP hBitmap;
+	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
+	{
+		BITMAPINFO bmi;
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = m_DrawRect.right;
+		bmi.bmiHeader.biHeight = -m_DrawRect.bottom;
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB; 
+		bmi.bmiHeader.biSizeImage = 0;
+		bmi.bmiHeader.biXPelsPerMeter = 0;
+		bmi.bmiHeader.biYPelsPerMeter = 0;
+		bmi.bmiHeader.biClrUsed = 0;
+		bmi.bmiHeader.biClrImportant = 0;
+
+		hBitmap = CreateDIBSection(m_destDC, &bmi, DIB_RGB_COLORS, (void **)&m_bits, NULL, NULL);
+		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
+			m_bits[i] = 0xFFFFFFFF;
+	}
+	else
+		hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
 	m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, hBitmap);
 
 	//FillRect(m_hDC, &m_DrawRect, (HBRUSH)(COLOR_WINDOW + 1));
@@ -26,6 +47,13 @@ UICanvas::~UICanvas()
 		blend.AlphaFormat = AC_SRC_ALPHA;
 		SIZE sizeWnd = {rt.right, rt.bottom};
 		POINT ptSrc = {0, 0};
+
+		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
+			if(m_bits[i] != 0xFFFFFFFF)
+				m_bits[i] |= 0x80000000;
+			else
+				m_bits[i] = 0x00000000;
+
 		UpdateLayeredWindow(m_hWnd, m_destDC, NULL, &sizeWnd, m_hDC, &ptSrc, NULL, &blend, ULW_ALPHA);
 	}
 	else
@@ -94,12 +122,6 @@ void UICanvas::SetTransparent()
 		OffsetWindowOrgEx(m_hDC, pt.x, pt.y, &pt_old);
 		BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
 		SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
-	}
-	else
-	{
-		Gdiplus::Graphics g(m_hDC);
-		Gdiplus::SolidBrush brush(Gdiplus::Color(128, 255, 255, 255));
-		g.FillRectangle(&brush, 0, 0, m_DrawRect.right, m_DrawRect.bottom);
 	}
 	m_transparent = true;
 }
