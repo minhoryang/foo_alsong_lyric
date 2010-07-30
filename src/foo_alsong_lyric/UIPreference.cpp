@@ -248,7 +248,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETPOS32, 0, GetnLine());
 
-			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETRANGE32, 0, 100);
+			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETRANGE32, 0, 200);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_LINEMARGIN), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETPOS32, 0, GetLineMargin());
 

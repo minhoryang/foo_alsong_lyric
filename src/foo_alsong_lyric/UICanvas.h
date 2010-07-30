@@ -63,7 +63,7 @@ public:
 	UICanvas::UICanvas(HWND hWnd, HDC hdc);
 	~UICanvas();
 
-	void DrawText(const UIFont &font, const SQChar *text, int align);
+	void DrawText(const UIFont &font, const SQChar *text, int align, float heightratio);
 	UISize EstimateText(const UIFont &font, const SQChar *text);
 	UISize GetCanvasSize();
 	void SetDrawTextOrigin(const UIPoint &pt);

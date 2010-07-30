@@ -22,7 +22,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("function Draw(canvas, lines) { \n")
 		TEXT("local font = WndSetting.GetFont();\n")
 		TEXT("local h = 0; foreach(i,v in lines) {\n")
-		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height}\n")
+		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height *  WndSetting.GetLineMargin() / 100.0}\n")
 		TEXT("local sz = canvas.GetCanvasSize();\n")
 		TEXT("if(WndSetting.GetBgType() == 0)\n")
 		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());\n")
@@ -33,7 +33,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("starty = (sz.height - h) / 2;\n")
 		TEXT("else if(WndSetting.GetVAlign() == 3) starty = sz.height - h;\n")
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
-		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v, WndSetting.GetHAlign());}}\n"));
+		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);}}\n"));
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
@@ -43,7 +43,8 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIPreference::GetBgType, TEXT("GetBgType")).
 		func(&UIPreference::GetUIFont, TEXT("GetFont")).
 		func(&UIPreference::GetHorizentalAlign, TEXT("GetHAlign")).
-		func(&UIPreference::GetVerticalAlign, TEXT("GetVAlign"));
+		func(&UIPreference::GetVerticalAlign, TEXT("GetVAlign")).
+		func(&UIPreference::GetLineMargin, TEXT("GetLineMargin"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 

@@ -126,7 +126,7 @@ void UICanvas::SetTransparent()
 	m_transparent = true;
 }
 
-void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align)
+void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio)
 {
 	if(!m_hDC)
 		return;
@@ -150,7 +150,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align)
 		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX | alignopt);
 		SelectObject(m_hDC, oldFont);
 	}
-	m_TextPos.y += height;
+	m_TextPos.y += height * heightratio;
 
 	SetBkMode(m_hDC, oldMode);
 	SetTextColor(m_hDC, oldColor);
