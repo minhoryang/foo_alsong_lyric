@@ -4,6 +4,7 @@
 #include "Lyric.h"
 #include "AlsongLyric.h"
 #include "LyricSourceAlsong.h"
+#include "LyricSourceLRC.h"
 
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
@@ -13,6 +14,9 @@ LyricManager::LyricManager() : m_Seconds(0)
 {
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
+
+	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceAlsong()));
+	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceLRC()));
 }
 
 LyricManager::~LyricManager()
@@ -233,20 +237,23 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		return false;
 	RedrawHandler();
 
-	try
+	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
 	{
-		m_CurrentLyric = LyricSourceAlsong().Get(track);
-		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
+		try
+		{
+			m_CurrentLyric = (*it)->Get(track);
+			m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
+			if(boost::this_thread::interruption_requested())
+				return false;
+
+			if(m_CurrentLyric->HasLyric())
+				break;
+		}
+		catch(std::exception &e)
+		{
+			continue;
+		}
 	}
-	catch(std::exception e)
-	{
-		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중 예외 발생 : "))) + e.what();
-		return false;
-	}
-	
-	if(boost::this_thread::interruption_requested())
-		return false;
-	RedrawHandler();
 
 	if(!m_CurrentLyric->HasLyric())
 	{

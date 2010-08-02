@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lyric.h"
+#include "LyricSource.h"
 
 class LyricManager : public play_callback
 {
@@ -19,6 +20,7 @@ private:
 
 	void CountLyric();
 	DWORD FetchLyric(const metadb_handle_ptr &track);
+	std::vector<boost::shared_ptr<LyricSource> > m_lyricSources;
 public:
 	LyricManager();
 	~LyricManager();
