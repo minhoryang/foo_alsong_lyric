@@ -241,6 +241,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	catch(std::exception e)
 	{
 		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중 예외 발생 : "))) + e.what();
+		return false;
 	}
 	
 	if(boost::this_thread::interruption_requested())
