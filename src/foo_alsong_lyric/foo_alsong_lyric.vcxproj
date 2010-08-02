@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClCompile Include="LyricSearchResultAlsong.cpp" />
     <ClCompile Include="LyricSourceAlsong.cpp" />
+    <ClCompile Include="LyricSourceLRC.cpp" />
     <ClCompile Include="UICanvas.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="AlsongLyric.cpp" />
@@ -179,11 +180,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlsongLyric.h" />
+    <ClInclude Include="EncodingFunc.h" />
     <ClInclude Include="LyricSearchResult.h" />
     <ClInclude Include="LyricSearchResultAlsong.h" />
     <ClInclude Include="LyricSource.h" />
     <ClInclude Include="LyricSourceAlsong.h" />
     <ClInclude Include="LRCLyric.h" />
+    <ClInclude Include="LyricSourceLRC.h" />
     <ClInclude Include="UICanvas.h" />
     <ClInclude Include="UIElement.h" />
     <ClInclude Include="UIPanel.h" />

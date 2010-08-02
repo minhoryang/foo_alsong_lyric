@@ -81,6 +81,9 @@
     <ClCompile Include="LyricSearchResultAlsong.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LyricSourceLRC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigStore.h">
@@ -150,6 +153,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AlsongLyric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricSourceLRC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EncodingFunc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,6 +2,7 @@
 
 #include "pugixml/pugixml.hpp"
 #include <string>
+#include <vector>
 
 struct LyricLine
 {
