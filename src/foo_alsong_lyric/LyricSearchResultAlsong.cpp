@@ -9,22 +9,22 @@ LyricSearchResultAlsong::LyricSearchResultAlsong(boost::shared_ptr<pugi::xml_doc
 	m_LyricResultMap[-1] = AlsongLyric();
 }
 
-Lyric &LyricSearchResultAlsong::Get()
+Lyric *LyricSearchResultAlsong::Get()
 {
 	if(!m_LyricNode)
-		return m_LyricResultMap.find(-1)->second; //invalid item
+		return &m_LyricResultMap.find(-1)->second; //invalid item
 
 	AlsongLyric ret(m_LyricNode);
 	m_LyricNode = m_LyricNode.next_sibling("ST_GET_RESEMBLELYRIC2_RETURN");
 	m_LyricResultMap[ret.GetInternalID()] = ret;
 
-	return m_LyricResultMap.find(ret.GetInternalID())->second;
+	return dynamic_cast<Lyric *>(&m_LyricResultMap.find(ret.GetInternalID())->second);
 }
 
-Lyric &LyricSearchResultAlsong::Get(int id)
+Lyric *LyricSearchResultAlsong::Get(int id)
 {
 	if(m_LyricResultMap.find(id) != m_LyricResultMap.end())
-		return m_LyricResultMap.find(id)->second;
+		return dynamic_cast<Lyric *>(&m_LyricResultMap.find(id)->second);
 	else
-		return m_LyricResultMap.find(-1)->second;
+		return dynamic_cast<Lyric *>(&m_LyricResultMap.find(-1)->second);
 }

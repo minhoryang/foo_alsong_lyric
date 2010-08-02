@@ -34,25 +34,25 @@ void AlsongLyricLinkDialog::OpenLyricLinkDialog(HWND hWndParent, const metadb_ha
 void AlsongLyricLinkDialog::PopulateListView()
 {
 	HWND hListView = GetDlgItem(m_hWnd, IDC_LYRICLIST);
-	Lyric &lrc = m_searchresult->Get();
+	Lyric *lrc = m_searchresult->Get();
 	int n = 0;
 	ListView_DeleteAllItems(hListView);
 	do
 	{
-		std::wstring artist = pfc::stringcvt::string_wide_from_utf8(lrc.GetArtist().c_str()).get_ptr();
-		std::wstring title = pfc::stringcvt::string_wide_from_utf8(lrc.GetTitle().c_str()).get_ptr();
+		std::wstring artist = pfc::stringcvt::string_wide_from_utf8(lrc->GetArtist().c_str()).get_ptr();
+		std::wstring title = pfc::stringcvt::string_wide_from_utf8(lrc->GetTitle().c_str()).get_ptr();
 		LVITEM item;
 		item.mask = LVIF_TEXT | LVIF_PARAM;
 		item.iItem = n ++;
 		item.iSubItem = 0;
 		item.pszText = const_cast<WCHAR *>(artist.c_str());
-		item.lParam = lrc.GetInternalID();
+		item.lParam = lrc->GetInternalID();
 		ListView_InsertItem(hListView, &item);
 		item.iSubItem = 1;
 		item.mask = LVIF_TEXT;
 		item.pszText = const_cast<WCHAR *>(title.c_str());
 		ListView_SetItem(hListView, &item);
-	}while((lrc = m_searchresult->Get()), lrc.HasLyric());
+	}while((lrc = m_searchresult->Get()), lrc->HasLyric());
 }
 
 UINT CALLBACK AlsongLyricLinkDialog::LyricModifyDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -120,8 +120,8 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 				litem.iItem = nSel;
 				litem.iSubItem = 0;
 				ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
-				Lyric &res = m_searchresult->Get((int)litem.lParam);
-				std::string lyric = res.GetRawLyric();
+				Lyric *res = m_searchresult->Get((int)litem.lParam);
+				std::string lyric = res->GetRawLyric();
 				boost::replace_all(lyric, "<br>", "\r\n");
 				uSetDlgItemText(m_hWnd, IDC_LYRIC, lyric.c_str());
 			}
@@ -240,7 +240,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					litem.iItem = nSel;
 					litem.iSubItem = 0;
 					ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
-					if(LyricSourceAlsong().Save(m_track, m_searchresult->Get(litem.lParam)))
+					if(LyricSourceAlsong().Save(m_track, *m_searchresult->Get(litem.lParam)))
 					{
 						MessageBox(m_hWnd, TEXT("등록 성공"), TEXT("안내"), MB_OK);
 

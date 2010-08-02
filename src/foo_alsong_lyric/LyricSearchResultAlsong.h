@@ -11,6 +11,6 @@ private:
 	std::map<int, AlsongLyric> m_LyricResultMap;
 public:
 	LyricSearchResultAlsong(boost::shared_ptr<pugi::xml_document> data);
-	virtual Lyric &Get();
-	virtual Lyric &Get(int id);
+	virtual Lyric *Get();
+	virtual Lyric *Get(int id);
 };
