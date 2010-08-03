@@ -17,6 +17,7 @@ LyricManager::LyricManager() : m_Seconds(0)
 
 	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceAlsong()));
 	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceLRC()));
+	m_lyricSaveSources.push_back(m_lyricSources[1]);
 }
 
 LyricManager::~LyricManager()
@@ -260,6 +261,11 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
 		RedrawHandler();
 		return false;
+	}
+
+	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSaveSources.begin(); it != m_lyricSaveSources.end(); it ++)
+	{
+		(*it)->Save(track, *m_CurrentLyric.get());
 	}
 
 	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
