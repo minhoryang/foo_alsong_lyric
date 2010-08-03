@@ -66,7 +66,7 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	for(std::vector<LyricLine>::const_iterator it = lyric.GetIteratorAt(0); !lyric.IsEndOfLyric(it); it ++)
 	{
 		std::stringstream str;
-		str << "[" << std::setfill('0') << std::setw(2) << it->time / 60 / 100 << ":" << std::setw(2) << it->time / 100 << "." << std::setw(2) << it->time % 100 << "]" << it->lyric << "\r\n";
+		str << "[" << std::setfill('0') << std::setw(2) << it->time / 60 / 100 << ":" << std::setw(2) << it->time / 100 % 100 << "." << std::setw(2) << it->time % 100 << "]" << it->lyric << "\r\n";
 		WriteFile(hf, str.str().c_str(), str.str().size(), &unused, NULL);
 	}
 
