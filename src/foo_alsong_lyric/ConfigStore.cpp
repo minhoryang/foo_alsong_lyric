@@ -1,22 +1,6 @@
 #include "stdafx.h"
 #include "ConfigStore.h"
 
-const GUID guid_cfg_save_to_lrc = // {6F31D8AA-5B2D-484a-9C73-D729BC98459F}
-{ 0x6f31d8aa, 0x5b2d, 0x484a, { 0x9c, 0x73, 0xd7, 0x29, 0xbc, 0x98, 0x45, 0x9f } };
-cfg_bool cfg_save_to_lrc(guid_cfg_save_to_lrc, false);
-
-const GUID guid_cfg_lrc_save_path = // {8D462857-FEE7-4626-A03E-B5B2F072C442}
-{ 0x8d462857, 0xfee7, 0x4626, { 0xa0, 0x3e, 0xb5, 0xb2, 0xf0, 0x72, 0xc4, 0x42 } };
-cfg_string cfg_lrc_save_path(guid_cfg_lrc_save_path, "");
-
-const GUID guid_cfg_load_from_lrc = // {F9E8ECB2-B91D-4c6e-8328-BF1068052682}
-{ 0xf9e8ecb2, 0xb91d, 0x4c6e, { 0x83, 0x28, 0xbf, 0x10, 0x68, 0x5, 0x26, 0x82 } };
-cfg_bool cfg_load_from_lrc(guid_cfg_load_from_lrc, false);
-
-const GUID guid_cfg_mimic_lyricshow = // {D212F5F9-9E24-4ced-BF50-0258D07DBB0C}
-{ 0xd212f5f9, 0x9e24, 0x4ced, { 0xbf, 0x50, 0x2, 0x58, 0xd0, 0x7d, 0xbb, 0xc } };
-cfg_bool cfg_mimic_lyricshow(guid_cfg_mimic_lyricshow, false);
-
 const GUID guid_cfg_outer_shown = 
 { 0x44eefa62, 0x996e, 0x4480, { 0xaa, 0x72, 0x98, 0xef, 0xb6, 0xf0, 0xcd, 0xd2 } };
 cfg_bool cfg_outer_shown(guid_cfg_outer_shown, false);
@@ -53,6 +37,6 @@ const GUID guid_cfg_outer_nolayered = // {A49F5228-C65A-4DA3-A4F9-BE4BC8BF2417}
 { 0xa49f5228, 0xc65a, 0x4da3, { 0xa4, 0xf9, 0xbe, 0x4b, 0xc8, 0xbf, 0x24, 0x17 } };
 cfg_bool cfg_outer_nolayered(guid_cfg_outer_nolayered, false);
 
-const GUID guid_cfg_lyric_savetofile = // {8317D8A1-82E5-4F2F-80E2-77B3E98A370B}
-{ 0x8317d8a1, 0x82e5, 0x4f2f, { 0x80, 0xe2, 0x77, 0xb3, 0xe9, 0x8a, 0x37, 0xb } };
-cfg_bool cfg_lyric_savetofile(guid_cfg_lyric_savetofile, false);
+const GUID guid_cfg_enabledlyricsource = // {9F12B01E-0824-4C27-9792-CE81213AF873}
+{ 0x9f12b01e, 0x824, 0x4c27, { 0x97, 0x92, 0xce, 0x81, 0x21, 0x3a, 0xf8, 0x73 } };
+cfg_lyricsource_var cfg_enabledlyricsource(guid_cfg_enabledlyricsource);

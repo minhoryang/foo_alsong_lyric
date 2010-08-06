@@ -74,3 +74,5 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 
 	return 1;
 }
+
+LyricSourceFactory<LyricSourceLRC> LyricSourceLRCFactory;

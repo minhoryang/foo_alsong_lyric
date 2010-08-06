@@ -145,20 +145,11 @@ public:
 		switch (iMessage)
 		{
 		case WM_INITDIALOG:
-			CheckDlgButton(hWnd, IDC_SAVELRC, cfg_save_to_lrc);
-			CheckDlgButton(hWnd, IDC_LOADFROMLRC, cfg_load_from_lrc);
-			uSetDlgItemText(hWnd, IDC_LRCPATH, cfg_lrc_save_path);
-			CheckDlgButton(hWnd, IDC_MIMIC, cfg_mimic_lyricshow);
-			CheckDlgButton(hWnd, IDC_SAVETOFILE, cfg_lyric_savetofile);
 			break;
 
 		case WM_NOTIFY:
 			if(((LPNMHDR)lParam)->code == PSN_APPLY)
 			{
-				cfg_load_from_lrc = (IsDlgButtonChecked(hWnd, IDC_LOADFROMLRC) ? true : false);
-				cfg_save_to_lrc = (IsDlgButtonChecked(hWnd, IDC_SAVELRC) ? true : false);
-				cfg_lrc_save_path = uGetDlgItemText(hWnd, IDC_LRCPATH).get_ptr();
-				cfg_mimic_lyricshow = (IsDlgButtonChecked(hWnd, IDC_MIMIC) ? true : false);
 
 				SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 			}

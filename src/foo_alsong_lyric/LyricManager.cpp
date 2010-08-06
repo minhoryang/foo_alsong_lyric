@@ -18,6 +18,9 @@ LyricManager::LyricManager() : m_Seconds(0)
 	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceAlsong()));
 	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceLRC()));
 	m_lyricSaveSources.push_back(m_lyricSources[1]);
+	static const GUID guid_lrc = 
+	{ 0x544a02c2, 0xac0f, 0x434f, { 0x85, 0xe8, 0xa9, 0x42, 0x72, 0x68, 0xe7, 0x5b } };
+	LyricSourceManager::Get(guid_lrc);
 }
 
 LyricManager::~LyricManager()

@@ -54,15 +54,6 @@ IDD_COMMON_PREF DIALOGEX 0, 0, 316, 180
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "LRC 파일로 저장",IDC_SAVELRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,22,73,10
-    EDITTEXT        IDC_LRCPATH,71,34,156,14,ES_AUTOHSCROLL
-    LTEXT           "LRC 저장 위치",IDC_STATIC,21,36,50,8
-    LTEXT           "(저장 위치를 비워두면 곡과 같은 폴더에 저장됩니다)",IDC_STATIC,71,49,197,29
-    CONTROL         "LRC 파일이 있으면 읽기(알송 가사 무시)",IDC_LOADFROMLRC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,58,156,10
-    CONTROL         "Lyric Show 플러그인 대체(foo_uie_lyrics.dll을 지우고 사용하여야 합니다)",IDC_MIMIC,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,78,263,10
-    LTEXT           "기존에 Lyric Show를 사용하는 스킨에서 Lyric Show 대신에\n알송 가사창을 넣을 수 있는 기능입니다.\nfoo_uie_lyrics.dll을 지우지 않으면 문제가 발생할 수 있습니다. \nfoobar2000을 재시작해야 적용됩니다.",IDC_STATIC,32,90,221,32
-    CONTROL         "파일 자체에 저장",IDC_SAVETOFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,68,76,10
 END
 
 IDD_UI_PREF DIALOGEX 0, 0, 314, 273

@@ -17,4 +17,18 @@ public:
 	{
 		return boost::shared_ptr<LyricSearchResult>(); //no search
 	}
+
+	virtual std::string GetName()
+	{
+		return std::string("LRC Lyric");
+	}
+
+	virtual GUID GetGUID()
+	{
+		// {544A02C2-AC0F-434F-85E8-A9427268E75B}
+		static const GUID guid_lrc = 
+		{ 0x544a02c2, 0xac0f, 0x434f, { 0x85, 0xe8, 0xa9, 0x42, 0x72, 0x68, 0xe7, 0x5b } };
+
+		return guid_lrc;
+	}
 };
