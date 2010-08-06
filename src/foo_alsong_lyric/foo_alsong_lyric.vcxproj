@@ -210,35 +210,35 @@
     <ResourceCompile Include="foo_alsong_lyric.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\foobar2000\foobar2000\foobar2000_component_client\foobar2000_component_client.vcxproj">
+    <ProjectReference Include="..\..\sdk\foobar2000\foobar2000_component_client\foobar2000_component_client.vcxproj">
       <Project>{3d30ddba-7d7b-4a55-8acc-6118b3b1c654}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\foobar2000\foobar2000\helpers\foobar2000_sdk_helpers.vcxproj">
+    <ProjectReference Include="..\..\sdk\foobar2000\helpers\foobar2000_sdk_helpers.vcxproj">
       <Project>{ee47764e-a202-4f85-a767-abdab4aff35f}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\foobar2000\foobar2000\SDK\foobar2000_SDK.vcxproj">
+    <ProjectReference Include="..\..\sdk\foobar2000\SDK\foobar2000_SDK.vcxproj">
       <Project>{e8091321-d79d-4575-86ef-064ea1a4a20d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\foobar2000\foobar2000\vc\columns_ui-sdk.vcxproj">
+    <ProjectReference Include="..\..\sdk\foobar2000\vc\columns_ui-sdk.vcxproj">
       <Project>{93ec0ede-01cd-4fb0-b8e8-4f2a027e026e}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\foobar2000\pfc\pfc.vcxproj">
+    <ProjectReference Include="..\..\sdk\pfc\pfc.vcxproj">
       <Project>{ebfffb4e-261d-44d3-b89c-957b31a0bf9c}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Squirrel\projects\sqplus.vcxproj">
+    <ProjectReference Include="..\..\3rdparty\Squirrel\projects\sqplus.vcxproj">
       <Project>{f9811314-c694-49a4-bd87-ba2e7f30d358}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Squirrel\projects\sqstdlib.vcxproj">
+    <ProjectReference Include="..\..\3rdparty\Squirrel\projects\sqstdlib.vcxproj">
       <Project>{21ffcf49-0d09-41d3-8a04-f47a0890f27a}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Squirrel\projects\squirrel.vcxproj">
+    <ProjectReference Include="..\..\3rdparty\Squirrel\projects\squirrel.vcxproj">
       <Project>{d2eb28f5-6b67-4823-8051-b564ef852ced}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

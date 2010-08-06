@@ -31,10 +31,10 @@
 #define foreach BOOST_FOREACH
 #define reverse_foreach BOOST_REVERSE_FOREACH
 
-#include "../../foobar2000/foobar2000/SDK/foobar2000.h"
-#include "../../foobar2000/foobar2000/helpers/helpers.h"
-#include "../../foobar2000/foobar2000/columns_ui-sdk/ui_extension.h"
-#include "../../Squirrel/sqplus/sqplus.h"
+#include "../../sdk/foobar2000/SDK/foobar2000.h"
+#include "../../sdk/foobar2000/helpers/helpers.h"
+#include "../../sdk/foobar2000/columns_ui-sdk/ui_extension.h"
+#include "../../3rdparty/Squirrel/sqplus/sqplus.h"
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "shlwapi.lib")
@@ -44,7 +44,7 @@
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "comctl32.lib")
 
-#pragma comment(lib, "../../foobar2000/foobar2000/shared/shared.lib")
+#pragma comment(lib, "../../sdk/foobar2000/shared/shared.lib")
 
 using namespace Gdiplus;
 using namespace std;

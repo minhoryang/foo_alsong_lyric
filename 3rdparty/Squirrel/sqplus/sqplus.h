@@ -22,7 +22,7 @@
 #include <memory>
 #include <limits.h>  // For INT_MAX on GCC
 
-#include "squirrel.h"   // Include to get SQUNICODE setting from here
+#include "../include/squirrel.h"   // Include to get SQUNICODE setting from here
 #ifndef _SC
   #error No _SC macro  - Usually defined in squirrel.h
 #endif
