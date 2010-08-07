@@ -15,11 +15,6 @@ public:
 	virtual GUID GetGUID() = 0;
 };
 
-inline bool operator<( const GUID & lhs, const GUID & rhs ) //use guid as a key in map
-{
-	return ( memcmp( &lhs, &rhs, sizeof(GUID) ) > 0 ? true : false );
-}
-
 class LyricSourceManager
 {
 private:

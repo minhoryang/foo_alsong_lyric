@@ -40,4 +40,47 @@ public:
 	}
 };
 
+class cfg_lyricsorcecfg_var : public cfg_var
+{
+private:
+	std::map<GUID, std::map<std::string, std::string> > m_cfgmap; //guid, key, value
+public:
+	cfg_lyricsorcecfg_var(const GUID &guid) : cfg_var(guid) {}
+
+	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort)
+	{
+		p_stream->write_lendian_t(m_cfgmap.size(), p_abort);
+		for(std::map<GUID, std::map<std::string, std::string> >::iterator it = m_cfgmap.begin(); it != m_cfgmap.end(); it ++)
+		{
+			p_stream->write(&it->first, sizeof(GUID), p_abort);
+			p_stream->write_lendian_t(it->second.size(), p_abort);
+			for(std::map<std::string, std::string>::iterator iit = it->second.begin(); iit != it->second.end(); iit ++)
+			{
+				p_stream->write_string(iit->first.c_str(), p_abort);
+				p_stream->write_string(iit->second.c_str(), p_abort);
+			}
+		}
+	}
+
+	void set_data_raw(stream_reader * p_stream,t_size p_sizehint,abort_callback & p_abort)
+	{
+		int cnt;
+		p_stream->read_lendian_t(cnt, p_abort);
+		for(int i = 0; i < cnt; i ++)
+		{
+			GUID guid;
+			p_stream->read(&guid, sizeof(guid), p_abort);
+			int itemcnt;
+			p_stream->read_lendian_t(itemcnt, p_abort);
+			for(int j = 0; j < itemcnt; j ++)
+			{
+				pfc::string8 key, value;
+				p_stream->read_string(key, p_abort);
+				p_stream->read_string(value, p_abort);
+				m_cfgmap[guid][std::string(key.get_ptr())] = std::string(value.get_ptr());
+			}
+		}
+	}
+};
+
 extern cfg_lyricsource_var cfg_enabledlyricsource;

@@ -48,3 +48,8 @@
 
 using namespace Gdiplus;
 using namespace std;
+
+inline bool operator<( const GUID & lhs, const GUID & rhs ) //use guid as a key in map
+{
+	return ( memcmp( &lhs, &rhs, sizeof(GUID) ) > 0 ? true : false );
+}

@@ -336,3 +336,5 @@ int LyricSourceAlsong::SearchLyricGetCount(const std::string &Artist, const std:
 
 	return boost::lexical_cast<int>(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2CountResponse/GetResembleLyric2CountResult/strResembleLyricCount").child_value()); //TODO: Test
 }
+
+LyricSourceFactory<LyricSourceAlsong> LyricSourceAlsongFactory;
