@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "UICanvas.h"
+#include "ConfigStore.h"
 
 UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transparent(false)
 {
@@ -25,7 +26,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transpar
 
 		hBitmap = CreateDIBSection(m_destDC, &bmi, DIB_RGB_COLORS, (void **)&m_bits, NULL, NULL);
 		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
-			m_bits[i] = 0xFFFFFFFF;
+			m_bits[i] = 0x00000000;
 	}
 	else
 		hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
@@ -47,12 +48,6 @@ UICanvas::~UICanvas()
 		blend.AlphaFormat = AC_SRC_ALPHA;
 		SIZE sizeWnd = {rt.right, rt.bottom};
 		POINT ptSrc = {0, 0};
-
-		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
-			if(m_bits[i] != 0xFFFFFFFF)
-				m_bits[i] |= 0x80000000;
-			else
-				m_bits[i] = 0x00000000;
 
 		UpdateLayeredWindow(m_hWnd, m_destDC, NULL, &sizeWnd, m_hDC, &ptSrc, NULL, &blend, ULW_ALPHA);
 	}
@@ -130,30 +125,36 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 {
 	if(!m_hDC)
 		return;
+	
+	Graphics g(m_hDC);
+	g.SetSmoothingMode(SmoothingModeAntiAlias);
+	g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+	g.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-	COLORREF oldColor = SetTextColor(m_hDC, font.GetColor() & 0x00FFFFFF);
-	int oldMode = SetBkMode(m_hDC, TRANSPARENT);
+	SolidBrush brush(Gdiplus::Color(255, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
+	if(m_transparent && GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
+	{
+		g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
+		brush.SetColor(Gdiplus::Color((255 * cfg_outer_transparency) / 100, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
+	}
 
-	RECT DrawRect;
-	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
-	int height;
-	int alignopt = (align == 1 ? DT_LEFT : align == 2 ? DT_CENTER : DT_RIGHT);
+	StringFormat strformat;
+	RectF box;
+	strformat.SetAlignment(StringAlignmentCenter);
 	if(text[0] == 1)
-	{//bold
-		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
-		height = ::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX | alignopt);
-		SelectObject(m_hDC, oldFont);
+	{
+		Font gdipfont(m_hDC, font.GetBoldFont());
+		g.DrawString(text + 1, wcslen(text + 1), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
+		g.MeasureString(text + 1, wcslen(text + 1), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 	}
 	else
 	{
-		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-		height = ::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_NOPREFIX | alignopt);
-		SelectObject(m_hDC, oldFont);
+		Font gdipfont(m_hDC, font.GethFont());
+		g.DrawString(text, wcslen(text), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
+		g.MeasureString(text, wcslen(text), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 	}
-	m_TextPos.y += height * heightratio;
-
-	SetBkMode(m_hDC, oldMode);
-	SetTextColor(m_hDC, oldColor);
+	
+	m_TextPos.y += (int)(box.Height * heightratio);
 }
 
 void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
@@ -174,25 +175,26 @@ UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
 	if(!m_hDC)
 		return UISize(0, 0);
 
-	RECT DrawRect;
-	SetRect(&DrawRect, m_TextPos.x, m_TextPos.y, m_DrawRect.right, m_DrawRect.bottom);
+	Graphics g(m_hDC);
+	g.SetSmoothingMode(SmoothingModeAntiAlias);
+	g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 
+	RectF box;
+	StringFormat strformat;
 	if(text[0] == 1)
-	{//bold
-		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GetBoldFont());
-		::DrawText(m_hDC, text + 1, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT | DT_NOPREFIX);
-		SelectObject(m_hDC, oldFont);
+	{
+		Font gdipfont(m_hDC, font.GetBoldFont());
+		g.MeasureString(text + 1, wcslen(text + 1), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 	}
 	else
 	{
-		HFONT oldFont = (HFONT)SelectObject(m_hDC, font.GethFont());
-		::DrawText(m_hDC, text, -1, &DrawRect, DT_NOCLIP | DT_WORDBREAK | DT_CALCRECT | DT_NOPREFIX);
-		SelectObject(m_hDC, oldFont);
+		Font gdipfont(m_hDC, font.GethFont());
+		g.MeasureString(text, wcslen(text), &gdipfont, Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 	}
 
 	UISize sz;
-	sz.width = DrawRect.right - DrawRect.left;
-	sz.height = DrawRect.bottom - DrawRect.top;
+	sz.width = (int)box.Width;
+	sz.height = (int)box.Height;
 
 	return sz;
 }
