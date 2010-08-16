@@ -13,6 +13,17 @@ public:
 
 	virtual std::string GetName() = 0;
 	virtual GUID GetGUID() = 0;
+
+	virtual std::map<std::string, std::string> GetConfig() = 0;
+	virtual void SetConfig(const std::map<std::string, std::string> &setting) = 0;
+
+	enum ConfigItemType
+	{
+		ITEM_TYPE_STRING,
+		ITEM_TYPE_ENUM,
+	};
+
+	virtual std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > GetConfigItems(int type) = 0; //type 1:get, type 2:save
 };
 
 class LyricSourceManager

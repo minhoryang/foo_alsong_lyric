@@ -40,3 +40,7 @@ cfg_bool cfg_outer_nolayered(guid_cfg_outer_nolayered, false);
 const GUID guid_cfg_enabledlyricsource = // {9F12B01E-0824-4C27-9792-CE81213AF873}
 { 0x9f12b01e, 0x824, 0x4c27, { 0x97, 0x92, 0xce, 0x81, 0x21, 0x3a, 0xf8, 0x73 } };
 cfg_lyricsource_var cfg_enabledlyricsource(guid_cfg_enabledlyricsource);
+
+const GUID guid_cfg_lyricsourcecfg= // {D3BF60D1-633A-40D9-A9AC-68F21214AD96}
+{ 0xd3bf60d1, 0x633a, 0x40d9, { 0xa9, 0xac, 0x68, 0xf2, 0x12, 0x14, 0xad, 0x96 } };
+cfg_lyricsourcecfg_var cfg_lyricsourcecfg(guid_cfg_lyricsourcecfg);

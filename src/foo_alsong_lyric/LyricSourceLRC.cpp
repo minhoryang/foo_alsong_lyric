@@ -75,4 +75,12 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	return 1;
 }
 
+std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > LyricSourceLRC::GetConfigItems(int type)
+{
+	std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > ret;
+	ret["lrcsavepath"] = std::make_pair(ITEM_TYPE_STRING, std::vector<std::string>(1, EncodingFunc::ToUTF8(L"LRC 저장 위치")));
+
+	return ret;
+}
+
 LyricSourceFactory<LyricSourceLRC> LyricSourceLRCFactory;

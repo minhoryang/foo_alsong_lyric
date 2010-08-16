@@ -8,6 +8,8 @@
 #define IDD_UI_PREF_COMMON              102
 #define IDD_LYRIC_MODIFY                103
 #define IDD_PREF                        105
+#define IDD_LYRICSOURCE_ADD             106
+#define IDD_LYRICSOURCECFG              107
 #define IDC_TAB1                        1001
 #define IDC_TRANSPARENCY_LABEL          1001
 #define IDC_CHECK1                      1002
@@ -35,6 +37,7 @@
 #define IDC_NEXT                        1033
 #define IDC_PANELSET                    1033
 #define IDC_FONTCHANGE                  1033
+#define IDC_LYRICSOURCE_ADD             1033
 #define IDC_PREV                        1034
 #define IDC_STATUS                      1035
 #define IDC_LRCPATH                     1036
@@ -46,6 +49,8 @@
 #define IDC_OUTERSET                    1040
 #define IDC_NEWLYRIC                    1040
 #define IDC_FGCOLOR                     1040
+#define IDC_LYRICSOURCE_DOWN            1040
+#define IDC_LYRICSOURCECFG_OK           1040
 #define IDC_OUTERNOTIFY_STATIC          1042
 #define IDC_UISCRIPT                    1043
 #define IDC_VERTICALALIGN               1044
@@ -62,14 +67,20 @@
 #define IDC_BGTYPE                      1057
 #define IDC_CHECK4                      1058
 #define IDC_TOPMOST                     1058
+#define IDC_LYRICSOURCELIST             1059
+#define IDC_LYRICSOURCE_UP              1060
+#define IDC_LYRICSOURCE_CONFIG          1061
+#define IDC_LYRICSOURCES                1062
+#define IDC_BUTTON1                     1064
+#define IDC_LYRICSOURCECFG_CANCEL       1064
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
+#define _APS_NEXT_RESOURCE_VALUE        108
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1059
+#define _APS_NEXT_CONTROL_VALUE         1065
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

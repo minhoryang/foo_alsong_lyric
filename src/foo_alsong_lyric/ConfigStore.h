@@ -21,6 +21,16 @@ private:
 public:
 	cfg_lyricsource_var(const GUID &guid) : cfg_var(guid) {}
 
+	void add(const GUID &guid)
+	{
+		m_reallist.push_back(guid);
+	}
+
+	std::vector<GUID> get_value()
+	{
+		return m_reallist;
+	}
+
 	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort)
 	{
 		for(std::vector<GUID>::iterator it = m_reallist.begin(); it != m_reallist.end(); it ++)
@@ -40,12 +50,22 @@ public:
 	}
 };
 
-class cfg_lyricsorcecfg_var : public cfg_var
+class cfg_lyricsourcecfg_var : public cfg_var
 {
 private:
 	std::map<GUID, std::map<std::string, std::string> > m_cfgmap; //guid, key, value
 public:
-	cfg_lyricsorcecfg_var(const GUID &guid) : cfg_var(guid) {}
+	cfg_lyricsourcecfg_var(const GUID &guid) : cfg_var(guid) {}
+
+	std::map<std::string, std::string> get_value(const GUID &guid)
+	{
+		return m_cfgmap[guid];
+	}
+
+	void set_value(const GUID &guid, const std::map<std::string, std::string> &value)
+	{
+		m_cfgmap[guid] = value;
+	}
 
 	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort)
 	{
@@ -82,5 +102,5 @@ public:
 		}
 	}
 };
-
+extern cfg_lyricsourcecfg_var cfg_lyricsourcecfg;
 extern cfg_lyricsource_var cfg_enabledlyricsource;

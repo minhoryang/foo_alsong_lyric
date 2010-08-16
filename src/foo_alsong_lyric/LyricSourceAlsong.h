@@ -6,6 +6,7 @@ class LyricSourceAlsong : public LyricSource
 {
 private:
 	DWORD GetFileHash(const metadb_handle_ptr &track, CHAR *Hash);
+	std::map<std::string, std::string> m_config;
 public:
 	virtual boost::shared_ptr<Lyric> Get(const metadb_handle_ptr &track);
 	virtual DWORD Save(const metadb_handle_ptr &track, Lyric &lyric);
@@ -25,4 +26,17 @@ public:
 
 		return guid_alsong;
 	}
+
+
+	virtual std::map<std::string, std::string> GetConfig()
+	{
+		return m_config;
+	}
+
+	virtual void SetConfig(const std::map<std::string, std::string> &setting)
+	{
+		m_config = setting;
+	}
+
+	virtual std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > GetConfigItems(int type);
 };

@@ -5,6 +5,7 @@
 #include "AlsongLyric.h"
 #include "LyricSourceAlsong.h"
 #include "LyricSourceLRC.h"
+#include "ConfigStore.h"
 
 //TODO: USLT 태그(4바이트 타임스탬프, 1바이트 길이, 문자열(유니코드), 0x08 순으로 들어있음)
 
@@ -15,12 +16,17 @@ LyricManager::LyricManager() : m_Seconds(0)
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
 
-	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceAlsong()));
-	m_lyricSources.push_back(boost::shared_ptr<LyricSource>(new LyricSourceLRC()));
-	m_lyricSaveSources.push_back(m_lyricSources[1]);
-	static const GUID guid_lrc = 
-	{ 0x544a02c2, 0xac0f, 0x434f, { 0x85, 0xe8, 0xa9, 0x42, 0x72, 0x68, 0xe7, 0x5b } };
-	LyricSourceManager::Get(guid_lrc);
+	// Initialize lyric source
+	std::vector<GUID> enabledsources = cfg_enabledlyricsource.get_value();
+	for(std::vector<GUID>::iterator it = enabledsources.begin(); it != enabledsources.end(); it ++)
+	{
+		boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+		if(src)
+		{
+			src->SetConfig(cfg_lyricsourcecfg.get_value(*it));
+			m_lyricSources.push_back(src);
+		}
+	}
 }
 
 LyricManager::~LyricManager()
@@ -39,6 +45,12 @@ LyricManager::~LyricManager()
 	}
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->unregister_callback(this);
+
+	//save lyric source config
+	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
+	{
+		cfg_lyricsourcecfg.set_value((*it)->GetGUID(), (*it)->GetConfig());
+	}
 }
 
 void LyricManager::on_playback_seek(double p_time)

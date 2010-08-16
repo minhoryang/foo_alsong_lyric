@@ -3,6 +3,8 @@
 #include "resource.h"
 #include "UIPreference.h"
 #include "UIWnd.h"
+#include "LyricSource.h"
+#include "EncodingFunc.h"
 
 static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -140,13 +142,178 @@ public:
 		return FALSE;
 	}
 
+	static BOOL CALLBACK LyricSourceAddProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		switch(iMessage)
+		{
+		case WM_INITDIALOG:
+			{
+				std::vector<boost::shared_ptr<LyricSource> > list = LyricSourceManager::List();
+				for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = list.begin(); it != list.end(); it ++)
+				{
+					int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16((*it)->GetName()).c_str());
+					SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_SETITEMDATA, idx, (LPARAM)(*it).get());
+				}
+			}
+			return TRUE;
+		case WM_COMMAND:
+			{
+				if(HIWORD(wParam) == BN_CLICKED)
+				{
+					switch(LOWORD(wParam))
+					{
+					case IDC_LYRICSOURCE_ADD:
+						{
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_GETCURSEL, NULL, NULL);
+							if(idx == CB_ERR)
+							{
+								MessageBox(hWnd, TEXT("선택 없음"), TEXT("Error"), MB_OK);
+								return TRUE;
+							}
+							EndDialog(hWnd, SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_GETITEMDATA, idx, NULL));
+							return TRUE;
+						}
+					}
+				}
+			}
+			break;
+		case WM_CLOSE:
+			EndDialog(hWnd, 0);
+			break;
+		}
+		return FALSE;
+	}
+
+	static BOOL CALLBACK LyricSourceConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		static LyricSource *src;
+		static int type;
+		static HFONT font;
+		switch(iMessage)
+		{
+		case WM_INITDIALOG:
+			{
+				src = (LyricSource *)((std::pair<LyricSource *, int> *)lParam)->first;
+				type = ((std::pair<LyricSource *, int> *)lParam)->second;
+
+				//init font
+				NONCLIENTMETRICS ncm;
+				ncm.cbSize = sizeof(ncm);
+				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), (PVOID)&ncm, NULL);
+				font = CreateFontIndirect(&ncm.lfMessageFont);
+
+				std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > item = src->GetConfigItems(type);
+				std::map<std::string, std::string> configitem = src->GetConfig();
+				int cnt = 0;
+				for(std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > >::iterator it = item.begin(); it != item.end(); it ++)
+				{
+					switch(it->second.first)
+					{
+					case LyricSource::ITEM_TYPE_STRING:
+						{
+							HWND hStatic = CreateWindowEx(NULL, L"static", EncodingFunc::ToUTF16(it->second.second[0]).c_str(), WS_CHILD | WS_VISIBLE, 0, cnt * 30, 100, 25, hWnd, NULL, NULL, NULL);
+							HWND hEdit = CreateWindowEx(NULL, L"edit", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 100, cnt * 30, 500, 25, hWnd, (HMENU)(cnt + 1), NULL, NULL);
+							SendMessage(hStatic, WM_SETFONT, (WPARAM)font, TRUE);
+							SendMessage(hEdit, WM_SETFONT, (WPARAM)font, TRUE);
+							SendMessage(hEdit, WM_SETTEXT, NULL, (LPARAM)EncodingFunc::ToUTF16(configitem[it->first]).c_str());
+							cnt ++;
+						}
+						break;
+					}
+				}
+				return TRUE;
+			}
+			break;
+		case WM_COMMAND:
+			{
+				if(HIWORD(wParam) == BN_CLICKED)
+				{
+					switch(LOWORD(wParam))
+					{
+					case IDC_LYRICSOURCECFG_OK:
+						{
+							std::map<std::string, std::string> configitem = src->GetConfig();
+							std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > item = src->GetConfigItems(type);
+							int cnt = 0;
+							for(std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > >::iterator it = item.begin(); it != item.end(); it ++)
+							{
+								switch(it->second.first)
+								{
+								case LyricSource::ITEM_TYPE_STRING:
+									configitem[it->first] = uGetDlgItemText(hWnd, cnt + 1).get_ptr();
+									break;
+								}
+								cnt ++;
+							}
+							src->SetConfig(configitem);
+						}
+						EndDialog(hWnd, 0);
+						break;
+					case IDC_LYRICSOURCECFG_CANCEL:
+						EndDialog(hWnd, 1);
+						break;
+					}
+				}
+				return TRUE;
+			}
+			break;
+		case WM_DESTROY:
+			DeleteObject(font);
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+	static void OpenLyricSourceConfig(HWND parent, LyricSource *source)
+	{
+		DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCECFG), parent, LyricSourceConfigProc, (LPARAM)&std::make_pair(source, 1));
+	}
+
 	static BOOL CALLBACK CommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		switch (iMessage)
 		{
 		case WM_INITDIALOG:
-			break;
-
+			{
+				std::vector<GUID> enabledsources = cfg_enabledlyricsource.get_value();
+				for(std::vector<GUID>::iterator it = enabledsources.begin(); it != enabledsources.end(); it ++)
+				{
+					boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+					int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(src->GetName()).c_str());
+					SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)src.get());
+				}
+			}
+			return TRUE;
+		case WM_COMMAND:
+			{
+				if(HIWORD(wParam) == BN_CLICKED)
+				{
+					switch(LOWORD(wParam))
+					{
+					case IDC_LYRICSOURCE_ADD:
+						{
+							LyricSource *res = (LyricSource *)DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCE_ADD), hWnd, &preferences_page_instance_alsong_lyric::LyricSourceAddProc);
+							if(res)
+							{
+								cfg_enabledlyricsource.add(res->GetGUID());
+								int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(res->GetName()).c_str());
+								SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)res);
+								OpenLyricSourceConfig(hWnd, res);
+							}
+						}
+						break;
+					case IDC_LYRICSOURCE_CONFIG:
+						{
+							LyricSource *res;
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
+							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
+							OpenLyricSourceConfig(hWnd, res);
+							break;
+						}
+					}
+				}
+			}
+			return TRUE;
 		case WM_NOTIFY:
 			if(((LPNMHDR)lParam)->code == PSN_APPLY)
 			{
@@ -157,11 +324,9 @@ public:
 			{
 				SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
 			}
-			break;
-		default:
-			return FALSE;
+			return TRUE;
 		}
-		return TRUE;
+		return FALSE;
 	}
 };
 
