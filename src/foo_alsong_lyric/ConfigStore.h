@@ -31,6 +31,8 @@ extern cfg_struct_t<UIPreference> cfg_outer;
 
 extern cfg_bool cfg_outer_nolayered;
 
+extern cfg_bool cfg_skipempty;
+
 class cfg_lyricsource_var : public cfg_var
 {
 private:

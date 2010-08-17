@@ -172,7 +172,8 @@ std::vector<LyricLine> LyricManager::GetLyricBefore(int n)
 		std::vector<LyricLine>::const_iterator it = m_LyricLine - 1;
 		for(cnt = 0; (cnt < n); cnt ++, it --)
 		{
-			ret.push_back(*it);
+			if((cfg_skipempty && it->lyric.size() != 0) || !cfg_skipempty)
+				ret.push_back(*it);
 			if(m_CurrentLyric->IsBeginOfLyric(it))
 				break;
 		}
@@ -191,7 +192,8 @@ std::vector<LyricLine> LyricManager::GetLyric()
 		std::vector<LyricLine> ret;
 		std::vector<LyricLine>::const_iterator it;
 		for(it = m_LyricLine; !m_CurrentLyric->IsEndOfLyric(it) && it->time == m_LyricLine->time; it ++)
-			ret.push_back(*it);
+			if((cfg_skipempty && it->lyric.size() != 0) || !cfg_skipempty)
+				ret.push_back(*it);
 
 		return ret;
 	}
@@ -206,7 +208,8 @@ std::vector<LyricLine> LyricManager::GetLyricAfter(int n)
 		int cnt;
 		std::vector<LyricLine>::const_iterator it;
 		for(it = m_LyricLine + 1, cnt = 0; (cnt < n) && !m_CurrentLyric->IsEndOfLyric(it); cnt ++, it ++)
-			ret.push_back(*it);
+			if((cfg_skipempty && it->lyric.size() != 0) || !cfg_skipempty)
+				ret.push_back(*it);
 
 		return ret;
 	}

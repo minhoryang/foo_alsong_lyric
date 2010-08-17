@@ -302,6 +302,7 @@ public:
 					int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(src->GetName()).c_str());
 					SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)src.get());
 				}
+				CheckDlgButton(hWnd, IDC_SKIPEMPTY, cfg_skipempty);
 			}
 			return TRUE;
 		case WM_COMMAND:
@@ -337,7 +338,7 @@ public:
 		case WM_NOTIFY:
 			if(((LPNMHDR)lParam)->code == PSN_APPLY)
 			{
-
+				cfg_skipempty = (IsDlgButtonChecked(hWnd, IDC_SKIPEMPTY) ? true : false);
 				SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 			}
 			else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
