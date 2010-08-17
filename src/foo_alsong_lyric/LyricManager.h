@@ -54,6 +54,8 @@ public:
 	std::vector<LyricLine> GetLyric(); //현재 표시할 가사 보여주기
 	std::vector<LyricLine> GetLyricAfter(int n); //다음가사. n:줄
 
+	void UpdateConfig();
+
 	// play_callback methods (the ones we're interested in)
 	virtual void on_playback_seek(double p_time);
 	virtual void on_playback_new_track(metadb_handle_ptr p_track);

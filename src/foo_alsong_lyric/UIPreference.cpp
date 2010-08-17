@@ -22,6 +22,7 @@
 #include "UIWnd.h"
 #include "LyricSource.h"
 #include "EncodingFunc.h"
+#include "LyricManager.h"
 
 static BOOL CALLBACK UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK ConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -263,6 +264,7 @@ public:
 								cnt ++;
 							}
 							src->SetConfig(configitem);
+							cfg_lyricsourcecfg.set_value(src->GetGUID(), src->GetConfig());
 						}
 						EndDialog(hWnd, 0);
 						break;
@@ -284,6 +286,7 @@ public:
 	static void OpenLyricSourceConfig(HWND parent, LyricSource *source)
 	{
 		DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCECFG), parent, LyricSourceConfigProc, (LPARAM)&std::make_pair(source, 1));
+		LyricManagerInstance->UpdateConfig();
 	}
 
 	static BOOL CALLBACK CommonConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)

@@ -62,11 +62,21 @@ LyricManager::~LyricManager()
 	}
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->unregister_callback(this);
+}
 
-	//save lyric source config
-	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
+void LyricManager::UpdateConfig()
+{
+	//reload config from cfgvar
+	m_lyricSources.clear();
+	std::vector<GUID> enabledsources = cfg_enabledlyricsource.get_value();
+	for(std::vector<GUID>::iterator it = enabledsources.begin(); it != enabledsources.end(); it ++)
 	{
-		cfg_lyricsourcecfg.set_value((*it)->GetGUID(), (*it)->GetConfig());
+		boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+		if(src)
+		{
+			src->SetConfig(cfg_lyricsourcecfg.get_value(*it));
+			m_lyricSources.push_back(src);
+		}
 	}
 }
 
