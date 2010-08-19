@@ -44,6 +44,17 @@ LyricManager::LyricManager() : m_Seconds(0)
 			m_lyricSources.push_back(src);
 		}
 	}
+
+	std::vector<GUID> savesources = cfg_enabledlyricsave.get_value();
+	for(std::vector<GUID>::iterator it = savesources.begin(); it != savesources.end(); it ++)
+	{
+		boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+		if(src)
+		{
+			src->SetConfig(cfg_lyricsourcecfg.get_value(*it));
+			m_lyricSaveSources.push_back(src);
+		}
+	}
 }
 
 LyricManager::~LyricManager()
@@ -68,6 +79,7 @@ void LyricManager::UpdateConfig()
 {
 	//reload config from cfgvar
 	m_lyricSources.clear();
+	m_lyricSaveSources.clear();
 	std::vector<GUID> enabledsources = cfg_enabledlyricsource.get_value();
 	for(std::vector<GUID>::iterator it = enabledsources.begin(); it != enabledsources.end(); it ++)
 	{
@@ -76,6 +88,17 @@ void LyricManager::UpdateConfig()
 		{
 			src->SetConfig(cfg_lyricsourcecfg.get_value(*it));
 			m_lyricSources.push_back(src);
+		}
+	}
+
+	std::vector<GUID> savesources = cfg_enabledlyricsave.get_value();
+	for(std::vector<GUID>::iterator it = savesources.begin(); it != savesources.end(); it ++)
+	{
+		boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+		if(src)
+		{
+			src->SetConfig(cfg_lyricsourcecfg.get_value(*it));
+			m_lyricSaveSources.push_back(src);
 		}
 	}
 }

@@ -58,11 +58,14 @@ const GUID guid_cfg_enabledlyricsource = // {9F12B01E-0824-4C27-9792-CE81213AF87
 { 0x9f12b01e, 0x824, 0x4c27, { 0x97, 0x92, 0xce, 0x81, 0x21, 0x3a, 0xf8, 0x73 } };
 cfg_lyricsource_var cfg_enabledlyricsource(guid_cfg_enabledlyricsource);
 
+static const GUID guid_cfg_enabledlyricsave = // {41299615-1A86-4E13-A2B8-ACAF733968AF}
+{ 0x41299615, 0x1a86, 0x4e13, { 0xa2, 0xb8, 0xac, 0xaf, 0x73, 0x39, 0x68, 0xaf } };
+cfg_lyricsource_var cfg_enabledlyricsave(guid_cfg_enabledlyricsave);
+
 const GUID guid_cfg_lyricsourcecfg = // {D3BF60D1-633A-40D9-A9AC-68F21214AD96}
 { 0xd3bf60d1, 0x633a, 0x40d9, { 0xa9, 0xac, 0x68, 0xf2, 0x12, 0x14, 0xad, 0x96 } };
 cfg_lyricsourcecfg_var cfg_lyricsourcecfg(guid_cfg_lyricsourcecfg);
 
 const GUID guid_cfg_skipempty = // {F156C361-D18F-4E6C-9C21-06DBAC1A5C4B}
 { 0xf156c361, 0xd18f, 0x4e6c, { 0x9c, 0x21, 0x6, 0xdb, 0xac, 0x1a, 0x5c, 0x4b } };
-
 cfg_bool cfg_skipempty(guid_cfg_skipempty, false);

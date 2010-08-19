@@ -40,6 +40,7 @@
 #define IDC_FONTCHANGE                  1033
 #define IDC_LYRICSOURCE_ADD             1033
 #define IDC_PREV                        1034
+#define IDC_LYRICSAVE_ADD               1034
 #define IDC_STATUS                      1035
 #define IDC_LRCPATH                     1036
 #define IDC_EDIT1                       1037
@@ -52,6 +53,7 @@
 #define IDC_FGCOLOR                     1040
 #define IDC_LYRICSOURCE_DOWN            1040
 #define IDC_LYRICSOURCECFG_OK           1040
+#define IDC_LYRICSAVE_DOWN              1041
 #define IDC_OUTERNOTIFY_STATIC          1042
 #define IDC_UISCRIPT                    1043
 #define IDC_VERTICALALIGN               1044
@@ -72,8 +74,12 @@
 #define IDC_LYRICSOURCE_UP              1060
 #define IDC_LYRICSOURCE_CONFIG          1061
 #define IDC_LYRICSOURCES                1062
+#define IDC_LYRICSAVE_UP                1062
+#define IDC_LYRICSAVE_CONFIG            1063
 #define IDC_BUTTON1                     1064
 #define IDC_LYRICSOURCECFG_CANCEL       1064
+#define IDC_LYRICSAVE_LIsT              1065
+#define IDC_LYRICSAVELIST               1065
 
 // Next default values for new objects
 // 
@@ -81,7 +87,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        108
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1065
+#define _APS_NEXT_CONTROL_VALUE         1066
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

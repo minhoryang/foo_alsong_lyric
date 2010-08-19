@@ -123,3 +123,4 @@ public:
 };
 extern cfg_lyricsourcecfg_var cfg_lyricsourcecfg;
 extern cfg_lyricsource_var cfg_enabledlyricsource;
+extern cfg_lyricsource_var cfg_enabledlyricsave;
