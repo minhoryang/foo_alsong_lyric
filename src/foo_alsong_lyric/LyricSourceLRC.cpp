@@ -32,6 +32,37 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 	if(track->get_subsong_index() != 0)
 		wpath += boost::lexical_cast<std::wstring>(track->get_subsong_index());
 	wpath += L".lrc";
+	if(m_config["lrcsavepath"].length())
+	{
+		class LRCTitleFormatCallback : public main_thread_callback
+		{
+		private:
+			HANDLE m_event;
+			std::string *m_out;
+			const std::string &m_format;
+			const metadb_handle_ptr &m_track;
+		public:
+			LRCTitleFormatCallback(HANDLE event, std::string *out, const std::string &format, const metadb_handle_ptr &track) : m_event(event), m_format(format), m_out(out), m_track(track) {}
+
+			virtual void callback_run()
+			{
+				core_api::ensure_main_thread();
+				pfc::string8 out;
+				service_ptr_t<titleformat_object> script;
+				static_api_ptr_t<titleformat_compiler>()->compile(script, m_format.c_str());
+				m_track->format_title(NULL, out, script, NULL);
+				m_out->assign(out.get_ptr());
+				SetEvent(m_event);
+			}
+		};
+		wpath = wpath.substr(wpath.find_last_of(L"\\") + 1);
+		HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
+		std::string out;
+		service_ptr_t<LRCTitleFormatCallback> p_callback = new service_impl_t<LRCTitleFormatCallback>(event, &out, m_config["lrcsavepath"], track);
+		static_api_ptr_t<main_thread_callback_manager>()->add_callback(p_callback);
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
 	return wpath;
 }
 
