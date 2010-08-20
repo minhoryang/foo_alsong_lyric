@@ -283,9 +283,9 @@ public:
 		return FALSE;
 	}
 
-	static void OpenLyricSourceConfig(HWND parent, LyricSource *source)
+	static void OpenLyricSourceConfig(HWND parent, LyricSource *source, int type)
 	{
-		DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCECFG), parent, LyricSourceConfigProc, (LPARAM)&std::make_pair(source, 1));
+		DialogBoxParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCECFG), parent, LyricSourceConfigProc, (LPARAM)&std::make_pair(source, type));
 		LyricManagerInstance->UpdateConfig();
 	}
 
@@ -319,7 +319,7 @@ public:
 								cfg_enabledlyricsource.add(res->GetGUID());
 								int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(res->GetName()).c_str());
 								SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)res);
-								OpenLyricSourceConfig(hWnd, res);
+								OpenLyricSourceConfig(hWnd, res, 1);
 							}
 						}
 						break;
@@ -328,7 +328,27 @@ public:
 							LyricSource *res;
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
-							OpenLyricSourceConfig(hWnd, res);
+							OpenLyricSourceConfig(hWnd, res, 1);
+							break;
+						}
+					case IDC_LYRICSAVE_ADD:
+						{
+							LyricSource *res = (LyricSource *)DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCE_ADD), hWnd, &preferences_page_instance_alsong_lyric::LyricSourceAddProc);
+							if(res)
+							{
+								cfg_enabledlyricsave.add(res->GetGUID());
+								int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(res->GetName()).c_str());
+								SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_SETITEMDATA, idx, (LPARAM)res);
+								OpenLyricSourceConfig(hWnd, res, 2);
+							}
+							break;
+						}
+					case IDC_LYRICSAVE_CONFIG:
+						{
+							LyricSource *res;
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
+							OpenLyricSourceConfig(hWnd, res, 2);
 							break;
 						}
 					}
