@@ -324,7 +324,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		}
 	}
 
-	if(!m_CurrentLyric->HasLyric())
+	if(!m_CurrentLyric || !m_CurrentLyric->HasLyric())
 	{
 		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
 		RedrawHandler();
