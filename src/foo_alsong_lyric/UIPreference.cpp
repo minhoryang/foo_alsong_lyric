@@ -220,16 +220,16 @@ public:
 				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), (PVOID)&ncm, NULL);
 				font = CreateFontIndirect(&ncm.lfMessageFont);
 
-				std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > item = src->GetConfigItems(type);
+				std::map<std::string, LyricSource::ConfigItemType> item = src->GetConfigItems(type);
 				std::map<std::string, std::string> configitem = src->GetConfig();
 				int cnt = 0;
-				for(std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > >::iterator it = item.begin(); it != item.end(); it ++)
+				for(std::map<std::string, LyricSource::ConfigItemType>::iterator it = item.begin(); it != item.end(); it ++)
 				{
-					switch(it->second.first)
+					switch(it->second)
 					{
 					case LyricSource::ITEM_TYPE_STRING:
 						{
-							HWND hStatic = CreateWindowEx(NULL, L"static", EncodingFunc::ToUTF16(it->second.second[0]).c_str(), WS_CHILD | WS_VISIBLE, 0, cnt * 30, 100, 25, hWnd, NULL, NULL, NULL);
+							HWND hStatic = CreateWindowEx(NULL, L"static", EncodingFunc::ToUTF16(src->GetConfigLabel(it->first)).c_str(), WS_CHILD | WS_VISIBLE, 0, cnt * 30, 100, 25, hWnd, NULL, NULL, NULL);
 							HWND hEdit = CreateWindowEx(NULL, L"edit", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 100, cnt * 30, 500, 25, hWnd, (HMENU)(cnt + 1), NULL, NULL);
 							SendMessage(hStatic, WM_SETFONT, (WPARAM)font, TRUE);
 							SendMessage(hEdit, WM_SETFONT, (WPARAM)font, TRUE);
@@ -251,17 +251,23 @@ public:
 					case IDC_LYRICSOURCECFG_OK:
 						{
 							std::map<std::string, std::string> configitem = src->GetConfig();
-							std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > item = src->GetConfigItems(type);
+							std::map<std::string, LyricSource::ConfigItemType> item = src->GetConfigItems(type);
 							int cnt = 0;
-							for(std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > >::iterator it = item.begin(); it != item.end(); it ++)
+							for(std::map<std::string, LyricSource::ConfigItemType>::iterator it = item.begin(); it != item.end(); it ++)
 							{
-								switch(it->second.first)
+								switch(it->second)
 								{
 								case LyricSource::ITEM_TYPE_STRING:
 									configitem[it->first] = uGetDlgItemText(hWnd, cnt + 1).get_ptr();
 									break;
 								}
 								cnt ++;
+							}
+							std::string response = src->IsConfigValid(configitem);
+							if(response != "")
+							{
+								MessageBox(hWnd, EncodingFunc::ToUTF16(response).c_str(), TEXT("¿À·ù"), MB_OK);
+								break;
 							}
 							src->SetConfig(configitem);
 							cfg_lyricsourcecfg.set_value(src->GetGUID(), src->GetConfig());

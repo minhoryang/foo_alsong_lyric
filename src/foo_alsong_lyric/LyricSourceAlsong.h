@@ -55,5 +55,9 @@ public:
 		m_config = setting;
 	}
 
-	virtual std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > GetConfigItems(int type);
+	virtual std::map<std::string, ConfigItemType> GetConfigItems(int type);
+	virtual std::string GetConfigDescription(std::string item);
+	virtual std::string GetConfigLabel(std::string item);
+	virtual std::vector<std::string> GetConfigEnumeration(std::string item);
+	virtual std::string IsConfigValid(std::map<std::string, std::string>);
 };

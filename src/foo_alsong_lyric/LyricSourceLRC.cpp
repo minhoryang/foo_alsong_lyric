@@ -55,6 +55,7 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 				SetEvent(m_event);
 			}
 		};
+		std::wstring dirname = wpath.substr(0, wpath.find_last_of(L'\\'));
 		wpath = wpath.substr(wpath.find_last_of(L"\\") + 1);
 		HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
 		std::string out;
@@ -62,6 +63,9 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 		static_api_ptr_t<main_thread_callback_manager>()->add_callback(p_callback);
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
+		wpath = EncodingFunc::ToUTF16(out) + wpath;
+		if(PathIsRelative(wpath.c_str()))
+			wpath = dirname + wpath;
 	}
 	return wpath;
 }
@@ -123,12 +127,50 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	return 1;
 }
 
-std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > LyricSourceLRC::GetConfigItems(int type)
+std::map<std::string, LyricSource::ConfigItemType> LyricSourceLRC::GetConfigItems(int type)
 {
-	std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > ret;
-	ret["lrcsavepath"] = std::make_pair(ITEM_TYPE_STRING, std::vector<std::string>(1, EncodingFunc::ToUTF8(L"LRC 저장 위치")));
+	static std::map<std::string, LyricSource::ConfigItemType> ret;
+	if(ret.size() == 0)
+	{
+		ret["lrcsavepath"] = LyricSource::ITEM_TYPE_STRING;
+	}
 
 	return ret;
+}
+
+std::string LyricSourceLRC::GetConfigDescription(std::string item)
+{
+	static std::map<std::string, std::string> data;
+	if(data.size() == 0)
+	{
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"(아무것도 적지 않으면 mp3경로에 저장되며, titleformat 사용 가능합니다.)");
+	}
+	return data[item];
+}
+
+std::string LyricSourceLRC::GetConfigLabel(std::string item)
+{
+	static std::map<std::string, std::string> data;
+	if(data.size() == 0)
+	{
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"LRC 저장 위치");
+	}
+	return data[item];
+}
+
+std::vector<std::string> LyricSourceLRC::GetConfigEnumeration(std::string item)
+{
+	static std::map<std::string, std::vector<std::string> > data;
+	if(data.size() == 0)
+	{
+	}
+
+	return data[item];
+}
+
+std::string LyricSourceLRC::IsConfigValid(std::map<std::string, std::string>)
+{
+	return "";
 }
 
 LyricSourceFactory<LyricSourceLRC> LyricSourceLRCFactory;

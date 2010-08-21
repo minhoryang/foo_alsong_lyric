@@ -354,9 +354,47 @@ int LyricSourceAlsong::SearchLyricGetCount(const std::string &Artist, const std:
 	return boost::lexical_cast<int>(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2CountResponse/GetResembleLyric2CountResult/strResembleLyricCount").child_value()); //TODO: Test
 }
 
-std::map<std::string, std::pair<LyricSource::ConfigItemType, std::vector<std::string> > > LyricSourceAlsong::GetConfigItems(int type)
+std::map<std::string, LyricSource::ConfigItemType> LyricSourceAlsong::GetConfigItems(int type)
 {
-	return std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > >();
+	static std::map<std::string, LyricSource::ConfigItemType> ret;
+	if(ret.size() == 0)
+	{
+	}
+
+	return ret;
+}
+
+std::string LyricSourceAlsong::GetConfigDescription(std::string item)
+{
+	static std::map<std::string, std::string> data;
+	if(data.size() == 0)
+	{
+	}
+	return data[item];
+}
+
+std::string LyricSourceAlsong::GetConfigLabel(std::string item)
+{
+	static std::map<std::string, std::string> data;
+	if(data.size() == 0)
+	{
+	}
+	return data[item];
+}
+
+std::vector<std::string> LyricSourceAlsong::GetConfigEnumeration(std::string item)
+{
+	static std::map<std::string, std::vector<std::string> > data;
+	if(data.size() == 0)
+	{
+	}
+
+	return data[item];
+}
+
+std::string LyricSourceAlsong::IsConfigValid(std::map<std::string, std::string>)
+{
+	return "";
 }
 
 LyricSourceFactory<LyricSourceAlsong> LyricSourceAlsongFactory;

@@ -40,7 +40,11 @@ public:
 		ITEM_TYPE_ENUM,
 	};
 
-	virtual std::map<std::string, std::pair<ConfigItemType, std::vector<std::string> > > GetConfigItems(int type) = 0; //type 1:get, type 2:save
+	virtual std::map<std::string, ConfigItemType> GetConfigItems(int type) = 0; //type 1:get, type 2:save
+	virtual std::string GetConfigDescription(std::string item) = 0;
+	virtual std::string GetConfigLabel(std::string item) = 0;
+	virtual std::vector<std::string> GetConfigEnumeration(std::string item) = 0;
+	virtual std::string IsConfigValid(std::map<std::string, std::string>) = 0; //Check for config validitiy.
 };
 
 class LyricSourceManager
