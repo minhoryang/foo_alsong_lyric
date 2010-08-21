@@ -221,6 +221,11 @@ public:
 				font = CreateFontIndirect(&ncm.lfMessageFont);
 
 				std::map<std::string, LyricSource::ConfigItemType> item = src->GetConfigItems(type);
+				if(item.size() == 0)
+				{
+					EndDialog(hWnd, 0);
+					return TRUE;
+				}
 				std::map<std::string, std::string> configitem = src->GetConfig();
 				int cnt = 0;
 				for(std::map<std::string, LyricSource::ConfigItemType>::iterator it = item.begin(); it != item.end(); it ++)
@@ -241,6 +246,9 @@ public:
 				}
 				return TRUE;
 			}
+			break;
+		case WM_CLOSE:
+			EndDialog(hWnd, 1);
 			break;
 		case WM_COMMAND:
 			{
