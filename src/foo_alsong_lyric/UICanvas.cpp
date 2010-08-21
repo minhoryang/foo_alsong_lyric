@@ -19,7 +19,7 @@
 #include "UICanvas.h"
 #include "ConfigStore.h"
 
-UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc), m_transparent(false)
+UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 {
 	GetClientRect(hWnd, &m_DrawRect);
 
@@ -57,7 +57,7 @@ UICanvas::~UICanvas()
 	RECT rt;
 	GetClientRect(m_hWnd, &rt);
 
-	if(m_transparent && GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
+	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
 		BLENDFUNCTION blend = {0};
 		blend.BlendOp = AC_SRC_OVER;
@@ -135,7 +135,6 @@ void UICanvas::SetTransparent()
 		BOOL b_ret = SendMessage(wnd_parent, WM_ERASEBKGND,(WPARAM)m_hDC, 0);
 		SetWindowOrgEx(m_hDC, pt_old.x, pt_old.y, 0); //notify parent to redraw background
 	}
-	m_transparent = true;
 }
 
 void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio)
@@ -149,7 +148,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	g.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
 	SolidBrush brush(Gdiplus::Color(255, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
-	if(m_transparent && GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
+	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
 		g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
 		brush.SetColor(Gdiplus::Color((255 * cfg_outer_transparency) / 100, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
