@@ -416,12 +416,12 @@ static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences
 
 void UpdateOuterWindowStyle(HWND hWnd)
 {
-	SetWindowLong(hWnd, GWL_STYLE, (cfg_outer_border || cfg_outer.get_value().GetBgType() == UIPreference::BG_TRANSPARENT ? WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX : WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX));
+	SetWindowLong(hWnd, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX);
 	//TODO: 작업 표시줄, Alt+Tab에서 없애기
 
 	//100%투명도 아닐경우에만 적용. 항상위 강제
 	
-	SetWindowLong(hWnd, GWL_EXSTYLE, (cfg_outer_topmost ? WS_EX_TOPMOST : 0) | (cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | (cfg_outer_nolayered ? 0 : WS_EX_LAYERED));
+	SetWindowLong(hWnd, GWL_EXSTYLE, (cfg_outer_topmost ? WS_EX_TOPMOST : 0) | (cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | (cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | WS_EX_TOOLWINDOW);
 	if(cfg_outer_shown)
 		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 	else
