@@ -99,6 +99,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
 		LyricManagerInstance->AddRedrawHandler(boost::bind(&UIManager::Invalidated, this, hWnd));
+		Invalidated(hWnd);
 		break;
 	case WM_CONTEXTMENU:
 	case WM_NCRBUTTONUP:
