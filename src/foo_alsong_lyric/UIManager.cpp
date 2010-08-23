@@ -67,6 +67,8 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 
 	m_RootTable = SquirrelVM::GetRootTable();
 	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Init"))();
+
+	InitializeCriticalSection(&m_DrawCrit);
 }
 
 UIManager::~UIManager()
@@ -74,6 +76,8 @@ UIManager::~UIManager()
 	SquirrelVM::SetVMSys(m_vmSys);
 	SquirrelVM::Shutdown();
 	m_vmSys.Reset();
+
+	DeleteCriticalSection(&m_DrawCrit);
 }
 
 void UIManager::Invalidated(HWND hWnd)
@@ -126,6 +130,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 
 void UIManager::Draw(HWND hWnd, HDC hdc)
 {
+	EnterCriticalSection(&m_DrawCrit);
 	int before, after;
 	unsigned int i, cnt = 0;
 	std::vector<LyricLine> lyric = LyricManagerInstance->GetLyric();
@@ -166,6 +171,8 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 
 	UICanvas canvas(hWnd, hdc);
 	SqPlus::SquirrelFunction<void>(m_RootTable, TEXT("Draw"))(&canvas, lyrics);
+
+	LeaveCriticalSection(&m_DrawCrit);
 }
 
 void UIManager::ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...)

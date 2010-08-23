@@ -42,4 +42,5 @@ private:
 	SquirrelObject m_RootTable;
 	UIPreference *m_Setting;
 	pfc::string8 *m_Script;
+	CRITICAL_SECTION m_DrawCrit;
 };
