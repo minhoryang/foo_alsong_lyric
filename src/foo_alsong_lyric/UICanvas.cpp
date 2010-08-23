@@ -117,11 +117,14 @@ void UICanvas::Fill(int x, int y, int width, int height, COLORREF color)
 	if(!m_hDC)
 		return;
 
-	RECT rt;
-	SetRect(&rt, x, y, width + x, height + y);
-	HBRUSH brush = CreateSolidBrush(color);
-	FillRect(m_hDC, &rt, brush);
-	DeleteObject(brush);
+	Gdiplus::Graphics g(m_hDC);
+	Gdiplus::Color brush_color;
+	if(GetParent(m_hWnd))
+		brush_color.SetFromCOLORREF(color);
+	else
+		brush_color = Gdiplus::Color((255 * cfg_outer_transparency) / 100, GetRValue(color), GetGValue(color), GetBValue(color));
+	Gdiplus::SolidBrush brush(brush_color);	
+	g.FillRectangle(&brush, x, y, width, height);
 }
 
 void UICanvas::SetTransparent()

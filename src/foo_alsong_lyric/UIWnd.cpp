@@ -134,8 +134,6 @@ HWND UIWnd::Create()
 		AddTaskList(L"알송 실시간 가사", L"알송 실시간 가사 창", L"");
 		AddTaskList(L"Alsong Lyric Window Config", L"알송 실시간 가사 창 설정", appid);
 	}
-	if(cfg_outer.get_value().GetBgType() != UIPreference::BG_TRANSPARENT)
-		SetLayeredWindowAttributes(m_hWnd, 0, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
 	ShowWindow(m_hWnd, SW_HIDE);
 	HMENU hMenu = GetSystemMenu(m_hWnd, FALSE);
 	AppendMenu(hMenu, MF_STRING, 1000, TEXT("고급 설정..."));

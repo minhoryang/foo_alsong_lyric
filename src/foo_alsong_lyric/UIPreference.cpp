@@ -426,14 +426,6 @@ void UpdateOuterWindowStyle(HWND hWnd)
 		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
 	else
 		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
-	
-	if(cfg_outer.get_value().GetBgType() != UIPreference::BG_TRANSPARENT)
-		SetLayeredWindowAttributes(hWnd, NULL, (255 * cfg_outer_transparency) / 100, LWA_ALPHA);
-	else
-	{
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_LAYERED);
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-	}
 
 	InvalidateRect(hWnd, NULL, TRUE);
 }
