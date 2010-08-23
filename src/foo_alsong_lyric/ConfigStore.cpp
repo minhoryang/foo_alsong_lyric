@@ -69,3 +69,7 @@ cfg_lyricsourcecfg_var cfg_lyricsourcecfg(guid_cfg_lyricsourcecfg);
 const GUID guid_cfg_skipempty = // {F156C361-D18F-4E6C-9C21-06DBAC1A5C4B}
 { 0xf156c361, 0xd18f, 0x4e6c, { 0x9c, 0x21, 0x6, 0xdb, 0xac, 0x1a, 0x5c, 0x4b } };
 cfg_bool cfg_skipempty(guid_cfg_skipempty, false);
+
+static const GUID guid_cfg_outer_taskbar = // {E1493787-29D7-4E08-9BDD-C95C7319B139}
+{ 0xe1493787, 0x29d7, 0x4e08, { 0x9b, 0xdd, 0xc9, 0x5c, 0x73, 0x19, 0xb1, 0x39 } };
+cfg_bool cfg_outer_taskbar(guid_cfg_outer_taskbar, false);

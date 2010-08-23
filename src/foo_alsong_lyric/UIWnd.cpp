@@ -104,7 +104,8 @@ HWND UIWnd::Create()
 	m_hWnd = CreateWindowEx(
 		(cfg_outer_topmost ? WS_EX_TOPMOST : 0) | 
 		(cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | 
-		(cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | WS_EX_TOOLWINDOW,
+		(cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | 
+		(cfg_outer_taskbar ? WS_EX_TOOLWINDOW : 0),
 		TEXT("UILyricWindow"),
 		TEXT("°¡»ç Ã¢"),
 		WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX,
