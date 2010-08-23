@@ -32,6 +32,8 @@ public:
 	HWND Create();
 	void Destroy(); 
 
+	void StyleUpdated();
+
 	HWND GetHWND()
 	{
 		return m_hWnd;

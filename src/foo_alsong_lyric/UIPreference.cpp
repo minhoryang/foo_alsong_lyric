@@ -414,22 +414,6 @@ public:
 
 static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences_page_alsong_lyric;
 
-void UpdateOuterWindowStyle(HWND hWnd)
-{
-	SetWindowLong(hWnd, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX);
-	//TODO: 작업 표시줄, Alt+Tab에서 없애기
-
-	//100%투명도 아닐경우에만 적용. 항상위 강제
-	
-	SetWindowLong(hWnd, GWL_EXSTYLE, (cfg_outer_topmost ? WS_EX_TOPMOST : 0) | (cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | (cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | (cfg_outer_taskbar ? WS_EX_TOOLWINDOW : 0));
-	if(cfg_outer_shown)
-		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
-	else
-		SetWindowPos(hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
-
-	InvalidateRect(hWnd, NULL, TRUE);
-}
-
 //TODO: 줄간격 설정
 BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent)
 {
@@ -573,7 +557,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				cfg_outer_topmost = (IsDlgButtonChecked(hWnd, IDC_TOPMOST) ? true : false);
-				UpdateOuterWindowStyle(WndInstance.GetHWND());
+				WndInstance.StyleUpdated();
 			}
 
 			VerticalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
@@ -599,7 +583,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_layered = old_layered;
 				cfg_outer_border = old_border;
 
-				UpdateOuterWindowStyle(WndInstance.GetHWND());
+				WndInstance.StyleUpdated();
 			}
 		}
 		break;

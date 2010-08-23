@@ -219,6 +219,22 @@ void UIWnd::Hide()
 	cfg_outer_shown = false;
 }
 
+void UIWnd::StyleUpdated()
+{
+	SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX);
+	//TODO: 작업 표시줄, Alt+Tab에서 없애기
+
+	//100%투명도 아닐경우에만 적용. 항상위 강제
+
+	SetWindowLong(m_hWnd, GWL_EXSTYLE, (cfg_outer_topmost ? WS_EX_TOPMOST : 0) | (cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | (cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | (cfg_outer_taskbar ? WS_EX_TOOLWINDOW : 0));
+	if(cfg_outer_shown)
+		SetWindowPos(m_hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
+	else
+		SetWindowPos(m_hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
+
+	InvalidateRect(m_hWnd, NULL, TRUE);
+}
+
 LRESULT CALLBACK UIWnd::WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	if(iMessage == WM_NCCREATE)
