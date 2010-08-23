@@ -21,6 +21,8 @@
 
 AlsongLyric::AlsongLyric(const pugi::xml_node &node)
 {
+	if(!node)
+		return;
 	if(!node.child("strInfoID").child_value())
 	{ //getlyric
 		m_Title = node.child("strTitle").child_value();
