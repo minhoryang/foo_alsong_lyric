@@ -24,7 +24,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 	GetClientRect(hWnd, &m_DrawRect);
 
 	//double buffer
-	m_hDC = CreateCompatibleDC(hdc);//TODO: move to canvas.
+	m_hDC = CreateCompatibleDC(hdc);
 	HBITMAP hBitmap;
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
