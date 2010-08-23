@@ -34,6 +34,8 @@ private:
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
 
+	void Invalidated(HWND hWnd);
+
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
 	SquirrelVMSys m_vmSys;

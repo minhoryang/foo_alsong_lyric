@@ -76,6 +76,19 @@ UIManager::~UIManager()
 	m_vmSys.Reset();
 }
 
+void UIManager::Invalidated(HWND hWnd)
+{
+	if(GetParent(hWnd))
+	{
+		//layered window repaint
+		HDC hdc = GetDCEx(hWnd, NULL, DCX_WINDOW);
+		Draw(hWnd, hdc);
+		ReleaseDC(hWnd, hdc);
+	}
+	else
+		InvalidateRect(hWnd, NULL, TRUE);
+}
+
 LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch(iMessage)
@@ -83,7 +96,7 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 	case WM_CREATE:
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
-		LyricManagerInstance->AddRedrawHandler(boost::bind(InvalidateRect, hWnd, (const RECT *)NULL, TRUE));
+		LyricManagerInstance->AddRedrawHandler(boost::bind(&UIManager::Invalidated, this, hWnd));
 		break;
 	case WM_CONTEXTMENU:
 	case WM_NCRBUTTONUP:
