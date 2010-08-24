@@ -26,17 +26,33 @@ private:
 	UIManager *m_UI;
 	IPropertyStore *m_Propstore;
 	int AddTaskList(std::wstring command, std::wstring display, std::wstring appid);
+	bool m_isResizing;
 public:
+	UIWnd();
 	void Show();
 	void Hide();
 	HWND Create();
 	void Destroy(); 
-
 	void StyleUpdated();
+	void StartResize()
+	{
+		m_isResizing = true;
+		m_UI->Invalidated(m_hWnd);
+	}
+
+	void EndResize()
+	{
+		m_isResizing = false;
+	}
 
 	HWND GetHWND()
 	{
 		return m_hWnd;
+	}
+
+	int isResizing()
+	{
+		return m_isResizing;
 	}
 
 	static LRESULT CALLBACK WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);

@@ -28,14 +28,12 @@ public:
 
 	LRESULT ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	void ShowConfig(HWND hWndParent);
+	void Invalidated(HWND hWnd);
 
 private:
 	bool on_keydown(WPARAM wParam);
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
-
-	void Invalidated(HWND hWnd);
-
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
 
 	SquirrelVMSys m_vmSys;

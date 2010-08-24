@@ -79,6 +79,11 @@ public:
 
 };
 
+UIWnd::UIWnd() : m_isResizing(false)
+{
+
+}
+
 HWND UIWnd::Create() 
 {
 	assert(m_hWnd == NULL);

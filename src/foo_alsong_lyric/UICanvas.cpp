@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "UICanvas.h"
+#include "UIWnd.h"
 #include "ConfigStore.h"
 
 UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
@@ -54,8 +55,12 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 
 UICanvas::~UICanvas()
 {
-	RECT rt;
-	GetClientRect(m_hWnd, &rt);
+	if(WndInstance.isResizing() && GetParent(m_hWnd) == NULL)
+	{
+		Gdiplus::Graphics g(m_hDC);
+		Gdiplus::Pen pen(Gdiplus::Color(255, 0, 0, 0), 3.0f);
+		g.DrawRectangle(&pen, 0, 0, m_DrawRect.right, m_DrawRect.bottom);
+	}
 
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
@@ -63,13 +68,13 @@ UICanvas::~UICanvas()
 		blend.BlendOp = AC_SRC_OVER;
 		blend.SourceConstantAlpha = 255;
 		blend.AlphaFormat = AC_SRC_ALPHA;
-		SIZE sizeWnd = {rt.right, rt.bottom};
+		SIZE sizeWnd = {m_DrawRect.right, m_DrawRect.bottom};
 		POINT ptSrc = {0, 0};
 
 		UpdateLayeredWindow(m_hWnd, m_destDC, NULL, &sizeWnd, m_hDC, &ptSrc, NULL, &blend, ULW_ALPHA);
 	}
 	else
-		BitBlt(m_destDC, 0, 0, rt.right, rt.bottom, m_hDC, 0, 0, SRCCOPY);
+		BitBlt(m_destDC, 0, 0, m_DrawRect.right, m_DrawRect.bottom, m_hDC, 0, 0, SRCCOPY);
 
 	DeleteObject(SelectObject(m_hDC, m_hOldBitmap));
 	DeleteDC(m_hDC);
@@ -184,9 +189,7 @@ void UICanvas::SetDrawTextOrigin(const UIPoint &pt)
 
 UISize UICanvas::GetCanvasSize()
 {
-	RECT rt;
-	GetClientRect(m_hWnd, &rt);
-	return UISize(rt.right, rt.bottom);
+	return UISize(m_DrawRect.right, m_DrawRect.bottom);
 }
 
 UISize UICanvas::EstimateText(const UIFont &font, const SQChar *text)
