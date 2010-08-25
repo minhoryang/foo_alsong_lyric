@@ -3,8 +3,8 @@
 */
 #include "sqpcheader.h"
 #include "sqcompiler.h"
-#include "sqfuncproto.h"
 #include "sqstring.h"
+#include "sqfuncproto.h"
 #include "sqtable.h"
 #include "sqopcodes.h"
 #include "sqfuncstate.h"
@@ -79,7 +79,7 @@ void DumpLiteral(SQObjectPtr &o)
 	switch(type(o)){
 		case OT_STRING:	scprintf(_SC("\"%s\""),_stringval(o));break;
 		case OT_FLOAT: scprintf(_SC("{%f}"),_float(o));break;
-		case OT_INTEGER: scprintf(_SC("{%d}"),_integer(o));break;
+		case OT_INTEGER: scprintf(_SC("{%Id}"),_integer(o));break;
 		case OT_BOOL: scprintf(_SC("%s"),_integer(o)?_SC("true"):_SC("false"));break;
 		default: scprintf(_SC("(%s %p)"),GetTypeName(o),(void*)_rawval(o));break; break; //shut up compiler
 	}
@@ -102,6 +102,7 @@ SQFuncState::SQFuncState(SQSharedState *ss,SQFuncState *parent,CompilerErrorFunc
 		_errtarget = ed;
 		_bgenerator = false;
 		_outers = 0;
+		_ss = ss;
 
 }
 
@@ -199,8 +200,9 @@ void SQFuncState::Dump(SQFunctionProto *func)
 	/*	else if(inst.op==_OP_ARITH){
 			scprintf(_SC("[%03d] %15s %d %d %d %c\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
 		}*/
-		else 
+		else {
 			scprintf(_SC("[%03d] %15s %d %d %d %d\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
+		}
 		n++;
 	}
 	scprintf(_SC("-----\n"));
@@ -285,7 +287,7 @@ SQInteger SQFuncState::TopTarget(){
 SQInteger SQFuncState::PopTarget()
 {
 	SQInteger npos=_targetstack.back();
-	SQLocalVarInfo t=_vlocals[_targetstack.back()];
+	SQLocalVarInfo &t=_vlocals[_targetstack.back()];
 	if(type(t._name)==OT_NULL){
 		_vlocals.pop_back();
 	}
@@ -355,9 +357,10 @@ SQInteger SQFuncState::PushLocalVariable(const SQObject &name)
 	lvi._pos=_vlocals.size();
 	_vlocals.push_back(lvi);
 	if(_vlocals.size()>((SQUnsignedInteger)_stacksize))_stacksize=_vlocals.size();
-	
 	return pos;
 }
+
+
 
 SQInteger SQFuncState::GetLocalVariable(const SQObject &name)
 {
@@ -471,6 +474,7 @@ void SQFuncState::AddInstruction(SQInstruction &i)
 		case _OP_MOVE:
 			switch(pi.op) {
 			case _OP_GET: case _OP_ADD: case _OP_SUB: case _OP_MUL: case _OP_DIV: case _OP_MOD: case _OP_BITW:
+			case _OP_LOADINT: case _OP_LOADFLOAT: case _OP_LOADBOOL: case _OP_LOAD:
 				if(pi._arg0 == i._arg1)
 				{
 					pi._arg0 = i._arg0;
@@ -542,7 +546,8 @@ SQObject SQFuncState::CreateTable()
 
 SQFunctionProto *SQFuncState::BuildProto()
 {
-	SQFunctionProto *f=SQFunctionProto::Create(_instructions.size(),
+	
+	SQFunctionProto *f=SQFunctionProto::Create(_ss,_instructions.size(),
 		_nliterals,_parameters.size(),_functions.size(),_outervalues.size(),
 		_lineinfos.size(),_localvarinfos.size(),_defaultparams.size());
 
