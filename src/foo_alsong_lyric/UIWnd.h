@@ -37,12 +37,13 @@ public:
 	void StartResize()
 	{
 		m_isResizing = true;
-		m_UI->Invalidated(m_hWnd);
+		StyleUpdated();
 	}
 
 	void EndResize()
 	{
 		m_isResizing = false;
+		StyleUpdated();
 	}
 
 	HWND GetHWND()
@@ -54,6 +55,8 @@ public:
 	{
 		return m_isResizing;
 	}
+
+	const static int Resize_border;
 
 	static LRESULT CALLBACK WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 };

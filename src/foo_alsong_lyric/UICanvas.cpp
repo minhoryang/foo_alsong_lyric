@@ -29,6 +29,10 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 	HBITMAP hBitmap;
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
+		RECT rt;
+		GetWindowRect(m_hWnd, &rt);
+		m_DrawRect.right = rt.right - rt.left;
+		m_DrawRect.bottom = rt.bottom - rt.top;
 		BITMAPINFO bmi;
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		bmi.bmiHeader.biWidth = m_DrawRect.right;
@@ -58,8 +62,8 @@ UICanvas::~UICanvas()
 	if(WndInstance.isResizing() && GetParent(m_hWnd) == NULL)
 	{
 		Gdiplus::Graphics g(m_hDC);
-		Gdiplus::Pen pen(Gdiplus::Color(255, 0, 0, 0), 3.0f);
-		g.DrawRectangle(&pen, 0, 0, m_DrawRect.right, m_DrawRect.bottom);
+		Gdiplus::Pen pen(Gdiplus::Color(255, 0, 0, 0), (float)UIWnd::Resize_border);
+		g.DrawRectangle(&pen, 0, 0, m_DrawRect.right - 1, m_DrawRect.bottom - 1);
 	}
 
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))

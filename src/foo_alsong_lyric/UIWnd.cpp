@@ -79,6 +79,8 @@ public:
 
 };
 
+const int UIWnd::Resize_border = 6;
+
 UIWnd::UIWnd() : m_isResizing(false)
 {
 
@@ -226,7 +228,7 @@ void UIWnd::Hide()
 
 void UIWnd::StyleUpdated()
 {
-	SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX);
+	SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX | (isResizing() ? WS_THICKFRAME : 0));
 
 	SetWindowLong(m_hWnd, GWL_EXSTYLE, (cfg_outer_topmost ? WS_EX_TOPMOST : 0) | (cfg_outer_layered ? WS_EX_TRANSPARENT : 0) | (cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | (cfg_outer_taskbar ? WS_EX_TOOLWINDOW : 0));
 	if(cfg_outer_shown)
@@ -234,7 +236,7 @@ void UIWnd::StyleUpdated()
 	else
 		SetWindowPos(m_hWnd, (cfg_outer_topmost ? HWND_TOPMOST : HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 
-	InvalidateRect(m_hWnd, NULL, TRUE);
+	m_UI->Invalidated(m_hWnd);
 }
 
 LRESULT CALLBACK UIWnd::WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -253,11 +255,43 @@ LRESULT CALLBACK UIWnd::WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPAR
 			_this->m_UI->ShowConfig(hWnd);
 
 		break;
+	case WM_SIZING:
+		_this->m_UI->Invalidated(hWnd);
+		break;
 	case WM_NCHITTEST:
 		{
 			LRESULT ret = DefWindowProc(hWnd, iMessage, wParam, lParam);
 			if(ret == HTCLIENT)
+			{
+				POINT pt;
+				pt.x = GET_X_LPARAM(lParam);
+				pt.y = GET_Y_LPARAM(lParam);
+				ScreenToClient(hWnd, &pt);
+
+				if(_this->isResizing())
+				{
+					RECT rt;
+					GetClientRect(hWnd, &rt);
+					if(pt.x < Resize_border && pt.y < Resize_border)
+						return HTTOPLEFT;
+					if(pt.x < Resize_border && pt.y > rt.bottom - Resize_border - 1)
+						return HTBOTTOMLEFT;
+					if(pt.y < Resize_border - 1 && pt.x > rt.right - Resize_border - 1)
+						return HTTOPRIGHT;
+					if(pt.y > rt.bottom - Resize_border - 1 && pt.x > rt.right - Resize_border - 1)
+						return HTBOTTOMRIGHT;
+					if(pt.x < Resize_border)
+						return HTLEFT;
+					if(pt.y < Resize_border)
+						return HTTOP;
+					if(pt.x > rt.right - Resize_border - 1)
+						return HTRIGHT;
+					if(pt.y > rt.bottom - Resize_border - 1)
+						return HTBOTTOM;
+				}
+
 				return HTCAPTION;
+			}
 			return ret;
 		}
 	case WM_DESTROY:

@@ -19,6 +19,7 @@
 #include "ConfigStore.h"
 #include "LyricManager.h"
 #include "UIManager.h"
+#include "UIWnd.h"
 #include "UICanvas.h"
 
 //TODO: DropSource
@@ -224,12 +225,20 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 	enum 
 	{
 		ID_SETTING,
+		ID_RESIZE,
 		ID_CONTEXT_FIRST,
 		ID_CONTEXT_LAST = ID_CONTEXT_FIRST + 1000,
 	};
 
 	HMENU hMenu = CreatePopupMenu();
 	AppendMenu(hMenu, MF_STRING, ID_SETTING, TEXT("설정..."));
+	if(GetParent(hWndFrom) == NULL)
+	{
+		if(WndInstance.isResizing())
+			AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_RESIZE, TEXT("크기 조절"));
+		else
+			AppendMenu(hMenu, MF_STRING, ID_RESIZE, TEXT("크기 조절"));
+	}
 
 	try 
 	{
@@ -258,6 +267,13 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 
 		if(cmd == ID_SETTING)
 			ShowConfig(hWndFrom);
+		else if(cmd == ID_RESIZE)
+		{
+			if(WndInstance.isResizing())
+				WndInstance.EndResize();
+			else
+				WndInstance.StartResize();
+		}
 		else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) 
 			cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
 
