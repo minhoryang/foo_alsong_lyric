@@ -1,4 +1,4 @@
-/*
+Ôªø/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -101,7 +101,7 @@ public:
 				pages[0].hInstance = core_api::get_my_instance();
 				pages[0].pszTemplate = MAKEINTRESOURCE(IDD_COMMON_PREF);
 				pages[0].pfnDlgProc = &preferences_page_instance_alsong_lyric::CommonConfigProc;
-				pages[0].pszTitle = TEXT("∞¯≈Î º≥¡§");
+				pages[0].pszTitle = TEXT("Í≥µÌÜµ ÏÑ§Ï†ï");
 				pages[0].lParam = NULL;
 
 				pages[1].dwSize = sizeof(PROPSHEETPAGE);
@@ -109,7 +109,7 @@ public:
 				pages[1].hInstance = core_api::get_my_instance();
 				pages[1].pszTemplate = MAKEINTRESOURCE(IDD_UI_PREF_COMMON);
 				pages[1].pfnDlgProc = &UIPreference::ConfigProcDispatcher;
-				pages[1].pszTitle = TEXT("ø‹∫Œ √¢ º≥¡§");
+				pages[1].pszTitle = TEXT("Ïô∏Î∂Ä Ï∞Ω ÏÑ§Ï†ï");
 				pages[1].lParam = (LPARAM)(&cfg_outer.get_value());
 
 				hpages[0] = CreatePropertySheetPage(&pages[0]);
@@ -121,7 +121,7 @@ public:
 				psh.hwndParent = m_hWnd;
 				psh.hInstance = core_api::get_my_instance();
 				psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
-				psh.pszCaption = TEXT("æÀº€ ∞°ªÁ º≥¡§");
+				psh.pszCaption = TEXT("ÏïåÏÜ° Í∞ÄÏÇ¨ ÏÑ§Ï†ï");
 				psh.nPages = 2;
 				psh.nStartPage = 0;
 				psh.pfnCallback = &preferences_page_instance_alsong_lyric::PropCallback;
@@ -140,7 +140,7 @@ public:
 			}
 			return TRUE;
 		case WM_DESTROY:
-			SendMessage(hProp, PSM_APPLY, NULL, NULL);//∏∂¡ˆ∏∑ ¿ßƒ° ¿˙¿Â -> ø≠∂ß ≈«∫π±∏
+			SendMessage(hProp, PSM_APPLY, NULL, NULL);//ÎßàÏßÄÎßâ ÏúÑÏπò Ï†ÄÏû• -> Ïó¥Îïå ÌÉ≠Î≥µÍµ¨
 			return TRUE;
 		}
 		return FALSE;
@@ -185,7 +185,7 @@ public:
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_GETCURSEL, NULL, NULL);
 							if(idx == CB_ERR)
 							{
-								MessageBox(hWnd, TEXT("º±≈√ æ¯¿Ω"), TEXT("Error"), MB_OK);
+								MessageBox(hWnd, TEXT("ÏÑ†ÌÉù ÏóÜÏùå"), TEXT("Error"), MB_OK);
 								return TRUE;
 							}
 							EndDialog(hWnd, SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_GETITEMDATA, idx, NULL));
@@ -274,7 +274,7 @@ public:
 							std::string response = src->IsConfigValid(configitem);
 							if(response != "")
 							{
-								MessageBox(hWnd, EncodingFunc::ToUTF16(response).c_str(), TEXT("ø¿∑˘"), MB_OK);
+								MessageBox(hWnd, EncodingFunc::ToUTF16(response).c_str(), TEXT("Ïò§Î•ò"), MB_OK);
 								break;
 							}
 							src->SetConfig(configitem);
@@ -414,7 +414,7 @@ public:
 
 static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences_page_alsong_lyric;
 
-//TODO: ¡Ÿ∞£∞› º≥¡§
+//TODO: Ï§ÑÍ∞ÑÍ≤© ÏÑ§Ï†ï
 BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent)
 {
 	static UIPreference OldSetting;
@@ -465,12 +465,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_TOPMOST), WM_CLOSE, 0, 0);
 			}
 
-			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("¿ß"));
-			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("∞°øÓµ•"));
-			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("æ∆∑°"));
-			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("øﬁ¬ "));
-			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("∞°øÓµ•"));
-			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("ø¿∏•¬ "));
+			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("ÏúÑ"));
+			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("Í∞ÄÏö¥Îç∞"));
+			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("ÏïÑÎûò"));
+			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("ÏôºÏ™Ω"));
+			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("Í∞ÄÏö¥Îç∞"));
+			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("Ïò§Î•∏Ï™Ω"));
 
 			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_SETCURSEL, GetVerticalAlign() - 1, NULL);
 			SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_SETCURSEL, GetHorizentalAlign() - 1, NULL);
@@ -480,9 +480,9 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
 
-			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("ªˆ"));
-			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("±◊∏≤"));
-			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("æ¯¿Ω"));
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("ÏÉâ"));
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("Í∑∏Î¶º"));
+			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("ÏóÜÏùå"));
 
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_SETCURSEL, GetBgType(), NULL);
 		}
@@ -633,7 +633,7 @@ void UIPreference::OpenConfigPopup(HWND hParent)
 	psh.hwndParent = hParent;
 	psh.hInstance = core_api::get_my_instance();
 	psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();
-	psh.pszCaption = TEXT("∞Ì±ﬁ º≥¡§");
+	psh.pszCaption = TEXT("Í≥†Í∏â ÏÑ§Ï†ï");
 	psh.nPages = 1;
 	psh.nStartPage = 0;
 	psh.phpage = pages;

@@ -1,4 +1,4 @@
-/*
+﻿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *

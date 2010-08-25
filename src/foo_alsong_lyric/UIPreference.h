@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -112,7 +112,7 @@ public:
 		ZeroMemory(&ofn, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
 		ofn.lpstrFile = bgImage;
-		ofn.lpstrFilter = TEXT("±×¸² ÆÄÀÏ(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
+		ofn.lpstrFilter = TEXT("ê·¸ë¦¼ íŒŒì¼(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
 		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
 		ofn.nMaxFile = 255;
 
@@ -163,15 +163,15 @@ private:
 	COLORREF bkColor;
 	COLORREF fgColor;
 	WCHAR bgImage[MAX_PATH];
-	BgType bgType; //0: »ö, 1: ÀÌ¹ÌÁö, 2:Åõ¸íÇÑ ¹è°æ
+	BgType bgType; //0: ìƒ‰, 1: ì´ë¯¸ì§€, 2:íˆ¬ëª…í•œ ë°°ê²½
 
 	DWORD nLine;
-	DWORD LineMargin;//%´ÜÀ§
+	DWORD LineMargin;//%ë‹¨ìœ„
 
-	BYTE VerticalAlign; //»óÇÏÁ¤·Ä. 1:À§ 2:°¡¿îµ¥ 3:¾Æ·¡
-	BYTE HorizentalAlign; //ÁÂ¿ìÁ¤·Ä. 1:¿ŞÂÊ 2:°¡¿îµ¥ 3:¿À¸¥ÂÊ
+	BYTE VerticalAlign; //ìƒí•˜ì •ë ¬. 1:ìœ„ 2:ê°€ìš´ë° 3:ì•„ë˜
+	BYTE HorizentalAlign; //ì¢Œìš°ì •ë ¬. 1:ì™¼ìª½ 2:ê°€ìš´ë° 3:ì˜¤ë¥¸ìª½
 
-	BYTE bReserved[1022]; //±¸Á¶Ã¼ Å©±â°¡ º¯ÇÏ¸é ¼³Á¤ÀÌ ÃÊ±âÈ­µÈ´Ù. ³ªÁß¿¡ º¯¼ö Ãß°¡ÇÒ¶§ ¿©±â¼­ »¬°Í
+	BYTE bReserved[1022]; //êµ¬ì¡°ì²´ í¬ê¸°ê°€ ë³€í•˜ë©´ ì„¤ì •ì´ ì´ˆê¸°í™”ëœë‹¤. ë‚˜ì¤‘ì— ë³€ìˆ˜ ì¶”ê°€í• ë•Œ ì—¬ê¸°ì„œ ëº„ê²ƒ
 };
 
 DECLARE_INSTANCE_TYPE(UIPreference)

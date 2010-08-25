@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -24,7 +24,7 @@
 #include "LyricSourceLRC.h"
 #include "ConfigStore.h"
 
-//TODO: USLT ÅÂ±×(4¹ÙÀÌÆ® Å¸ÀÓ½ºÅÆÇÁ, 1¹ÙÀÌÆ® ±æÀÌ, ¹®ÀÚ¿­(À¯´ÏÄÚµå), 0x08 ¼øÀ¸·Î µé¾îÀÖÀ½)
+//TODO: USLT íƒœê·¸(4ë°”ì´íŠ¸ íƒ€ì„ìŠ¤íƒ¬í”„, 1ë°”ì´íŠ¸ ê¸¸ì´, ë¬¸ìì—´(ìœ ë‹ˆì½”ë“œ), 0x08 ìˆœìœ¼ë¡œ ë“¤ì–´ìˆìŒ)
 
 LyricManager *LyricManagerInstance = NULL;
 
@@ -301,7 +301,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		m_CurrentLyric.reset();
 	}
 
-	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("°¡»ç ´Ù¿î·Îµå Áß...")));
+	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("ê°€ì‚¬ ë‹¤ìš´ë¡œë“œ ì¤‘...")));
 	if(boost::this_thread::interruption_requested())
 		return false;
 	RedrawHandler();
@@ -326,7 +326,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 
 	if(!m_CurrentLyric || !m_CurrentLyric->HasLyric())
 	{
-		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("½Ç½Ã°£ °¡»ç¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.")));
+		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("ì‹¤ì‹œê°„ ê°€ì‚¬ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.")));
 		RedrawHandler();
 		return false;
 	}

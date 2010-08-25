@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -139,7 +139,7 @@ ui_element_config::ptr UIElement::get_configuration()
 
 const char *UIElement::get_description()
 {
-	return pfc::stringcvt::string_utf8_from_wide(L"¾Ë¼Û ½Ç½Ã°£ °¡»ç");
+	return pfc::stringcvt::string_utf8_from_wide(L"ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬");
 }
 
 void UIElement::notify(const GUID & p_what, t_size p_param1, const void * p_param2, t_size p_param2size)

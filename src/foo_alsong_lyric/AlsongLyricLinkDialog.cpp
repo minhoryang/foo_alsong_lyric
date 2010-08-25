@@ -1,4 +1,4 @@
-/*
+Ôªø/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -115,9 +115,9 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 			LVCOLUMN lv;
 			lv.mask = LVCF_WIDTH | LVCF_TEXT;
 			lv.cx = 150;
-			lv.pszText = TEXT("æ∆∆ºΩ∫∆Æ");
+			lv.pszText = TEXT("ÏïÑÌã∞Ïä§Ìä∏");
 			ListView_InsertColumn(GetDlgItem(m_hWnd, IDC_LYRICLIST), 0, &lv);
-			lv.pszText = TEXT("¡¶∏Ò");
+			lv.pszText = TEXT("Ï†úÎ™©");
 			ListView_InsertColumn(GetDlgItem(m_hWnd, IDC_LYRICLIST), 1, &lv);
 
 			SetWindowLong(GetDlgItem(m_hWnd, IDC_NEXT), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_NEXT), GWL_STYLE) | WS_DISABLED); //disable next, prev button
@@ -157,12 +157,12 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					uGetDlgItemText(m_hWnd, IDC_TITLE, title);
 					if(artist.get_length() == 0)
 					{
-						MessageBox(m_hWnd, TEXT("æ∆∆ºΩ∫∆Æ∏¶ ¿‘∑¬«ÿ ¡÷ººø‰"), TEXT("ø°∑Ø"), MB_OK);
+						MessageBox(m_hWnd, TEXT("ÏïÑÌã∞Ïä§Ìä∏Î•º ÏûÖÎ†•Ìï¥ Ï£ºÏÑ∏Ïöî"), TEXT("ÏóêÎü¨"), MB_OK);
 						return TRUE;
 					}
 					if(title.get_length() == 0)
 					{
-						MessageBox(m_hWnd, TEXT("¡¶∏Ò¿ª ¿‘∑¬«ÿ ¡÷ººø‰"), TEXT("ø°∑Ø"), MB_OK);
+						MessageBox(m_hWnd, TEXT("Ï†úÎ™©ÏùÑ ÏûÖÎ†•Ìï¥ Ï£ºÏÑ∏Ïöî"), TEXT("ÏóêÎü¨"), MB_OK);
 						return TRUE;
 					}
 
@@ -259,7 +259,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					ListView_GetItem(GetDlgItem(m_hWnd, IDC_LYRICLIST), &litem);
 					if(LyricSourceAlsong().Save(m_track, *m_searchresult->Get(litem.lParam)))
 					{
-						MessageBox(m_hWnd, TEXT("µÓ∑œ º∫∞¯"), TEXT("æ»≥ª"), MB_OK);
+						MessageBox(m_hWnd, TEXT("Îì±Î°ù ÏÑ±Í≥µ"), TEXT("ÏïàÎÇ¥"), MB_OK);
 
 						static_api_ptr_t<play_control> pc;
 						metadb_handle_ptr p_track;
@@ -270,7 +270,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 						EndDialog(m_hWnd, 0);
 						return TRUE;
 					}
-					MessageBox(m_hWnd, TEXT("µÓ∑œ Ω«∆–"), TEXT("æ»≥ª"), MB_OK);
+					MessageBox(m_hWnd, TEXT("Îì±Î°ù Ïã§Ìå®"), TEXT("ÏïàÎÇ¥"), MB_OK);
 				}
 				break;
 			case IDC_CANCEL:

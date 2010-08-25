@@ -1,4 +1,4 @@
-/*
+Ôªø/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -46,7 +46,7 @@ DWORD Lyric::Split(const char *Delimiter)
 	const char *nowpos = m_Lyric.c_str();
 	const char *lastpos = nowpos;
 	int pos;
-	for(i = 0; ; i ++) //<br>¿⁄∏£±‚
+	for(i = 0; ; i ++) //<br>ÏûêÎ•¥Í∏∞
 	{
 		pos = pfc::strstr_ex(nowpos + 1, lstrlenA(nowpos + 1), Delimiter, lstrlenA(Delimiter));
 		if(pos == -1)

@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -44,7 +44,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 	{
 		return false;
 	}
-	//TODO:cueÀÏ¶§ Æ¯º° Ã³¸®(subsong_index°¡ ÀÖÀ» ¶§)
+	//TODO:cueì¼ë•Œ íŠ¹ë³„ ì²˜ë¦¬(subsong_indexê°€ ìˆì„ ë•Œ)
 	char *fmt = (char *)str.get_ptr() + str.find_last('.') + 1;
 
 	try 
@@ -111,8 +111,8 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 		{
 			if(!StrCmpIA(fmt, "mp3"))
 			{
-				while(1) //ID3°¡ ¿©·¯°³ ÀÖÀ»¼öµµ ÀÖÀ½
-				{ //ID3´Â º¸Åë ¸Ç Ã³À½¿¡ ÀÖÀ½
+				while(1) //ID3ê°€ ì—¬ëŸ¬ê°œ ìˆì„ìˆ˜ë„ ìˆìŒ
+				{ //ID3ëŠ” ë³´í†µ ë§¨ ì²˜ìŒì— ìˆìŒ
 					sourcefile->seek(Start, abort_callback);
 					sourcefile->read(temp, 3, abort_callback);
 					if(temp[0] == 'I' && temp[1] == 'D' && temp[2] == '3')
@@ -130,13 +130,13 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				{
 					BYTE temp;
 					sourcefile->read_lendian_t(temp, abort_callback);
-					if(temp == 0xFF) //MP3 Header±îÁö
+					if(temp == 0xFF) //MP3 Headerê¹Œì§€
 						break;
 				}
 			}
 			else if(!StrCmpIA(fmt, "ogg"))
 			{
-				//Ã³À½ ³ª¿À´Â vorbis setup header °Ë»ö
+				//ì²˜ìŒ ë‚˜ì˜¤ëŠ” vorbis setup header ê²€ìƒ‰
 				i = 0;
 				CHAR SetupHeader[7] = {0x05, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73}; //Vorbis Setup Header
 				CHAR BCV[3] = {'B', 'C', 'V'}; //codebook start?
@@ -148,16 +148,16 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 					{
 						sourcefile->seek(i + 7 + 1, abort_callback);
 						sourcefile->read(temp, 3, abort_callback);
-						if(!memcmp(temp, BCV, 3)) //Setup Header¿Í BCV »çÀÌ¿¡ ¹º°¡ ¹ÙÀÌÆ®°¡ ÇÏ³ª ´õ ÀÖ´Ù.
+						if(!memcmp(temp, BCV, 3)) //Setup Headerì™€ BCV ì‚¬ì´ì— ë­”ê°€ ë°”ì´íŠ¸ê°€ í•˜ë‚˜ ë” ìˆë‹¤.
 						{
-							//¿©±âºÎÅÍ´Ù
+							//ì—¬ê¸°ë¶€í„°ë‹¤
 							Start = i + 7 + 1 + 3;
 							break;
 						}
 					}
 					i ++;
 					if(i > sourcefile->get_size(abort_callback))
-						return false; //¿¡·¯
+						return false; //ì—ëŸ¬
 				}
 
 			}
@@ -177,7 +177,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				return false;
 			}
 
-			md5(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 ÀÏ¼öµµ
+			md5(buf, min(0x28000, (size_t)sourcefile->get_size(abort_callback) - Start), MD5); //FileSize < 0x28000 ì¼ìˆ˜ë„
 			free(buf);
 		}
 	}
@@ -254,9 +254,9 @@ boost::shared_ptr<Lyric> LyricSourceAlsong::Get(const metadb_handle_ptr &track)
 
 DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 {
-	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//³ª¸ÓÁö´Â »ı·«
+	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//ë‚˜ë¨¸ì§€ëŠ” ìƒëµ
 
-	//UploadLyricType - 1:Link »õ°Å 2:Modify ¼öÁ¤ 5:ReSetLink ¾Æ¿¹ »õ°Å
+	//UploadLyricType - 1:Link ìƒˆê±° 2:Modify ìˆ˜ì • 5:ReSetLink ì•„ì˜ˆ ìƒˆê±°
 
 	struct hostent *host;
 	CHAR Hostname[80];

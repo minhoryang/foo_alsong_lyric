@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -43,7 +43,7 @@ class menu_command_plugin : public mainmenu_commands
 	virtual void get_name(t_uint32 p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("¾Ë¼Û ½Ç½Ã°£ °¡»ç"), lstrlen(TEXT("¾Ë¼Û ½Ç½Ã°£ °¡»ç")));
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬"), lstrlen(TEXT("ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬")));
 		if(p_index == 1)
 			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("Alsong Lyric Window Config"), lstrlen(TEXT("Alsong Lyric Window Config")));
 	}
@@ -51,7 +51,7 @@ class menu_command_plugin : public mainmenu_commands
 	virtual bool get_description(t_uint32 p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("¾Ë¼Û ½Ç½Ã°£ °¡»ç Ã¢À» ¿­°Å³ª ´İ½À´Ï´Ù."), lstrlen(TEXT("¾Ë¼Û ½Ç½Ã°£ °¡»ç Ã¢À» ¿­°Å³ª ´İ½À´Ï´Ù.")));
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬ ì°½ì„ ì—´ê±°ë‚˜ ë‹«ìŠµë‹ˆë‹¤."), lstrlen(TEXT("ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬ ì°½ì„ ì—´ê±°ë‚˜ ë‹«ìŠµë‹ˆë‹¤.")));
 		else
 			return false;
 		return true;
@@ -117,7 +117,7 @@ public:
 	virtual void get_item_name(unsigned int p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ"), lstrlen(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ")));
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½"), lstrlen(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½")));
 	}
 
 	virtual void context_command(unsigned int p_index, metadb_handle_list_cref p_data, const GUID& p_caller) 
@@ -130,7 +130,7 @@ public:
 	{
 		if(p_index == 0)
 		{
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ"), lstrlen(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ")));
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½"), lstrlen(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½")));
 			return p_data.get_count() == 1;
 		}
 		return false;
@@ -152,7 +152,7 @@ public:
 	{
 		if(p_index == 0)
 		{
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ"), lstrlen(TEXT("¾Ë¼Û °¡»ç Ãß°¡/º¯°æ")));
+			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½"), lstrlen(TEXT("ì•Œì†¡ ê°€ì‚¬ ì¶”ê°€/ë³€ê²½")));
 			return true;
 		}
 		return false;

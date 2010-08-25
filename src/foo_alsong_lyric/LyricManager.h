@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -50,9 +50,9 @@ public:
 
 	static void Reload(const metadb_handle_ptr &p_track);
 
-	std::vector<LyricLine> GetLyricBefore(int n); //ÀÌÀü °¡»ç. n:ÁÙ¼ö
-	std::vector<LyricLine> GetLyric(); //ÇöÀç Ç¥½ÃÇÒ °¡»ç º¸¿©ÁÖ±â
-	std::vector<LyricLine> GetLyricAfter(int n); //´ÙÀ½°¡»ç. n:ÁÙ
+	std::vector<LyricLine> GetLyricBefore(int n); //ì´ì „ ê°€ì‚¬. n:ì¤„ìˆ˜
+	std::vector<LyricLine> GetLyric(); //í˜„ì¬ í‘œì‹œí•  ê°€ì‚¬ ë³´ì—¬ì£¼ê¸°
+	std::vector<LyricLine> GetLyricAfter(int n); //ë‹¤ìŒê°€ì‚¬. n:ì¤„
 
 	void UpdateConfig();
 

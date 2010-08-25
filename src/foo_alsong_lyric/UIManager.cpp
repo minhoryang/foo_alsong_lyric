@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -148,7 +148,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 		before = 0;
 	std::vector<LyricLine> lyricbefore = LyricManagerInstance->GetLyricBefore(before);
 	std::vector<LyricLine> lyricafter = LyricManagerInstance->GetLyricAfter(after + lyric.size() - 1 - (1 - m_Setting->GetnLine() % 2));
-	//ÇöÀç °¡»ç°¡ 1ÁÙ ÀÌ»óÀÎ °æ¿ì¿¡´Â µÎ¹øÂ° ÁÙºÎÅÍ
+	//í˜„ì¬ ê°€ì‚¬ê°€ 1ì¤„ ì´ìƒì¸ ê²½ìš°ì—ëŠ” ë‘ë²ˆì§¸ ì¤„ë¶€í„°
 	if(!lyric.size())
 		return;
 
@@ -221,7 +221,7 @@ void UIManager::ShowConfig(HWND hWndParent)
 }
 
 void UIManager::on_contextmenu(HWND hWndFrom)
-{//TODO:¸Ş´º ´Ù Áö¿ì°í ¼³Á¤¸¸
+{//TODO:ë©”ë‰´ ë‹¤ ì§€ìš°ê³  ì„¤ì •ë§Œ
 	enum 
 	{
 		ID_SETTING,
@@ -231,13 +231,13 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 	};
 
 	HMENU hMenu = CreatePopupMenu();
-	AppendMenu(hMenu, MF_STRING, ID_SETTING, TEXT("¼³Á¤..."));
+	AppendMenu(hMenu, MF_STRING, ID_SETTING, TEXT("ì„¤ì •..."));
 	if(GetParent(hWndFrom) == NULL)
 	{
 		if(WndInstance.isResizing())
-			AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_RESIZE, TEXT("Å©±â Á¶Àı"));
+			AppendMenu(hMenu, MF_STRING | MF_CHECKED, ID_RESIZE, TEXT("í¬ê¸° ì¡°ì ˆ"));
 		else
-			AppendMenu(hMenu, MF_STRING, ID_RESIZE, TEXT("Å©±â Á¶Àı"));
+			AppendMenu(hMenu, MF_STRING, ID_RESIZE, TEXT("í¬ê¸° ì¡°ì ˆ"));
 	}
 
 	try 

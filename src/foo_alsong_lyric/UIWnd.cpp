@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -23,7 +23,7 @@
 #include <propkey.h>
 #include <propvarutil.h>
 
-//TODO:UpdateLayeredWindow() »ç¿ë. http://msdn.microsoft.com/en-us/library/bb773289(VS.85).aspx ·Î Á÷Á¢ Ã¢Æ² ±×¸®±â
+//TODO:UpdateLayeredWindow() ì‚¬ìš©. http://msdn.microsoft.com/en-us/library/bb773289(VS.85).aspx ë¡œ ì§ì ‘ ì°½í‹€ ê·¸ë¦¬ê¸°
 
 UIWnd WndInstance; //singleton
 
@@ -114,7 +114,7 @@ HWND UIWnd::Create()
 		(cfg_outer_nolayered ? 0 : WS_EX_LAYERED) | 
 		(cfg_outer_taskbar ? WS_EX_TOOLWINDOW : 0),
 		TEXT("UILyricWindow"),
-		TEXT("°¡»ç Ã¢"),
+		TEXT("ê°€ì‚¬ ì°½"),
 		WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		500, 200,
@@ -139,12 +139,12 @@ HWND UIWnd::Create()
 			InitPropVariantFromBoolean(true, &propvar);
 			m_Propstore->SetValue(PKEY_AppUserModel_PreventPinning, propvar); //not to pin
 		}
-		AddTaskList(L"¾Ë¼Û ½Ç½Ã°£ °¡»ç", L"¾Ë¼Û ½Ç½Ã°£ °¡»ç Ã¢", L"");
-		AddTaskList(L"Alsong Lyric Window Config", L"¾Ë¼Û ½Ç½Ã°£ °¡»ç Ã¢ ¼³Á¤", appid);
+		AddTaskList(L"ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬", L"ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬ ì°½", L"");
+		AddTaskList(L"Alsong Lyric Window Config", L"ì•Œì†¡ ì‹¤ì‹œê°„ ê°€ì‚¬ ì°½ ì„¤ì •", appid);
 	}
 	ShowWindow(m_hWnd, SW_HIDE);
 	HMENU hMenu = GetSystemMenu(m_hWnd, FALSE);
-	AppendMenu(hMenu, MF_STRING, 1000, TEXT("°í±Þ ¼³Á¤..."));
+	AppendMenu(hMenu, MF_STRING, 1000, TEXT("ê³ ê¸‰ ì„¤ì •..."));
 	
 	return m_hWnd;
 }

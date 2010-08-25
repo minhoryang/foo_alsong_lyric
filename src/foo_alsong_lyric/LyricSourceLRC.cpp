@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 * foo_alsong_lyric														
 * Copyright (C) 2007-2010 Inseok Lee <dlunch@gmail.com>
 *
@@ -143,7 +143,7 @@ std::string LyricSourceLRC::GetConfigDescription(std::string item)
 	static std::map<std::string, std::string> data;
 	if(data.size() == 0)
 	{
-		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"(¾Æ¹«°Íµµ ÀûÁö ¾ÊÀ¸¸é mp3°æ·Î¿¡ ÀúÀåµÇ¸ç, titleformat »ç¿ë °¡´ÉÇÕ´Ï´Ù.)");
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"(ì•„ë¬´ê²ƒë„ ì ì§€ ì•Šìœ¼ë©´ mp3ê²½ë¡œì— ì €ì¥ë˜ë©°, titleformat ì‚¬ìš© ê°€ëŠ¥í•©ë‹ˆë‹¤.)");
 	}
 	return data[item];
 }
@@ -153,7 +153,7 @@ std::string LyricSourceLRC::GetConfigLabel(std::string item)
 	static std::map<std::string, std::string> data;
 	if(data.size() == 0)
 	{
-		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"LRC ÀúÀå À§Ä¡");
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"LRC ì €ì¥ ìœ„ì¹˜");
 	}
 	return data[item];
 }
