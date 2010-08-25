@@ -179,7 +179,7 @@ void LyricManager::on_playback_pause(bool p_state)
 		m_countthread.reset();
 		microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;
 	}
-	else if(p_state == false && m_CurrentLyric->HasLyric())
+	else if(m_CurrentLyric && p_state == false && m_CurrentLyric->HasLyric())
 	{
 		m_Tick = boost::posix_time::microsec_clock::universal_time() - (boost::posix_time::seconds(1) - boost::posix_time::microseconds(microsec * 1000000));
 		m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
