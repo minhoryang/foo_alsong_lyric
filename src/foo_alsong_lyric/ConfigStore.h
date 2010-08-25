@@ -24,7 +24,6 @@ extern cfg_bool cfg_outer_shown;
 extern cfg_bool cfg_outer_topmost;
 extern cfg_int cfg_outer_transparency;
 extern cfg_bool cfg_outer_layered;
-extern cfg_bool cfg_outer_border;
 
 extern cfg_string cfg_outer_script;
 extern cfg_struct_t<UIPreference> cfg_outer;

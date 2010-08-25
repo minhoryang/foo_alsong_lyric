@@ -420,7 +420,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	static UIPreference OldSetting;
 
 	static int old_transparency;
-	static bool old_layered, old_border;
+	static bool old_layered;
 
 	switch (iMessage)
 	{
@@ -429,7 +429,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			memcpy(&OldSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
 			old_layered = cfg_outer_layered;
-			old_border = cfg_outer_border;
 
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
@@ -453,7 +452,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
 
 				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
-				CheckDlgButton(hWnd, IDC_BORDER, cfg_outer_border);
 				CheckDlgButton(hWnd, IDC_NOLAYERED, cfg_outer_nolayered);
 				CheckDlgButton(hWnd, IDC_TOPMOST, cfg_outer_topmost);
 			}
@@ -463,7 +461,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_STATIC), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
-				SendMessage(GetDlgItem(hWnd, IDC_BORDER), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_NOLAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TOPMOST), WM_CLOSE, 0, 0);
 			}
@@ -554,7 +551,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
-				cfg_outer_border = (IsDlgButtonChecked(hWnd, IDC_BORDER) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				cfg_outer_topmost = (IsDlgButtonChecked(hWnd, IDC_TOPMOST) ? true : false);
 				WndInstance.StyleUpdated();
@@ -581,7 +577,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 				cfg_outer_transparency = old_transparency;
 				cfg_outer_layered = old_layered;
-				cfg_outer_border = old_border;
 
 				WndInstance.StyleUpdated();
 			}
