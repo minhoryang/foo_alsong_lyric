@@ -254,6 +254,7 @@ public:
 							std::vector<std::string> items = src->GetConfigEnumeration(it->first);
 							for(std::vector<std::string>::iterator it = items.begin(); it != items.end(); it ++)
 								SendMessage(hCombo, CB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(*it).c_str());
+							SendMessage(GetDlgItem(hWnd, cnt + 1), CB_SETCURSEL, boost::lexical_cast<int>(configitem[it->first]), NULL);
 						}
 					}
 					cnt ++;
@@ -281,6 +282,9 @@ public:
 								{
 								case LyricSource::ITEM_TYPE_STRING:
 									configitem[it->first] = uGetDlgItemText(hWnd, cnt + 1).get_ptr();
+									break;
+								case LyricSource::ITEM_TYPE_ENUM:
+									configitem[it->first] = boost::lexical_cast<std::string>((int)SendMessage(GetDlgItem(hWnd, cnt + 1), CB_GETCURSEL, NULL, NULL));
 									break;
 								}
 								cnt ++;
