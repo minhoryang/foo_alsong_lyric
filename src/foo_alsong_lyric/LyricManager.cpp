@@ -55,6 +55,14 @@ LyricManager::LyricManager() : m_Seconds(0)
 			m_lyricSaveSources.push_back(src);
 		}
 	}
+
+	if(m_lyricSources.empty())
+	{
+		//default
+		for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = LyricSourceManager::List().begin(); it != LyricSourceManager::List().end(); it ++)
+			if((*it)->GetName() == "Alsong Lyric")
+				cfg_enabledlyricsource.add((*it)->GetGUID());
+	}
 }
 
 LyricManager::~LyricManager()
