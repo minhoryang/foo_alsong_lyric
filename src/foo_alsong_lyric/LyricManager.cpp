@@ -72,7 +72,7 @@ LyricManager::~LyricManager()
 	if(m_fetchthread)
 	{
 		m_fetchthread->interrupt();
-		m_fetchthread->join();
+		m_fetchthread->detach();
 		m_fetchthread.reset();
 	}
 	if(m_countthread)
@@ -134,7 +134,7 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 	if(m_fetchthread)
 	{
 		m_fetchthread->interrupt();
-		m_fetchthread->join();
+		m_fetchthread->detach();
 		m_fetchthread.reset();
 	}
 	if(m_countthread)
@@ -293,9 +293,9 @@ void LyricManager::CountLyric()
 			m_SecondLock.unlock();
 
 			boost::this_thread::sleep(ms * 10000);
-			m_LyricLine = tempit;
 			if(boost::this_thread::interruption_requested())
 				break;
+			m_LyricLine = tempit;
 			RedrawHandler();
 		}
 		RedrawHandler(); //Point to last lyric
@@ -369,7 +369,7 @@ void LyricManager::Reload()
 	if(LyricManagerInstance->m_fetchthread)
 	{
 		LyricManagerInstance->m_fetchthread->interrupt();
-		LyricManagerInstance->m_fetchthread->join();
+		LyricManagerInstance->m_fetchthread->detach();
 		LyricManagerInstance->m_fetchthread.reset();
 	}
 	if(LyricManagerInstance->m_countthread)
