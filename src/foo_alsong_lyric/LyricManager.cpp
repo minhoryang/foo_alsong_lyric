@@ -257,22 +257,24 @@ void LyricManager::CountLyric()
 		m_LyricLine = m_CurrentLyric->GetIteratorAt(microsec);															//0				
 	else																												//100 blah			
 		m_LyricLine = m_CurrentLyric->GetIteratorAt(int(m_Seconds * 100 + microsec));
-	if(m_CurrentLyric->IsEndOfLyric(m_LyricLine))
-	{
-		m_LyricLine --;
-		RedrawHandler(); //Point to last lyric
-		return;
-	}
 
-	if(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
-	{
-		m_LyricLine --;
-		while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && m_LyricLine->time == 0) m_LyricLine --;//point to last visible line
-		while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && (m_LyricLine - 1)->time == m_LyricLine->time) m_LyricLine --;
-	}
-	RedrawHandler();
 	try
 	{
+		if(m_CurrentLyric->IsEndOfLyric(m_LyricLine))
+		{
+			m_LyricLine --;
+			RedrawHandler(); //Point to last lyric
+			return;
+		}
+
+		if(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
+		{
+			m_LyricLine --;
+			while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && m_LyricLine->time == 0) m_LyricLine --;//point to last visible line
+			while(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine) && (m_LyricLine - 1)->time == m_LyricLine->time) m_LyricLine --;
+		}
+		RedrawHandler();
+
 		while(!m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 		{
 			m_SecondLock.lock();
