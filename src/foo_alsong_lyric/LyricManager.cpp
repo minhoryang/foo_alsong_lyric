@@ -379,6 +379,6 @@ void LyricManager::Reload()
 		LyricManagerInstance->m_countthread.reset();
 	}
 	metadb_handle_ptr track;
-	static_api_ptr_t<playback_control>()->get_now_playing(track);
-	LyricManagerInstance->m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, LyricManagerInstance, track)));
+	if(static_api_ptr_t<playback_control>()->get_now_playing(track))
+		LyricManagerInstance->m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, LyricManagerInstance, track)));
 }
