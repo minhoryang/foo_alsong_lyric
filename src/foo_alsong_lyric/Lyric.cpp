@@ -88,6 +88,8 @@ int Lyric::IsValidIterator(std::vector<LyricLine>::const_iterator it) const
 {
 	try
 	{
+		if(!it._Ptr)
+			return false;
 		return std::find(m_LyricLines.begin(), m_LyricLines.end(), *it) != m_LyricLines.end();
 	}
 	catch(...)
