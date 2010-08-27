@@ -235,14 +235,24 @@ public:
 					case LyricSource::ITEM_TYPE_STRING:
 						{
 							HWND hStatic = CreateWindowEx(NULL, L"static", EncodingFunc::ToUTF16(src->GetConfigLabel(it->first)).c_str(), WS_CHILD | WS_VISIBLE, 0, cnt * 30, 100, 25, hWnd, NULL, NULL, NULL);
-							HWND hEdit = CreateWindowEx(NULL, L"edit", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 100, cnt * 30, 500, 25, hWnd, (HMENU)(cnt + 1), NULL, NULL);
+							HWND hEdit = CreateWindowEx(NULL, L"edit", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 100, cnt * 30, 300, 25, hWnd, (HMENU)(cnt + 1), NULL, NULL);
 							SendMessage(hStatic, WM_SETFONT, (WPARAM)font, TRUE);
 							SendMessage(hEdit, WM_SETFONT, (WPARAM)font, TRUE);
 							SendMessage(hEdit, WM_SETTEXT, NULL, (LPARAM)EncodingFunc::ToUTF16(configitem[it->first]).c_str());
-							cnt ++;
 						}
 						break;
+					case LyricSource::ITEM_TYPE_ENUM:
+						{
+							HWND hStatic = CreateWindowEx(NULL, L"static", EncodingFunc::ToUTF16(src->GetConfigLabel(it->first)).c_str(), WS_CHILD | WS_VISIBLE, 0, cnt * 30, 100, 25, hWnd, NULL, NULL, NULL);
+							HWND hCombo = CreateWindowEx(NULL, L"combobox", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST, 100, cnt * 30, 300, 25, hWnd, (HMENU)(cnt + 1), NULL, NULL);
+							SendMessage(hStatic, WM_SETFONT, (WPARAM)font, TRUE);
+							SendMessage(hCombo, WM_SETFONT, (WPARAM)font, TRUE);
+							std::vector<std::string> items = src->GetConfigEnumeration(it->first);
+							for(std::vector<std::string>::iterator it = items.begin(); it != items.end(); it ++)
+								SendMessage(hCombo, CB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(*it).c_str());
+						}
 					}
+					cnt ++;
 				}
 				return TRUE;
 			}
