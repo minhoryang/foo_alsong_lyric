@@ -324,9 +324,9 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		try
 		{
 			m_CurrentLyric = (*it)->Get(track);
-			m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 			if(boost::this_thread::interruption_requested())
 				return false;
+			m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 
 			if(m_CurrentLyric->HasLyric())
 				break;
