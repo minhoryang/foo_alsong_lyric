@@ -254,7 +254,7 @@ void LyricManager::CountLyric()
 	long long microsec = (boost::posix_time::microsec_clock::universal_time() - m_Tick).fractional_seconds() / 10000;	//sec:0, microsec:10
 																														//0				<-- m_LyricPos
 	if(m_Seconds == 0)																									//0   some song
-		m_LyricLine = m_CurrentLyric->GetIteratorAt(0);																	//0				
+		m_LyricLine = m_CurrentLyric->GetIteratorAt(microsec);															//0				
 	else																												//100 blah			
 		m_LyricLine = m_CurrentLyric->GetIteratorAt(int(m_Seconds * 100 + microsec));
 	if(m_CurrentLyric->IsEndOfLyric(m_LyricLine))
