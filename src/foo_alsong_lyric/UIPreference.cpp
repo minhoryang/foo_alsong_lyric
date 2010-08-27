@@ -252,9 +252,10 @@ public:
 							SendMessage(hStatic, WM_SETFONT, (WPARAM)font, TRUE);
 							SendMessage(hCombo, WM_SETFONT, (WPARAM)font, TRUE);
 							std::vector<std::string> items = src->GetConfigEnumeration(it->first);
-							for(std::vector<std::string>::iterator it = items.begin(); it != items.end(); it ++)
-								SendMessage(hCombo, CB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(*it).c_str());
-							SendMessage(GetDlgItem(hWnd, cnt + 1), CB_SETCURSEL, boost::lexical_cast<int>(configitem[it->first]), NULL);
+							for(std::vector<std::string>::iterator item = items.begin(); item != items.end(); item ++)
+								SendMessage(hCombo, CB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(*item).c_str());
+							if(configitem[it->first].length())
+								SendMessage(GetDlgItem(hWnd, cnt + 1), CB_SETCURSEL, boost::lexical_cast<int>(configitem[it->first]), NULL);
 						}
 					}
 					cnt ++;
