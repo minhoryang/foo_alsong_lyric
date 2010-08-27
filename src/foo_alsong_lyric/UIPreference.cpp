@@ -191,6 +191,10 @@ public:
 							EndDialog(hWnd, SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCES), CB_GETITEMDATA, idx, NULL));
 							return TRUE;
 						}
+					case IDC_CANCEL:
+						{
+							EndDialog(hWnd, 0);
+						}
 					}
 				}
 			}
