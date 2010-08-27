@@ -249,11 +249,20 @@ boost::shared_ptr<Lyric> LyricSourceAlsong::Get(const metadb_handle_ptr &track)
 	if(boost::this_thread::interruption_requested())
 		return boost::shared_ptr<Lyric>(new AlsongLyric());
 
-	return boost::shared_ptr<Lyric>(new AlsongLyric(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result")));
+	try
+	{
+		return boost::shared_ptr<Lyric>(new AlsongLyric(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetLyric5Response/GetLyric5Result")));
+	}
+	catch(...)
+	{
+		return boost::shared_ptr<Lyric>();
+	}
 }
 
 DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 {
+	if(typeid(lyric) == typeid(AlsongLyric))
+		return true;
 	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//나머지는 생략
 
 	//UploadLyricType - 1:Link 새거 2:Modify 수정 5:ReSetLink 아예 새거
@@ -326,10 +335,17 @@ DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	helper.AddParameter("ns1:strMACAddress", Local_Mac);
 	helper.AddParameter("ns1:strIPAddress", Local_IP);
 
-	std::string temp = helper.Execute()->first_element_by_path("/soap:Envelope/soap:Body/UploadLyricResponse/UploadLyricResult").first_child().value();
-	const char *res = temp.c_str();
-	if(boost::find_first(res, "Successed"))
-		return true;
+	try
+	{
+		std::string temp = helper.Execute()->first_element_by_path("/soap:Envelope/soap:Body/UploadLyricResponse/UploadLyricResult").first_child().value();
+		const char *res = temp.c_str();
+		if(boost::find_first(res, "Successed"))
+			return true;
+	}
+	catch(...)
+	{
+		return false;
+	}
 	return false;
 }
 
@@ -341,7 +357,14 @@ boost::shared_ptr<LyricSearchResult> LyricSourceAlsong::SearchLyric(const std::s
 	helper.AddParameter("ns1:strArtistName", Artist.c_str());
 	helper.AddParameter("ns1:nCurPage", boost::lexical_cast<std::string>(nPage).c_str());
 
-	return boost::shared_ptr<LyricSearchResult>(new LyricSearchResultAlsong(helper.Execute()));
+	try
+	{
+		return boost::shared_ptr<LyricSearchResult>(new LyricSearchResultAlsong(helper.Execute()));
+	}
+	catch(...)
+	{
+		return boost::shared_ptr<LyricSearchResult>();
+	}
 }
 
 int LyricSourceAlsong::SearchLyricGetCount(const std::string &Artist, const std::string &Title)
@@ -350,8 +373,14 @@ int LyricSourceAlsong::SearchLyricGetCount(const std::string &Artist, const std:
 	helper.SetMethod("ns1:GetResembleLyric2Count");
 	helper.AddParameter("ns1:strTitle", Title.c_str());
 	helper.AddParameter("ns1:strArtistName", Artist.c_str());
-
-	return boost::lexical_cast<int>(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2CountResponse/GetResembleLyric2CountResult/strResembleLyricCount").child_value()); //TODO: Test
+	try
+	{
+		return boost::lexical_cast<int>(helper.Execute()->first_element_by_path("soap:Envelope/soap:Body/GetResembleLyric2CountResponse/GetResembleLyric2CountResult/strResembleLyricCount").child_value()); //TODO: Test
+	}
+	catch(...)
+	{
+		return 0;
+	}
 }
 
 std::map<std::string, LyricSource::ConfigItemType> LyricSourceAlsong::GetConfigItems(int type)
