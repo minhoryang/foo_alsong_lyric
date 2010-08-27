@@ -262,7 +262,8 @@ void LyricManager::CountLyric()
 	{
 		if(m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 		{
-			m_LyricLine --;
+			if(!m_CurrentLyric->IsBeginOfLyric(m_LyricLine))
+				m_LyricLine --;
 			RedrawHandler(); //Point to last lyric
 			return;
 		}
