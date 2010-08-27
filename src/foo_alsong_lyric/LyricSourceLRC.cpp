@@ -52,7 +52,7 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 				SetEvent(m_event);
 			}
 		};
-		std::wstring dirname = wpath.substr(0, wpath.find_last_of(L'\\'));
+		std::wstring dirname = wpath.substr(0, wpath.find_last_of(L'\\') + 1);
 		std::wstring filename = wpath.substr(wpath.find_last_of(L"\\") + 1);
 		HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
 		std::string out;
@@ -61,10 +61,10 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
 		wpath = EncodingFunc::ToUTF16(out);
-		if(GetFileAttributes(wpath.c_str()) & FILE_ATTRIBUTE_DIRECTORY)
-			wpath += filename;
 		if(PathIsRelative(wpath.c_str()))
 			wpath = dirname + wpath;
+		if(GetFileAttributes(wpath.c_str()) & FILE_ATTRIBUTE_DIRECTORY && (GetLastError() != ERROR_FILE_NOT_FOUND && GetLastError() != ERROR_PATH_NOT_FOUND))
+			wpath += filename;
 		return wpath;
 	}
 
@@ -149,7 +149,7 @@ std::string LyricSourceLRC::GetConfigDescription(std::string item)
 	static std::map<std::string, std::string> data;
 	if(data.size() == 0)
 	{
-		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"아무것도 적지 않으면 mp3경로에 저장되며, titleformat 사용 가능합니다.\nEx)C:\Lyric\%ARTIST%\%TITLE%.lrc");
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"아무것도 적지 않으면 mp3경로에 저장되며, titleformat 사용 가능합니다.\nEx)C:\\Lyric\\%ARTIST%\\%TITLE%.lrc");
 		data["lrcsaveencoding"] = EncodingFunc::ToUTF8(L"");
 	}
 	return data[item];
