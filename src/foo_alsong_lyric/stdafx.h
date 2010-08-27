@@ -70,3 +70,9 @@ inline bool operator<( const GUID & lhs, const GUID & rhs ) //use guid as a key 
 {
 	return ( memcmp( &lhs, &rhs, sizeof(GUID) ) > 0 ? true : false );
 }
+
+template <unsigned N, class T>
+int arraysizeof(T (& arr)[N])
+{
+	return N;
+}

@@ -138,6 +138,7 @@ std::map<std::string, LyricSource::ConfigItemType> LyricSourceLRC::GetConfigItem
 	if(ret.size() == 0)
 	{
 		ret["lrcsavepath"] = LyricSource::ITEM_TYPE_STRING;
+		ret["lrcsaveencoding"] = LyricSource::ITEM_TYPE_ENUM;
 	}
 
 	return ret;
@@ -148,7 +149,8 @@ std::string LyricSourceLRC::GetConfigDescription(std::string item)
 	static std::map<std::string, std::string> data;
 	if(data.size() == 0)
 	{
-		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"(아무것도 적지 않으면 mp3경로에 저장되며, titleformat 사용 가능합니다.)");
+		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"아무것도 적지 않으면 mp3경로에 저장되며, titleformat 사용 가능합니다.\nEx)C:\Lyric\%ARTIST%\%TITLE%.lrc");
+		data["lrcsaveencoding"] = EncodingFunc::ToUTF8(L"");
 	}
 	return data[item];
 }
@@ -159,6 +161,8 @@ std::string LyricSourceLRC::GetConfigLabel(std::string item)
 	if(data.size() == 0)
 	{
 		data["lrcsavepath"] = EncodingFunc::ToUTF8(L"LRC 저장 위치");
+		data["lrcsaveencoding"] = EncodingFunc::ToUTF8(L"LRC 파일 인코딩");
+
 	}
 	return data[item];
 }
@@ -168,6 +172,8 @@ std::vector<std::string> LyricSourceLRC::GetConfigEnumeration(std::string item)
 	static std::map<std::string, std::vector<std::string> > data;
 	if(data.size() == 0)
 	{
+		std::string encodings[] = {"UTF-8", "UTF-8(BOM)", "UTF-16", "CP949"};
+		data["lrcsaveencoding"] = std::vector<std::string>(encodings, encodings + arraysizeof(encodings));
 	}
 
 	return data[item];
