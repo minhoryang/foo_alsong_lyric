@@ -24,10 +24,7 @@
 std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 {
 	std::string path = track->get_path();
-	if(path.find_first_of("file://") == std::string::npos)
-		return std::wstring(L"");
-
-	std::wstring wpath = EncodingFunc::ToUTF16(path.substr(7));
+	std::wstring wpath = EncodingFunc::ToUTF16(path.substr(boost::find_last(path, "://").end() - path.begin()));
 	wpath = wpath.substr(0, wpath.find_last_of(L"."));
 	if(track->get_subsong_index() != 0)
 		wpath += boost::lexical_cast<std::wstring>(track->get_subsong_index());
@@ -66,7 +63,13 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 		wpath = EncodingFunc::ToUTF16(out) + wpath;
 		if(PathIsRelative(wpath.c_str()))
 			wpath = dirname + wpath;
+		return wpath;
 	}
+
+	if(path.find_first_of("file://") == std::string::npos)
+		return std::wstring(L"");
+	if(path.find_first_of("unpack://") != std::string::npos)
+		return std::wstring(L"");
 	return wpath;
 }
 
