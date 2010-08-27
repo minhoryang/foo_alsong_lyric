@@ -366,6 +366,7 @@ public:
 							break;
 						}
 					}
+					LyricManagerInstance->Reload();
 				}
 			}
 			return TRUE;

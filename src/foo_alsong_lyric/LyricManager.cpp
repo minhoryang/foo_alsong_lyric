@@ -356,18 +356,25 @@ void LyricManager::Reload(const metadb_handle_ptr &track)
 {
 	if(track == LyricManagerInstance->m_track)
 	{
-		if(LyricManagerInstance->m_fetchthread)
-		{
-			LyricManagerInstance->m_fetchthread->interrupt();
-			LyricManagerInstance->m_fetchthread->join();
-			LyricManagerInstance->m_fetchthread.reset();
-		}
-		if(LyricManagerInstance->m_countthread)
-		{
-			LyricManagerInstance->m_countthread->interrupt();
-			LyricManagerInstance->m_countthread->join();
-			LyricManagerInstance->m_countthread.reset();
-		}
-		LyricManagerInstance->m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, LyricManagerInstance, track)));
+		Reload();
 	}
+}
+
+void LyricManager::Reload()
+{
+	if(LyricManagerInstance->m_fetchthread)
+	{
+		LyricManagerInstance->m_fetchthread->interrupt();
+		LyricManagerInstance->m_fetchthread->join();
+		LyricManagerInstance->m_fetchthread.reset();
+	}
+	if(LyricManagerInstance->m_countthread)
+	{
+		LyricManagerInstance->m_countthread->interrupt();
+		LyricManagerInstance->m_countthread->join();
+		LyricManagerInstance->m_countthread.reset();
+	}
+	metadb_handle_ptr track;
+	static_api_ptr_t<playback_control>()->get_now_playing(track);
+	LyricManagerInstance->m_fetchthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::FetchLyric, LyricManagerInstance, track)));
 }

@@ -49,6 +49,7 @@ public:
 	}
 
 	static void Reload(const metadb_handle_ptr &p_track);
+	static void Reload();
 
 	std::vector<LyricLine> GetLyricBefore(int n); //이전 가사. n:줄수
 	std::vector<LyricLine> GetLyric(); //현재 표시할 가사 보여주기
