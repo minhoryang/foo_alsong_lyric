@@ -318,7 +318,7 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	if(boost::this_thread::interruption_requested())
 		return false;
 	RedrawHandler();
-
+	boost::shared_ptr<LyricSource> src;
 	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
 	{
 		try
@@ -329,7 +329,10 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 			m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
 
 			if(m_CurrentLyric->HasLyric())
+			{
+				src = *it;
 				break;
+			}
 		}
 		catch(std::exception &e)
 		{
@@ -346,6 +349,8 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 
 	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSaveSources.begin(); it != m_lyricSaveSources.end(); it ++)
 	{
+		if((*it) == src)
+			continue;
 		(*it)->Save(track, *m_CurrentLyric.get());
 	}
 

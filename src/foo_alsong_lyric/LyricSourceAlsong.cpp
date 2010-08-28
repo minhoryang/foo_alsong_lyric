@@ -261,8 +261,6 @@ boost::shared_ptr<Lyric> LyricSourceAlsong::Get(const metadb_handle_ptr &track)
 
 DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 {
-	if(typeid(lyric) == typeid(AlsongLyric))
-		return true;
 	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//나머지는 생략
 
 	//UploadLyricType - 1:Link 새거 2:Modify 수정 5:ReSetLink 아예 새거
@@ -328,7 +326,8 @@ DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	helper.AddParameter("ns1:strTitle", lyric.GetTitle().c_str());
 	helper.AddParameter("ns1:strArtist", lyric.GetArtist().c_str());
 	helper.AddParameter("ns1:strAlbum", lyric.GetAlbum().c_str());
-	helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(lyric.GetInternalID()).c_str());
+	if(typeid(lyric) == typeid(AlsongLyric))
+		helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(lyric.GetInternalID()).c_str());
 	helper.AddParameter("ns1:strLyric", lyric.GetRawLyric().c_str());
 	helper.AddParameter("ns1:nPlayTime", boost::lexical_cast<std::string>(PlayTime).c_str());
 	helper.AddParameter("ns1:strVersion", ALSONG_VERSION);
