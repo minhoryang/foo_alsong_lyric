@@ -255,7 +255,8 @@ LRESULT CALLBACK UIWnd::WindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPAR
 			_this->m_UI->ShowConfig(hWnd);
 
 		break;
-	case WM_SIZING:
+	case WM_SHOWWINDOW:
+	case WM_SIZE:
 		_this->m_UI->Invalidated(hWnd);
 		break;
 	case WM_NCHITTEST:
