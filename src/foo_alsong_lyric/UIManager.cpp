@@ -82,13 +82,13 @@ UIManager::~UIManager()
 }
 
 void UIManager::Invalidated(HWND hWnd)
-{
+{/*
 	if(GetParent(hWnd) == NULL)
 	{
 		//layered window repaint
 		PostMessage(hWnd, WM_USER + 1, 0, 0);
 	}
-	else
+	else*/
 		InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -123,14 +123,14 @@ LRESULT UIManager::ProcessMessage(HWND hWnd, UINT iMessage, WPARAM wParam, LPARA
 		}
 		return 0;
 	case WM_ERASEBKGND:
-		return TRUE;
+		return TRUE;/*
 	case WM_USER + 1:
 		{
 			HDC hdc = GetDCEx(hWnd, NULL, DCX_WINDOW);
 			Draw(hWnd, hdc);
 			ReleaseDC(hWnd, hdc);
 			return TRUE;
-		}
+		}*/
 	}
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
