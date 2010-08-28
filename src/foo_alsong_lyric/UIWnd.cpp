@@ -218,6 +218,7 @@ void UIWnd::Show()
 {
 	ShowWindow(m_hWnd, SW_SHOW);
 	cfg_outer_shown = true;
+	m_UI->Invalidated(m_hWnd);
 }
 
 void UIWnd::Hide()
