@@ -379,6 +379,22 @@ public:
 							cfg_enabledlyricsource.insert(idx - 1, ((LyricSource *)data)->GetGUID());
 							break;
 						}
+					case IDC_LYRICSOURCE_DOWN:
+						{
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
+							int cnt = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCOUNT, NULL, NULL);
+							if(idx >= cnt - 1)
+								break;
+							LRESULT data = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
+							TCHAR str[255];
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETTEXT, idx, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_DELETESTRING, idx, NULL);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_INSERTSTRING, idx + 1, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx + 1, data);
+							cfg_enabledlyricsource.remove(idx);
+							cfg_enabledlyricsource.insert(idx + 1, ((LyricSource *)data)->GetGUID());
+							break;
+						}
 					case IDC_LYRICSAVE_ADD:
 						{
 							LyricSource *res = (LyricSource *)DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCE_ADD), hWnd, &preferences_page_instance_alsong_lyric::LyricSourceAddProc);
@@ -397,6 +413,37 @@ public:
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
 							OpenLyricSourceConfig(hWnd, res, 2);
+							break;
+						}
+					case IDC_LYRICSAVE_UP:
+						{
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx <= 0)
+								break;
+							LRESULT data = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
+							TCHAR str[255];
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETTEXT, idx, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_DELETESTRING, idx, NULL);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_INSERTSTRING, idx - 1, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_SETITEMDATA, idx - 1, data);
+							cfg_enabledlyricsave.remove(idx);
+							cfg_enabledlyricsave.insert(idx - 1, ((LyricSource *)data)->GetGUID());
+							break;
+						}
+					case IDC_LYRICSAVE_DOWN:
+						{
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							int cnt = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCOUNT, NULL, NULL);
+							if(idx >= cnt - 1)
+								break;
+							LRESULT data = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
+							TCHAR str[255];
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETTEXT, idx, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_DELETESTRING, idx, NULL);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_INSERTSTRING, idx + 1, (LPARAM)str);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_SETITEMDATA, idx + 1, data);
+							cfg_enabledlyricsave.remove(idx);
+							cfg_enabledlyricsave.insert(idx + 1, ((LyricSource *)data)->GetGUID());
 							break;
 						}
 					}
