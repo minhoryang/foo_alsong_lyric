@@ -49,6 +49,16 @@ public:
 		return m_reallist;
 	}
 
+	void remove(int idx)
+	{
+		m_reallist.erase(m_reallist.begin() + idx);
+	}
+
+	void insert(int idx, const GUID &guid)
+	{
+		m_reallist.insert(m_reallist.begin() + idx, guid);
+	}
+
 	void get_data_raw(stream_writer * p_stream,abort_callback & p_abort)
 	{
 		for(std::vector<GUID>::iterator it = m_reallist.begin(); it != m_reallist.end(); it ++)
