@@ -326,8 +326,15 @@ DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	helper.AddParameter("ns1:strTitle", lyric.GetTitle().c_str());
 	helper.AddParameter("ns1:strArtist", lyric.GetArtist().c_str());
 	helper.AddParameter("ns1:strAlbum", lyric.GetAlbum().c_str());
-	if(typeid(lyric) == typeid(AlsongLyric))
-		helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(lyric.GetInternalID()).c_str());
+	try
+	{
+		if(typeid(lyric) == typeid(AlsongLyric))
+			helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(lyric.GetInternalID()).c_str());
+	}
+	catch(std::bad_typeid &)
+	{
+
+	}
 	helper.AddParameter("ns1:strLyric", lyric.GetRawLyric().c_str());
 	helper.AddParameter("ns1:nPlayTime", boost::lexical_cast<std::string>(PlayTime).c_str());
 	helper.AddParameter("ns1:strVersion", ALSONG_VERSION);
