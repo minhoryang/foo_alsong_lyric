@@ -70,7 +70,7 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 
 	if(path.find_first_of("file://") == std::string::npos)
 		return std::wstring(L"");
-	if(path.find_first_of("unpack://") != std::string::npos)
+	if(path.find_first_of("unpack://") == std::string::npos)
 		return std::wstring(L"");
 	return wpath;
 }
