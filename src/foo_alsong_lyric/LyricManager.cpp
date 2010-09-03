@@ -276,7 +276,7 @@ void LyricManager::CountLyric()
 		}
 		RedrawHandler();
 
-		while(!m_CurrentLyric->IsEndOfLyric(m_LyricLine))
+		while(m_CurrentLyric && !m_CurrentLyric->IsEndOfLyric(m_LyricLine))
 		{
 			m_SecondLock.lock();
 
