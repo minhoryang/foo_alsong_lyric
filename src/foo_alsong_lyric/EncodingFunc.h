@@ -85,7 +85,7 @@ public:
 	static std::wstring ToUTF16(std::string utf8)
 	{
 		std::wstring ret;
-		int i = 0;
+		unsigned int i = 0;
 		while(i < utf8.length())
 		{
 			if(!((utf8[i] & 0xF0) == 0xF0))
