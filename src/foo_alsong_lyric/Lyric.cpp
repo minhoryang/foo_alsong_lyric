@@ -50,7 +50,7 @@ DWORD Lyric::Split(const char *Delimiter)
 	for(i = 0; ; i ++) //<br>자르기
 	{
 		pos = boost::find_first(nowpos, Delimiter).end() - nowpos;
-		if(pos <= 0)
+		if(pos <= 10)
 			break;
 		nowpos = nowpos + pos;
 
