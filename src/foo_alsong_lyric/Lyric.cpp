@@ -45,19 +45,20 @@ DWORD Lyric::Split(const char *Delimiter)
 
 	const char *nowpos = m_Lyric.c_str();
 	const char *lastpos = nowpos;
-	int pos;
+	int delimlen = lstrlenA(Delimiter);
+	unsigned int pos;
 	for(i = 0; ; i ++) //<br>자르기
 	{
-		pos = pfc::strstr_ex(nowpos + 1, lstrlenA(nowpos + 1), Delimiter, lstrlenA(Delimiter));
-		if(pos == -1)
+		pos = boost::find_first(nowpos, Delimiter).end() - nowpos;
+		if(pos <= 0)
 			break;
-		nowpos = nowpos + 1 + pos;
+		nowpos = nowpos + pos;
 
 		int time = StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7);
 		lastpos += 10; //strlen("[34:56.78]");
 
-		m_LyricLines.push_back(LyricLine(time, std::string(lastpos, nowpos - lastpos)));
-		lastpos = nowpos + lstrlenA(Delimiter);
+		m_LyricLines.push_back(LyricLine(time, std::string(lastpos, nowpos - lastpos - delimlen)));
+		lastpos = nowpos;
 	}
 
 	m_LyricIterator = m_LyricLines.begin();
