@@ -314,6 +314,13 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		m_CurrentLyric.reset();
 	}
 
+	if(m_countthread)
+	{
+		m_countthread->interrupt();
+		m_countthread->join();
+		m_countthread.reset();
+	}
+
 	m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("가사 다운로드 중...")));
 	if(boost::this_thread::interruption_requested())
 		return false;
