@@ -20,6 +20,8 @@
 #include "UIWnd.h"
 #include "LyricManager.h"
 #include "AlsongLyricLinkDialog.h"
+#include "LyricSync.h"
+#include "EncodingFunc.h"
 
 class menu_command_plugin : public mainmenu_commands 
 {
@@ -43,15 +45,15 @@ class menu_command_plugin : public mainmenu_commands
 	virtual void get_name(t_uint32 p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 실시간 가사"), lstrlen(TEXT("알송 실시간 가사")));
+			p_out = EncodingFunc::ToUTF8(TEXT("알송 실시간 가사")).c_str();
 		if(p_index == 1)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("Alsong Lyric Window Config"), lstrlen(TEXT("Alsong Lyric Window Config")));
+			p_out = EncodingFunc::ToUTF8(TEXT("Alsong Lyric Window Config")).c_str();
 	}
 
 	virtual bool get_description(t_uint32 p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 실시간 가사 창을 열거나 닫습니다."), lstrlen(TEXT("알송 실시간 가사 창을 열거나 닫습니다.")));
+			p_out = EncodingFunc::ToUTF8(TEXT("알송 실시간 가사 창을 열거나 닫습니다.")).c_str();
 		else
 			return false;
 		return true;
@@ -111,26 +113,35 @@ public:
 
 	virtual unsigned int get_num_items() 
 	{
-		return 1;
+		return 2;
 	}
 
 	virtual void get_item_name(unsigned int p_index, pfc::string_base & p_out) 
 	{
 		if(p_index == 0)
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 가사 추가/변경"), lstrlen(TEXT("알송 가사 추가/변경")));
+			p_out = EncodingFunc::ToUTF8(TEXT("알송 가사 추가/변경")).c_str();
+		else if(p_index == 1)
+			p_out = EncodingFunc::ToUTF8(TEXT("가사 싱크 수정")).c_str();
 	}
 
 	virtual void context_command(unsigned int p_index, metadb_handle_list_cref p_data, const GUID& p_caller) 
 	{
 		if(p_index == 0 && p_data.get_count() == 1)
 			AlsongLyricLinkDialog::OpenLyricLinkDialog(core_api::get_main_window(), p_data.get_item(0));
+		else if(p_index == 1 && p_data.get_count() == 1)
+			LyricSyncDialog::Open(p_data.get_item(0), core_api::get_main_window());
 	}
 	
 	virtual bool context_get_display(unsigned int p_index, metadb_handle_list_cref p_data, pfc::string_base & p_out, unsigned & p_displayflags, const GUID & p_caller) 
 	{
 		if(p_index == 0)
 		{
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 가사 추가/변경"), lstrlen(TEXT("알송 가사 추가/변경")));
+			p_out = EncodingFunc::ToUTF8(TEXT("알송 가사 추가/변경")).c_str();
+			return p_data.get_count() == 1;
+		}
+		else if(p_index == 1)
+		{
+			p_out = EncodingFunc::ToUTF8(TEXT("가사 싱크 수정")).c_str();
 			return p_data.get_count() == 1;
 		}
 		return false;
@@ -144,6 +155,12 @@ public:
 				{ 0x6c1cba98, 0xcb52, 0x4eca, { 0x92, 0xb6, 0x7a, 0x86, 0x25, 0xde, 0x1a, 0x6f } };
 			return item_guid;
 		}
+		else if(p_index == 1)
+		{
+			static const GUID item_guid = // {0DED9416-5675-42A5-A456-F7F3B9C2612F}
+			{ 0xded9416, 0x5675, 0x42a5, { 0xa4, 0x56, 0xf7, 0xf3, 0xb9, 0xc2, 0x61, 0x2f } };
+			return item_guid;
+		}
 		static const GUID nullguid = {0,};
 		return nullguid;
 	}
@@ -152,7 +169,12 @@ public:
 	{
 		if(p_index == 0)
 		{
-			p_out = pfc::stringcvt::string_utf8_from_wide(TEXT("알송 가사 추가/변경"), lstrlen(TEXT("알송 가사 추가/변경")));
+			p_out = EncodingFunc::ToUTF8(TEXT("알송 가사 추가/변경")).c_str();
+			return true;
+		}
+		else if(p_index == 1)
+		{
+			p_out = EncodingFunc::ToUTF8(TEXT("가사 싱크 수정")).c_str();
 			return true;
 		}
 		return false;

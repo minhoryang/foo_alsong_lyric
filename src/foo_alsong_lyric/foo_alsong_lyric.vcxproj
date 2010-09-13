@@ -141,6 +141,7 @@
     <ClCompile Include="LyricSource.cpp" />
     <ClCompile Include="LyricSourceAlsong.cpp" />
     <ClCompile Include="LyricSourceLRC.cpp" />
+    <ClCompile Include="LyricSync.cpp" />
     <ClCompile Include="UICanvas.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="AlsongLyric.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="LyricSourceAlsong.h" />
     <ClInclude Include="LRCLyric.h" />
     <ClInclude Include="LyricSourceLRC.h" />
+    <ClInclude Include="LyricSync.h" />
     <ClInclude Include="UICanvas.h" />
     <ClInclude Include="UIElement.h" />
     <ClInclude Include="UIPanel.h" />
