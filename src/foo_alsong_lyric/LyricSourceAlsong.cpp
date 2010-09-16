@@ -209,6 +209,8 @@ boost::shared_ptr<Lyric> LyricSourceAlsong::Get(const metadb_handle_ptr &track)
 	host = gethostbyname(Hostname);
 
 	struct in_addr addr;
+	if(host == NULL)
+		return boost::shared_ptr<Lyric>(new AlsongLyric());
 	memcpy(&addr, host->h_addr_list[0], sizeof(struct in_addr));
 	Local_IP = inet_ntoa(*((in_addr *)host->h_addr_list[0]));
 
