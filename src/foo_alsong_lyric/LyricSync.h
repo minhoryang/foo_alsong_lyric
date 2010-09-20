@@ -17,13 +17,31 @@
 
 #pragma once
 
-class LyricSyncDialog
+class LyricSyncDialog :  public play_callback
 {
 private:
 	HWND m_hWnd;
 	metadb_handle_ptr m_track;
 	LyricSyncDialog(metadb_handle_ptr &track, HWND hParent);
 	static UINT CALLBACK DialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+	void Initialize(HWND hWnd);
+	void OnTrackbarMove(unsigned int pos);
 public:
+	~LyricSyncDialog();
 	static void Open(metadb_handle_ptr &track, HWND hParent);
+
+	//play_callback
+	
+	virtual void FB2KAPI on_playback_new_track(metadb_handle_ptr p_track);
+	virtual void FB2KAPI on_playback_stop(play_control::t_stop_reason p_reason);
+	virtual void FB2KAPI on_playback_seek(double p_time);
+	virtual void FB2KAPI on_playback_pause(bool p_state);
+	virtual void FB2KAPI on_playback_time(double p_time);
+	
+	virtual void FB2KAPI on_playback_starting(play_control::t_track_command p_command,bool p_paused) {};
+	virtual void FB2KAPI on_playback_edited(metadb_handle_ptr p_track) {};
+	virtual void FB2KAPI on_playback_dynamic_info(const file_info & p_info) {};
+	virtual void FB2KAPI on_playback_dynamic_info_track(const file_info & p_info) {};
+	virtual void FB2KAPI on_volume_change(float p_new_val) {};
 };
