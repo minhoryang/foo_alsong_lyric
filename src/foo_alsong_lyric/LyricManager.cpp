@@ -306,6 +306,35 @@ void LyricManager::CountLyric()
 	}
 }
 
+std::pair<boost::shared_ptr<LyricSource>, boost::shared_ptr<Lyric> > LyricManager::RetrieveLyric(const metadb_handle_ptr &track)
+{
+	boost::shared_ptr<LyricSource> src;
+	boost::shared_ptr<Lyric> ret;
+	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
+	{
+		try
+		{
+			ret = (*it)->Get(track);
+			if(boost::this_thread::interruption_requested())
+				return std::make_pair(boost::shared_ptr<LyricSource>(), boost::shared_ptr<Lyric>());
+			if(!ret)
+				continue;
+
+			if(ret->HasLyric())
+			{
+				src = *it;
+				break;
+			}
+		}
+		catch(std::exception &)
+		{
+			continue;
+		}
+	}
+
+	return std::make_pair(src, ret);
+}
+
 DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 {
 	if(m_CurrentLyric)
@@ -325,30 +354,10 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	if(boost::this_thread::interruption_requested())
 		return false;
 	RedrawHandler();
-	boost::shared_ptr<LyricSource> src;
-	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSources.begin(); it != m_lyricSources.end(); it ++)
-	{
-		try
-		{
-			m_CurrentLyric = (*it)->Get(track);
-			if(boost::this_thread::interruption_requested())
-				return false;
-			if(!m_CurrentLyric)
-				continue;
-			m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
-
-			if(m_CurrentLyric->HasLyric())
-			{
-				src = *it;
-				break;
-			}
-		}
-		catch(std::exception &)
-		{
-			continue;
-		}
-	}
-
+	std::pair<boost::shared_ptr<LyricSource>, boost::shared_ptr<Lyric> > res = RetrieveLyric(track);
+	if(boost::this_thread::interruption_requested())
+		return false;
+	m_CurrentLyric = res.second;
 	if(!m_CurrentLyric || !m_CurrentLyric->HasLyric())
 	{
 		m_Status = std::string(pfc::stringcvt::string_utf8_from_wide(TEXT("실시간 가사를 찾을 수 없습니다.")));
@@ -356,12 +365,9 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 		return false;
 	}
 
-	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSaveSources.begin(); it != m_lyricSaveSources.end(); it ++)
-	{
-		if((*it) == src)
-			continue;
-		(*it)->Save(track, *m_CurrentLyric.get());
-	}
+	m_LyricLine = m_CurrentLyric->GetIteratorAt(0);
+	
+	SaveLyric(track, res);
 
 	m_countthread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricManager::CountLyric, this)));
 
@@ -369,6 +375,16 @@ DWORD LyricManager::FetchLyric(const metadb_handle_ptr &track)
 	m_fetchthread->detach();
 	m_fetchthread.reset();
 	return true;
+}
+
+void LyricManager::SaveLyric(const metadb_handle_ptr &track, std::pair<boost::shared_ptr<LyricSource>, boost::shared_ptr<Lyric> > lyricinfo)
+{
+	for(std::vector<boost::shared_ptr<LyricSource> >::iterator it = m_lyricSaveSources.begin(); it != m_lyricSaveSources.end(); it ++)
+	{
+		if((*it) == lyricinfo.first)
+			continue;
+		(*it)->Save(track, *lyricinfo.second.get());
+	}
 }
 
 void LyricManager::Reload(const metadb_handle_ptr &track)

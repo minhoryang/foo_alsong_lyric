@@ -37,6 +37,8 @@ private:
 
 	void CountLyric();
 	DWORD FetchLyric(const metadb_handle_ptr &track);
+	std::pair<boost::shared_ptr<LyricSource>, boost::shared_ptr<Lyric> > RetrieveLyric(const metadb_handle_ptr &track);
+	void SaveLyric(const metadb_handle_ptr &track, std::pair<boost::shared_ptr<LyricSource>, boost::shared_ptr<Lyric> > lyricinfo);
 	std::vector<boost::shared_ptr<LyricSource> > m_lyricSources;
 	std::vector<boost::shared_ptr<LyricSource> > m_lyricSaveSources;
 public:
