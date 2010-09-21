@@ -120,11 +120,33 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 		return 0;
 
 	DWORD unused;
+	//{"UTF-8", "UTF-8(BOM)", "UTF-16", "CP949"};
+	if(m_config["lrcsaveencoding"] == "1")
+	{
+		const unsigned char bomtemp[] = {0xEF, 0xBB, 0xBF};
+		WriteFile(hf, bomtemp, 3, &unused, NULL);
+	}
+	else if(m_config["lrcsaveencoding"] == "2")
+	{
+		const unsigned char bomtemp[] = {0xFF, 0xFE};
+		WriteFile(hf, bomtemp, 2, &unused, NULL);
+	}
+
 	for(std::vector<LyricLine>::const_iterator it = lyric.GetIteratorAt(0); !lyric.IsEndOfLyric(it); it ++)
 	{
 		std::stringstream str;
 		str << "[" << std::setfill('0') << std::setw(2) << it->time / 60 / 100 << ":" << std::setw(2) << it->time / 100 % 60 << "." << std::setw(2) << it->time % 100 << "]" << it->lyric << "\r\n";
-		WriteFile(hf, str.str().c_str(), str.str().size(), &unused, NULL);
+		if(m_config["lrcsaveencoding"] == "0" || m_config["lrcsaveencoding"] == "1")
+			WriteFile(hf, str.str().c_str(), str.str().size(), &unused, NULL);
+		else if(m_config["lrcsaveencoding"] == "2")
+		{
+			std::wstring wstr = EncodingFunc::ToUTF16(str.str());
+			WriteFile(hf, wstr.c_str(), wstr.size(), &unused, NULL);
+		}
+		else if(m_config["lrcsaveencoding"] == "3")
+		{
+			//TODO: Not implemented
+		}
 	}
 
 	CloseHandle(hf);
