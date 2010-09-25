@@ -503,6 +503,13 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 	static int old_transparency;
 	static bool old_layered;
+	static bool old_nolayered;
+	static bool old_topmost;
+
+	static int tmp_bkColor;
+	static int tmp_fgColor;
+	static std::wstring tmp_bgImage;
+	static t_font_description tmp_font;
 
 	switch (iMessage)
 	{
@@ -511,6 +518,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			memcpy(&OldSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
 			old_layered = cfg_outer_layered;
+			old_topmost = cfg_outer_topmost;
+			old_nolayered = cfg_outer_nolayered;
+			tmp_bkColor = bkColor;
+			tmp_fgColor = fgColor;
+			tmp_bgImage = bgImage;
+			tmp_font = font;
 
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
@@ -560,7 +573,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_MANUALSCRIPT), WM_CLOSE, 0, 0);
 			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
 
-			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
+			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)tmp_font.create(), TRUE);
 
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("색"));
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("그림"));
@@ -572,16 +585,16 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 		break;
 	case WM_CTLCOLORSTATIC:
 		if((HWND)lParam == GetDlgItem(hWnd, IDC_FGINDICATOR))
-			return (INT_PTR)CreateSolidBrush(GetFgColor());
+			return (INT_PTR)CreateSolidBrush(tmp_fgColor);
 		if((HWND)lParam == GetDlgItem(hWnd, IDC_BKINDICATOR))
-			return (INT_PTR)CreateSolidBrush(GetBkColor());
+			return (INT_PTR)CreateSolidBrush(tmp_bkColor);
 		return FALSE;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
 			Gdiplus::Graphics g((HDC)hdc);
-			Gdiplus::Image im(GetBgImagePath());
+			Gdiplus::Image im(tmp_bgImage.c_str());
 
 			g.DrawImage(&im, 20, 270, 200, 120);
 			EndPaint(hWnd, &ps);
@@ -606,19 +619,19 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			switch(LOWORD(wParam))
 			{
 			case IDC_BKCOLOR:
-				OpenBkColorPopup(hWnd);
+				tmp_bkColor = OpenBkColorPopup(hWnd);
 				InvalidateRect(GetDlgItem(hWnd, IDC_BKINDICATOR), NULL, TRUE);
 				break;
 			case IDC_FONTCHANGE:
-				OpenFontPopup(hWnd);
-				SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)GetFont(), TRUE);
+				tmp_font = OpenFontPopup(hWnd);
+				SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)tmp_font.create(), TRUE);
 				break;
 			case IDC_FGCOLOR:
-				OpenFgColorPopup(hWnd);
+				tmp_fgColor = OpenFgColorPopup(hWnd);
 				InvalidateRect(GetDlgItem(hWnd, IDC_FGINDICATOR), NULL, TRUE);
 				break;
 			case IDC_BGIMAGE:
-				OpenBgImagePopup(hWnd);
+				tmp_bgImage = OpenBgImagePopup(hWnd);
 				InvalidateRect(hWnd, NULL, TRUE);
 				break;
 			}
@@ -638,6 +651,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				WndInstance.StyleUpdated();
 			}
 
+			font = tmp_font;
+			bkColor = tmp_bkColor;
+			fgColor = tmp_fgColor;
+			std::copy(tmp_bgImage.begin(), tmp_bgImage.end(), bgImage);
 			VerticalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
 			HorizentalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
 			bgType = static_cast<BgType>(SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_GETCURSEL, NULL, NULL));
@@ -651,6 +668,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
 		{
 			SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
+			DestroyWindow(GetParent(hWnd));
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_RESET)
 		{
@@ -659,9 +677,11 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 				cfg_outer_transparency = old_transparency;
 				cfg_outer_layered = old_layered;
-
+				cfg_outer_nolayered = old_nolayered;
+				cfg_outer_topmost = old_topmost;
 				WndInstance.StyleUpdated();
 			}
+			DestroyWindow(GetParent(hWnd));
 		}
 		break;
 	default:
@@ -711,7 +731,7 @@ void UIPreference::OpenConfigPopup(HWND hParent)
 
 	PROPSHEETHEADER psh;
 	psh.dwSize = sizeof(psh);
-	psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON;
+	psh.dwFlags = PSH_DEFAULT | PSH_NOCONTEXTHELP | PSH_USEHICON | PSH_MODELESS;
 	psh.hwndParent = hParent;
 	psh.hInstance = core_api::get_my_instance();
 	psh.hIcon = static_api_ptr_t<ui_control>()->get_main_icon();

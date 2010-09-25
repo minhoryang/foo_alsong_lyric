@@ -81,16 +81,18 @@ public:
 	{
 		return HorizentalAlign;
 	}
-	int OpenFontPopup(HWND hWndFrom)
+	t_font_description OpenFontPopup(HWND hWndFrom)
 	{
-		return font.popup_dialog(hWndFrom);
+		t_font_description tempfont = font;
+		tempfont.popup_dialog(hWndFrom);
+		return tempfont;
 	}
 	int OpenFgColorPopup(HWND hWndFrom)
 	{
 		COLORREF color;
 		if((color = OpenColorPopup(hWndFrom, fgColor)) != -1)
 		{
-			fgColor = color;
+			//fgColor = color;
 			return color;
 		}
 		return -1;
@@ -99,29 +101,30 @@ public:
 	{
 		COLORREF color;
 		if((color = OpenColorPopup(hWndFrom, bkColor)) != -1)
-		{
+		{/*
 			bgType = BG_SOLIDCOLOR;
-			bkColor = color;
+			bkColor = color;*/
 			return color;
 		}
 		return -1;
 	}
-	int OpenBgImagePopup(HWND hWndFrom)
+	std::wstring OpenBgImagePopup(HWND hWndFrom)
 	{
+		TCHAR temp[255];
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
-		ofn.lpstrFile = bgImage;
+		ofn.lpstrFile = temp;
 		ofn.lpstrFilter = TEXT("그림 파일(*.bmp;*.png;*.jpg;*.gif;*.jpeg)\0*.bmp;*.png;*.jpg;*.gif;*.jpeg\0\0");
 		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
 		ofn.nMaxFile = 255;
 
 		if(GetOpenFileName(&ofn))
 		{
-			bgType = BG_IMAGE;
-			return true;
+			//bgType = BG_IMAGE;
+			return std::wstring(temp);
 		}
-		return false;
+		return std::wstring();
 	}
 	void SetDefault()
 	{
