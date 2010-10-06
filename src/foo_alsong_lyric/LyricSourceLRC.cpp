@@ -58,6 +58,7 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 		std::string out;
 		service_ptr_t<LRCTitleFormatCallback> p_callback = new service_impl_t<LRCTitleFormatCallback>(event, &out, m_config["lrcsavepath"], track);
 		static_api_ptr_t<main_thread_callback_manager>()->add_callback(p_callback);
+		p_callback.release();
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
 		wpath = EncodingFunc::ToUTF16(out);
@@ -145,7 +146,11 @@ DWORD LyricSourceLRC::Save(const metadb_handle_ptr &track, Lyric &lyric)
 		}
 		else if(m_config["lrcsaveencoding"] == "3")
 		{
-			//TODO: Not implemented
+			std::wstring wstr = EncodingFunc::ToUTF16(str.str());
+			CHAR mbstr[512];
+			int len = WideCharToMultiByte(949, NULL, wstr.c_str(), -1, mbstr, 512, NULL, NULL);
+			mbstr[len] = 0;
+			WriteFile(hf, mbstr, len, &unused, NULL);
 		}
 	}
 
