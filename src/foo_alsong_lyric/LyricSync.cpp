@@ -26,13 +26,47 @@ LyricSyncDialog::LyricSyncDialog(metadb_handle_ptr &track, HWND hParent) : m_tra
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->register_callback(this, flag_on_playback_all, false);
 
-	CreateDialogParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_SYNCLYRIC), hParent, (DLGPROC)&LyricSyncDialog::DialogProc, (LPARAM)this);
+	HWND hWnd = CreateDialogParam(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_SYNCLYRIC), hParent, (DLGPROC)&LyricSyncDialog::DialogProc, (LPARAM)this);
+	ShowWindow(hWnd, SW_SHOW);
+	m_syncThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&LyricSyncDialog::SyncThread, this)));
 }
 
 LyricSyncDialog::~LyricSyncDialog()
 {
 	static_api_ptr_t<play_callback_manager> pcm;
 	pcm->unregister_callback(this);
+	m_syncThread->interrupt();
+	m_syncThread->join();
+}
+
+void LyricSyncDialog::SyncThread()
+{
+	class SyncCallback : public main_thread_callback
+	{
+	private:
+		LyricSyncDialog *m_this;
+	public:
+		SyncCallback(LyricSyncDialog *_this) : m_this(_this) {}
+		virtual void callback_run()
+		{
+			static_api_ptr_t<playback_control> pc;
+			metadb_handle_ptr handle;
+			double seconds = pc->playback_get_position();
+			m_this->UpdateTrackbar(seconds);
+		}
+	};
+	service_ptr_t<SyncCallback> p_callback = new service_impl_t<SyncCallback>(this);
+
+	while(1)
+	{
+		if(boost::this_thread::interruption_requested())
+			break;
+		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+
+		static_api_ptr_t<main_thread_callback_manager>()->add_callback(p_callback);
+	}
+
+	p_callback.release();
 }
 
 void LyricSyncDialog::Open(metadb_handle_ptr &track, HWND hParent)
@@ -54,6 +88,11 @@ void LyricSyncDialog::on_playback_new_track(metadb_handle_ptr p_track)
 void LyricSyncDialog::on_playback_stop(play_control::t_stop_reason p_reason)
 {
 
+}
+
+void LyricSyncDialog::UpdateTrackbar(double pos)
+{
+	SendMessage(GetDlgItem(m_hWnd, IDC_SYNC_TIME), TBM_SETPOS, TRUE, int(pos * 10000));
 }
 
 void LyricSyncDialog::on_playback_seek(double p_time)
@@ -99,6 +138,7 @@ UINT CALLBACK LyricSyncDialog::DialogProc(HWND hWnd, UINT iMessage, WPARAM wPara
 			{
 			case IDCANCEL:
 				EndDialog(hWnd, 1);
+				return TRUE;
 			}
 		}
 		return TRUE;

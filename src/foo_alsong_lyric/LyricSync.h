@@ -22,11 +22,14 @@ class LyricSyncDialog :  public play_callback
 private:
 	HWND m_hWnd;
 	metadb_handle_ptr m_track;
+	boost::shared_ptr<boost::thread> m_syncThread;
 	LyricSyncDialog(metadb_handle_ptr &track, HWND hParent);
 	static UINT CALLBACK DialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	void Initialize(HWND hWnd);
 	void OnTrackbarMove(unsigned int pos);
+	void SyncThread();
+	void UpdateTrackbar(double pos);
 public:
 	~LyricSyncDialog();
 	static void Open(metadb_handle_ptr &track, HWND hParent);
