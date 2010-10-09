@@ -509,12 +509,14 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	static int tmp_bkColor;
 	static int tmp_fgColor;
 	static std::wstring tmp_bgImage;
-	static t_font_description tmp_font;
+	static t_font_description tmp_font;	
+	static int shouldClose;
 
 	switch (iMessage)
 	{
 	case WM_INITDIALOG:
 		{
+			shouldClose = 0;
 			memcpy(&OldSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
 			old_layered = cfg_outer_layered;
@@ -664,11 +666,13 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			InvalidateRect(hParent, NULL, TRUE);
 
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
+			if(((LPPSHNOTIFY)lParam)->lParam)
+				shouldClose = 1;
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_KILLACTIVE)
 		{
 			SetWindowLong(hWnd, DWL_MSGRESULT, FALSE);
-			DestroyWindow(GetParent(hWnd));
+			//DestroyWindow(GetParent(hWnd));
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_RESET)
 		{
@@ -682,6 +686,11 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				WndInstance.StyleUpdated();
 			}
 			DestroyWindow(GetParent(hWnd));
+		}
+		else if(((LPNMHDR)lParam)->code == -211)
+		{
+			if(shouldClose)
+				DestroyWindow(GetParent(hWnd));
 		}
 		break;
 	default:
