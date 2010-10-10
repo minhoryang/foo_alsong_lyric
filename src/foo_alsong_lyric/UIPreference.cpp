@@ -685,12 +685,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_topmost = old_topmost;
 				WndInstance.StyleUpdated();
 			}
-			DestroyWindow(GetParent(hWnd));
+			DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
 		}
 		else if(((LPNMHDR)lParam)->code == -211)
 		{
 			if(shouldClose)
-				DestroyWindow(GetParent(hWnd));
+				DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
 		}
 		break;
 	default:
