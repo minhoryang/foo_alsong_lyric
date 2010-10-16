@@ -502,6 +502,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	static UIPreference OldSetting;
 
 	static int old_transparency;
+	static int old_font_transparency;
 	static bool old_layered;
 	static bool old_nolayered;
 	static bool old_topmost;
@@ -519,6 +520,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			shouldClose = 0;
 			memcpy(&OldSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
+			old_font_transparency = cfg_outer_font_transparency;
 			old_layered = cfg_outer_layered;
 			old_topmost = cfg_outer_topmost;
 			old_nolayered = cfg_outer_nolayered;
@@ -541,12 +543,18 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_transparency);
+				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
+				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_font_transparency);
 
 				int pos;
 				pos = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				TCHAR temp[255];
 				wsprintf(temp, TEXT("%d%%"), pos);
 				SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
+
+				pos = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
+				wsprintf(temp, TEXT("%d%%"), pos);
+				SetWindowText(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY_LABEL), temp);
 
 				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
 				CheckDlgButton(hWnd, IDC_NOLAYERED, cfg_outer_nolayered);
@@ -610,6 +618,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			TCHAR temp[255];
 			wsprintf(temp, TEXT("%d%%"), pos);
 			SetWindowText(GetDlgItem(hWnd, IDC_TRANSPARENCY_LABEL), temp);
+
+			pos = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
+			wsprintf(temp, TEXT("%d%%"), pos);
+			SetWindowText(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY_LABEL), temp);
 			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
 		}
 		break;
@@ -647,6 +659,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
+				cfg_outer_font_transparency = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				cfg_outer_topmost = (IsDlgButtonChecked(hWnd, IDC_TOPMOST) ? true : false);
@@ -680,6 +693,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = old_transparency;
+				cfg_outer_font_transparency = old_font_transparency;
 				cfg_outer_layered = old_layered;
 				cfg_outer_nolayered = old_nolayered;
 				cfg_outer_topmost = old_topmost;

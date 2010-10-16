@@ -48,7 +48,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 
 		hBitmap = CreateDIBSection(m_destDC, &bmi, DIB_RGB_COLORS, (void **)&m_bits, NULL, NULL);
 		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
-			m_bits[i] = 0x00000000;
+			m_bits[i] = 0x00000000 | (cfg_outer_transparency * 255 / 100) << 24;
 	}
 	else
 		hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
@@ -159,11 +159,11 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 	g.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-	SolidBrush brush(Gdiplus::Color(255, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
+	SolidBrush brush(Gdiplus::Color(0xFF, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
 		g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
-		brush.SetColor(Gdiplus::Color((255 * cfg_outer_transparency) / 100, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
+		brush.SetColor(Gdiplus::Color((255 * cfg_outer_font_transparency) / 100, GetRValue(font.GetColor()), GetGValue(font.GetColor()), GetBValue(font.GetColor())));
 	}
 
 	StringFormat strformat;
