@@ -119,9 +119,8 @@ void UIElement::set_configuration(ui_element_config::ptr config)
 
 ui_element_config::ptr UIElement::get_default_configuration()
 {
-	BYTE temp[sizeof(UIPreference) + 8];
+	BYTE temp[sizeof(UIPreference) + 8] = {0,};
 	UIPreference *settemp = (UIPreference *)&temp[4];
-	memset(temp, 0, sizeof(temp));
 	*((DWORD *)&temp[0]) = ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O');
 	settemp->SetDefault();
 
@@ -133,6 +132,14 @@ ui_element_config::ptr UIElement::get_configuration()
 	if(m_config->get_data_size() == sizeof(m_Setting) + m_Script.get_length() + 8)
 	{
 		memcpy(((BYTE *)m_config->get_data() + 4), &m_Setting, sizeof(m_Setting));
+	}
+	else
+	{
+		BYTE temp[sizeof(UIPreference) + 8] = {0,};
+		memcpy(temp + 4, &m_Setting, sizeof(m_Setting));
+		memset(temp, 0, sizeof(temp));
+		*((DWORD *)&temp[0]) = ('A' << 24 | 'L' << 16 | 'S' << 8 | 'O');
+		return ui_element_config::g_create(get_guid(), temp, sizeof(temp));
 	}
 	return m_config;
 }
