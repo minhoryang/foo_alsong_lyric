@@ -50,6 +50,10 @@ public:
 		gsi.SuppressExternalCodecs = TRUE;
 
 		GdiplusStartup(&gdiplus_token, &gsi, NULL);
+		INITCOMMONCONTROLSEX icex;
+		icex.dwSize = sizeof(icex);
+		icex.dwICC = ICC_STANDARD_CLASSES | ICC_WIN95_CLASSES;
+		InitCommonControlsEx(&icex);
 
 		if(!LyricManagerInstance)
 			LyricManagerInstance = new LyricManager();
