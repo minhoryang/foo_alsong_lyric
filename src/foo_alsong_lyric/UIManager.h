@@ -35,6 +35,7 @@ private:
 	void on_contextmenu(HWND hWndparent);
 	void Draw(HWND hWnd, HDC hdc);
 	static void ScriptDebugLog(HSQUIRRELVM v,const SQChar* s,...);
+	static int IsHighlightedLine(const SQChar *wstr);
 
 	SquirrelVMSys m_vmSys;
 	SquirrelObject m_RootTable;

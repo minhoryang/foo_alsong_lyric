@@ -499,18 +499,13 @@ static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences
 //TODO: 줄간격 설정
 BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent)
 {
-	static UIPreference OldSetting;
-
 	static int old_transparency;
 	static int old_font_transparency;
 	static bool old_layered;
 	static bool old_nolayered;
 	static bool old_topmost;
 
-	static int tmp_bkColor;
-	static int tmp_fgColor;
-	static std::wstring tmp_bgImage;
-	static t_font_description tmp_font;	
+	static UIPreference newSetting;
 	static int shouldClose;
 
 	switch (iMessage)
@@ -518,16 +513,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	case WM_INITDIALOG:
 		{
 			shouldClose = 0;
-			memcpy(&OldSetting, this, sizeof(UIPreference));
+			memcpy(&newSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
 			old_font_transparency = cfg_outer_font_transparency;
 			old_layered = cfg_outer_layered;
 			old_topmost = cfg_outer_topmost;
 			old_nolayered = cfg_outer_nolayered;
-			tmp_bkColor = bkColor;
-			tmp_fgColor = fgColor;
-			tmp_bgImage = bgImage;
-			tmp_font = font;
 
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETRANGE32, 1, 20);
 			SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_NLINE), 0);
@@ -583,8 +574,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_MANUALSCRIPT), WM_CLOSE, 0, 0);
 			SendMessage(GetDlgItem(hWnd, IDC_UISCRIPT), WM_CLOSE, 0, 0);
 
-			SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)tmp_font.create(), TRUE);
-
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("색"));
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("그림"));
 			SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_ADDSTRING, NULL, (LPARAM)TEXT("없음"));
@@ -594,19 +583,22 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 		break;
 	case WM_CTLCOLORSTATIC:
-		if((HWND)lParam == GetDlgItem(hWnd, IDC_FGINDICATOR))
-			return (INT_PTR)CreateSolidBrush(tmp_fgColor);
 		if((HWND)lParam == GetDlgItem(hWnd, IDC_BKINDICATOR))
-			return (INT_PTR)CreateSolidBrush(tmp_bkColor);
+			return (INT_PTR)CreateSolidBrush(newSetting.backColor);
 		return FALSE;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
 			Gdiplus::Graphics g((HDC)hdc);
-			Gdiplus::Image im(tmp_bgImage.c_str());
-
+			Gdiplus::Image im(newSetting.bgImage);
 			g.DrawImage(&im, 20, 270, 200, 120);
+			UIFont normal(newSetting.normalFont);
+			SolidBrush normalbrush(Gdiplus::Color(0xFF, GetRValue(normal.m_Color), GetGValue(normal.m_Color), GetBValue(normal.m_Color)));
+			g.DrawString(TEXT("일반 글꼴 abcABC123가나다"), 18, normal.m_Font.get(), Gdiplus::PointF(90.0f, 150.0f), &normalbrush);
+			UIFont highlight(newSetting.highlightFont);
+			SolidBrush highlightbrush(Gdiplus::Color(0xFF, GetRValue(highlight.m_Color), GetGValue(highlight.m_Color), GetBValue(highlight.m_Color)));
+			g.DrawString(TEXT("현재가사 글꼴 abcABC123가나다"), 20, highlight.m_Font.get(), Gdiplus::PointF(90.0f, 180.0f), &highlightbrush);
 			EndPaint(hWnd, &ps);
 		}
 		break;
@@ -633,27 +625,27 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			switch(LOWORD(wParam))
 			{
 			case IDC_BKCOLOR:
-				tmp_bkColor = OpenBkColorPopup(hWnd);
+				newSetting.backColor = OpenBkColorPopup(hWnd);
 				InvalidateRect(GetDlgItem(hWnd, IDC_BKINDICATOR), NULL, TRUE);
 				break;
-			case IDC_FONTCHANGE:
-				tmp_font = OpenFontPopup(hWnd);
-				SendMessage(GetDlgItem(hWnd, IDC_FONTINDICATOR), WM_SETFONT, (WPARAM)tmp_font.create(), TRUE);
-				break;
-			case IDC_FGCOLOR:
-				tmp_fgColor = OpenFgColorPopup(hWnd);
-				InvalidateRect(GetDlgItem(hWnd, IDC_FGINDICATOR), NULL, TRUE);
-				break;
 			case IDC_BGIMAGE:
-				tmp_bgImage = OpenBgImagePopup(hWnd);
+				lstrcpy(newSetting.bgImage, OpenBgImagePopup(hWnd).c_str());
 				InvalidateRect(hWnd, NULL, TRUE);
 				break;
+			case IDC_NORMALFONT_CHANGE:
+				newSetting.normalFont = OpenFontPopup(hWnd, newSetting.normalFont);
+				InvalidateRect(hWnd, NULL, TRUE);
+				break;
+			case IDC_HIGHLIGHTFONT_CHANGE:
+				newSetting.highlightFont = OpenFontPopup(hWnd, newSetting.highlightFont);
+				InvalidateRect(hWnd, NULL, TRUE);
 			}
 		}
 		break;
 	case WM_NOTIFY:
 		if(((LPNMHDR)lParam)->code == PSN_APPLY)
 		{
+			memcpy(this, &newSetting, sizeof(UIPreference));
 			nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
 			LineMargin = SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_GETPOS32, NULL, NULL);
 			if(GetParent(hParent) == NULL)
@@ -666,10 +658,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				WndInstance.StyleUpdated();
 			}
 
-			font = tmp_font;
-			bkColor = tmp_bkColor;
-			fgColor = tmp_fgColor;
-			std::copy(tmp_bgImage.begin(), tmp_bgImage.end(), bgImage);
 			VerticalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
 			HorizentalAlign = static_cast<AlignPosition>(SendMessage(GetDlgItem(hWnd, IDC_HORIZENTALALIGN), CB_GETCURSEL, NULL, NULL) + 1);
 			bgType = static_cast<BgType>(SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_GETCURSEL, NULL, NULL));
@@ -689,7 +677,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 		}
 		else if(((LPNMHDR)lParam)->code == PSN_RESET)
 		{
-			memcpy(this, &OldSetting, sizeof(UIPreference));
 			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = old_transparency;
@@ -699,14 +686,18 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_topmost = old_topmost;
 				WndInstance.StyleUpdated();
 			}
-			DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
+			//DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
+			PostMessage(hWnd, WM_USER + 1, (WPARAM)((LPNMHDR)lParam)->hwndFrom, 0);
 		}
 		else if(((LPNMHDR)lParam)->code == -211)
 		{
 			if(shouldClose)
-				DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
+				//DestroyWindow(((LPNMHDR)lParam)->hwndFrom);
+				PostMessage(hWnd, WM_USER + 1, (WPARAM)((LPNMHDR)lParam)->hwndFrom, 0);
 		}
 		break;
+	case WM_USER + 1:
+		DestroyWindow((HWND)wParam);
 	default:
 		return FALSE;
 	}

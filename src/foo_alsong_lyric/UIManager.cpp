@@ -36,11 +36,19 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 	SquirrelObject InitScript = SquirrelVM::CompileBuffer(TEXT("function Init() { }"));
 	SquirrelVM::RunScript(InitScript);
 
+	SqPlus::RegisterGlobal(&UIManager::IsHighlightedLine, TEXT("IsHighlightedLine"));
+
 	SquirrelObject DrawScript = SquirrelVM::CompileBuffer(
 		TEXT("function Draw(canvas, lines) { \n")
-		TEXT("local font = WndSetting.GetFont();\n")
+		TEXT("local normalfont = WndSetting.GetNormalFont();\n")
+		TEXT("local highlightfont = WndSetting.GetHighlightFont();\n")
 		TEXT("local h = 0; foreach(i,v in lines) {\n")
-		TEXT("local sz = canvas.EstimateText(font, v); h += sz.height *  WndSetting.GetLineMargin() / 100.0}\n")
+		TEXT("local sz;\n")
+		TEXT("if(IsHighlightedLine(v))\n")
+		TEXT("sz = canvas.EstimateText(highlightfont, v);\n")
+		TEXT("else\n")
+		TEXT("sz = canvas.EstimateText(normalfont, v);\n")
+		TEXT("h += sz.height *  WndSetting.GetLineMargin() / 100.0}\n")
 		TEXT("local sz = canvas.GetCanvasSize();\n")
 		TEXT("if(WndSetting.GetBgType() == 0)\n")
 		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());\n")
@@ -51,18 +59,23 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("starty = (sz.height - h) / 2;\n")
 		TEXT("else if(WndSetting.GetVAlign() == 3) starty = sz.height - h;\n")
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
-		TEXT("foreach(i, v in lines){ canvas.DrawText(font, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);}}\n"));
+		TEXT("foreach(i, v in lines) {\n")
+		TEXT("if(IsHighlightedLine(v))\n")
+		TEXT("canvas.DrawText(highlightfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);\n")
+		TEXT("else\n")
+		TEXT("canvas.DrawText(normalfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);}}\n")
+		);
 	SquirrelVM::RunScript(DrawScript);
 
 	SqPlus::SQClassDefNoConstructor<UIPreference>(TEXT("UIPreference")).
 		func(&UIPreference::GetBkColor, TEXT("GetBackColor")).
-		func(&UIPreference::GetFgColor, TEXT("GetFontColor")).
 		func(&UIPreference::GetBgImagePath, TEXT("GetBackImage")).
 		func(&UIPreference::GetBgType, TEXT("GetBgType")).
-		func(&UIPreference::GetUIFont, TEXT("GetFont")).
 		func(&UIPreference::GetHorizentalAlign, TEXT("GetHAlign")).
 		func(&UIPreference::GetVerticalAlign, TEXT("GetVAlign")).
-		func(&UIPreference::GetLineMargin, TEXT("GetLineMargin"));
+		func(&UIPreference::GetLineMargin, TEXT("GetLineMargin")).
+		func(&UIPreference::GetHighlightFont, TEXT("GetHighlightFont")).
+		func(&UIPreference::GetNormalFont, TEXT("GetNormalFont"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 
@@ -79,6 +92,13 @@ UIManager::~UIManager()
 	m_vmSys.Reset();
 
 	DeleteCriticalSection(&m_DrawCrit);
+}
+
+int UIManager::IsHighlightedLine(const SQChar *wstr)
+{
+	if(wstr[0] == 1)
+		return true;
+	return false;
 }
 
 void UIManager::Invalidated(HWND hWnd)
@@ -156,12 +176,12 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	SquirrelObject lyrics = SquirrelVM::CreateArray(0);
 
 	for(i = 0; i < before - lyricbefore.size(); i ++)
-		lyrics.ArrayAppend(TEXT(" "));
+		lyrics.ArrayAppend((std::wstring(1, (wchar_t)2) + TEXT(" ")).c_str());
 	if(lyric.size() < m_Setting->GetnLine())
 	{
 		for(i = 0; i < lyricbefore.size(); i ++)
 		{
-			std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].lyric.c_str());
+			std::wstring nowlrcw = std::wstring(1, (wchar_t)2) + pfc::stringcvt::string_wide_from_utf8_fast(lyricbefore[i].lyric.c_str()).get_ptr();
 			lyrics.ArrayAppend(nowlrcw.c_str());
 		}
 	}
@@ -172,7 +192,7 @@ void UIManager::Draw(HWND hWnd, HDC hdc)
 	}
 	for(i = max(lyric.size() - 1, 0); i < lyricafter.size(); i ++)
 	{
-		std::wstring nowlrcw = pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i].lyric.c_str());
+		std::wstring nowlrcw = std::wstring(1, (wchar_t)2) + pfc::stringcvt::string_wide_from_utf8_fast(lyricafter[i].lyric.c_str()).get_ptr();
 		lyrics.ArrayAppend(nowlrcw.c_str());
 	}
 

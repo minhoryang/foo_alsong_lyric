@@ -39,28 +39,27 @@ struct UIPoint
 
 DECLARE_INSTANCE_TYPE(UIPoint)
 
+struct UIFontDescription
+{
+	TCHAR face[128];
+	int size;
+	COLORREF color;
+	int italic;
+	int bold;
+	int underline;
+	int strikeout;
+};
+
 class UIFont
 {
+	friend class UICanvas;
+	friend class UIPreference;
 private:
+	boost::shared_ptr<Gdiplus::Font> m_Font;
 	COLORREF m_Color;
-	HFONT m_Font;
-	HFONT m_BoldFont;
-	bool m_Generated;
-	void Create(const TCHAR *fontfamily, int point);
 public:
 	UIFont();
-	UIFont(const UIFont &font);
-	UIFont(HFONT font, COLORREF color);
-	UIFont(const TCHAR *fontfamily, int point);
-	UIFont(const TCHAR *fontfamily, int point, COLORREF color);
-	~UIFont();
-
-	UIFont &operator =(const UIFont &font);
-
-	HFONT GethFont() const;
-	HFONT GetBoldFont() const;
-	DWORD GetHeight(HDC hdc) const;
-	COLORREF GetColor() const;
+	UIFont(const UIFontDescription & fontdesc);
 };
 
 DECLARE_INSTANCE_TYPE(UIFont)

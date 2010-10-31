@@ -112,6 +112,7 @@ void UIElement::set_configuration(ui_element_config::ptr config)
 		m_config = get_default_configuration();
 	dataptr = (DWORD *)m_config->get_data();
 	memcpy(&m_Setting, &dataptr[1], sizeof(m_Setting));
+	m_Setting.Ready();
 	BYTE *datatmp = (BYTE *)m_config->get_data();
 	DWORD scriptlen = *((DWORD *)&datatmp[sizeof(m_Setting) + 4]);
 	m_Script.add_string((const char *)datatmp[sizeof(m_Setting) + 8], scriptlen);

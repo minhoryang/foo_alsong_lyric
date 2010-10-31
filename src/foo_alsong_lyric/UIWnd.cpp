@@ -89,9 +89,8 @@ UIWnd::UIWnd() : m_isResizing(false)
 HWND UIWnd::Create() 
 {
 	assert(m_hWnd == NULL);
-
-	if(cfg_outer.get_value().GetnLine() == 0)
-		cfg_outer.get_value().SetDefault();
+	
+	cfg_outer.get_value().Ready();
 	m_UI = new UIManager(&cfg_outer.get_value(), &cfg_outer_script);
 
 	WNDCLASSEX wcex;

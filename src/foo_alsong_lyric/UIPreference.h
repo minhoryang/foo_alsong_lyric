@@ -18,6 +18,7 @@
 #pragma once
 
 #include "UICanvas.h"
+#include "EncodingFunc.h"
 
 class UIPreference
 {
@@ -41,21 +42,19 @@ public:
 		BG_TRANSPARENT = 2,
 	};
 
-	HFONT GetFont()
+	UIFont GetNormalFont()
 	{
-		return font.create();
+		return UIFont(normalFont);
 	}
-	UIFont GetUIFont()
+
+	UIFont GetHighlightFont()
 	{
-		return UIFont(font.create(), GetFgColor());
+		return UIFont(highlightFont);
 	}
+
 	COLORREF GetBkColor()
 	{
-		return bkColor;
-	}
-	COLORREF GetFgColor()
-	{
-		return fgColor;
+		return backColor;
 	}
 	WCHAR *GetBgImagePath()
 	{
@@ -81,16 +80,33 @@ public:
 	{
 		return HorizentalAlign;
 	}
-	t_font_description OpenFontPopup(HWND hWndFrom)
+	UIFontDescription OpenFontPopup(HWND hWndFrom, const UIFontDescription &tmpl)
 	{
-		t_font_description tempfont = font;
-		tempfont.popup_dialog(hWndFrom);
-		return tempfont;
+		UIFontDescription out;
+		CHOOSEFONT cf;
+		memset(&cf, 0, sizeof(CHOOSEFONT));
+		cf.lStructSize = sizeof(CHOOSEFONT);
+		cf.hwndOwner = hWndFrom;
+		LOGFONT lf = {0,};
+		lstrcpy(lf.lfFaceName, tmpl.face);
+		lf.lfHeight = -(tmpl.size * 72 / 480 + 3);
+		cf.lpLogFont = &lf;
+		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
+		cf.rgbColors = tmpl.color;
+		ChooseFont(&cf);
+		lstrcpy(out.face, cf.lpLogFont->lfFaceName);
+		out.size = (-cf.lpLogFont->lfHeight - 3) * 480 / 72;
+		out.bold = (cf.nFontType & BOLD_FONTTYPE) == 1;
+		out.italic = (cf.nFontType & ITALIC_FONTTYPE) == 1;
+		out.strikeout = cf.lpLogFont->lfStrikeOut;
+		out.underline = cf.lpLogFont->lfUnderline;
+		out.color = cf.rgbColors;
+		return out;
 	}
 	int OpenFgColorPopup(HWND hWndFrom)
 	{
 		COLORREF color;
-		if((color = OpenColorPopup(hWndFrom, fgColor)) != -1)
+		if((color = OpenColorPopup(hWndFrom, oldFontColor)) != -1)
 		{
 			//fgColor = color;
 			return color;
@@ -100,7 +116,7 @@ public:
 	int OpenBkColorPopup(HWND hWndFrom)
 	{
 		COLORREF color;
-		if((color = OpenColorPopup(hWndFrom, bkColor)) != -1)
+		if((color = OpenColorPopup(hWndFrom, backColor)) != -1)
 		{/*
 			bgType = BG_SOLIDCOLOR;
 			bkColor = color;*/
@@ -110,7 +126,7 @@ public:
 	}
 	std::wstring OpenBgImagePopup(HWND hWndFrom)
 	{
-		TCHAR temp[255];
+		TCHAR temp[255] = {0,};
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
@@ -128,15 +144,43 @@ public:
 	}
 	void SetDefault()
 	{
-		font = t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
-		bkColor = RGB(255, 255, 255);
-		fgColor = RGB(0, 0, 0);
+		//oldFont = t_font_description::g_from_font((HFONT)GetStockObject(DEFAULT_GUI_FONT));
+		backColor = RGB(255, 255, 255);
+		//oldFontColor = RGB(0, 0, 0);
 		bgImage[0] = 0;
 		bgType = BG_SOLIDCOLOR;
 		nLine = 3;
 		LineMargin = 100;
 		VerticalAlign = ALIGN_MODDLE;
 		HorizentalAlign = ALIGN_MODDLE;
+
+		lstrcpy(normalFont.face, TEXT("돋움체"));
+		normalFont.bold = 0;
+		normalFont.color = RGB(0, 0, 0);
+		normalFont.italic = 0;
+		normalFont.size = 65;
+		normalFont.strikeout = 0;
+		normalFont.underline = 0;
+		memcpy(&highlightFont, &normalFont, sizeof(UIFontDescription));
+		highlightFont.bold = 1;
+	}
+	void Ready()
+	{
+		//after copied
+		if(nLine == 0 || VerticalAlign == 0 || HorizentalAlign == 0)
+			SetDefault();
+		if(normalFont.face[0] == 0) //migration
+		{
+			lstrcpy(normalFont.face, EncodingFunc::ToUTF16(oldFont.m_facename).c_str());
+			normalFont.bold = 0;
+			normalFont.color = oldFontColor;
+			normalFont.italic = 0;
+			normalFont.size = oldFont.m_height;
+			normalFont.strikeout = 0;
+			normalFont.underline = 0;
+			memcpy(&highlightFont, &normalFont, sizeof(UIFontDescription));
+			highlightFont.bold = 1;
+		}
 	}
 
 	void OpenConfigPopup(HWND hParent);
@@ -162,9 +206,9 @@ private:
 	}
 	BOOL UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent);
 
-	t_font_description font;
-	COLORREF bkColor;
-	COLORREF fgColor;
+	t_font_description oldFont; //not used
+	COLORREF backColor;
+	COLORREF oldFontColor; //not used
 	WCHAR bgImage[MAX_PATH];
 	BgType bgType; //0: 색, 1: 이미지, 2:투명한 배경
 
@@ -173,8 +217,11 @@ private:
 
 	BYTE VerticalAlign; //상하정렬. 1:위 2:가운데 3:아래
 	BYTE HorizentalAlign; //좌우정렬. 1:왼쪽 2:가운데 3:오른쪽
+	
+	UIFontDescription normalFont;
+	UIFontDescription highlightFont;
 
-	BYTE bReserved[1022]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+	BYTE bReserved[458]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
 
 DECLARE_INSTANCE_TYPE(UIPreference)

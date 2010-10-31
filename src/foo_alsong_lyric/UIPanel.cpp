@@ -89,6 +89,7 @@ void UIPanel::set_config(stream_reader * p_reader, t_size p_size, abort_callback
 				p_reader->read_string(m_Script, p_abort);
 			
 			memcpy(&m_Setting, &Setting_temp, sizeof(UIPreference));
+			m_Setting.Ready();
 		}
 	}
 
