@@ -79,24 +79,6 @@ public:
 
 };
 
-//dwm api
-
-// Blur behind data structures
-#define DWM_BB_ENABLE                 0x00000001  // fEnable has been specified
-#define DWM_BB_BLURREGION             0x00000002  // hRgnBlur has been specified
-#define DWM_BB_TRANSITIONONMAXIMIZED  0x00000004  // fTransitionOnMaximized has been specified
-
-#pragma pack(push, 1)
-typedef struct _DWM_BLURBEHIND
-{
-	DWORD dwFlags;
-	BOOL fEnable;
-	HRGN hRgnBlur;
-	BOOL fTransitionOnMaximized;
-} DWM_BLURBEHIND, *PDWM_BLURBEHIND;
-#pragma pack(pop)
-typedef HRESULT __stdcall DwmEnableBlurBehindWindow( HWND hWnd, const DWM_BLURBEHIND* pBlurBehind );
-
 const int UIWnd::Resize_border = 6;
 
 UIWnd::UIWnd() : m_isResizing(false)
@@ -159,20 +141,6 @@ HWND UIWnd::Create()
 		AddTaskList(L"알송 실시간 가사", L"알송 실시간 가사 창", L"");
 		AddTaskList(L"Alsong Lyric Window Config", L"알송 실시간 가사 창 설정", appid);
 	}
-
-	DWM_BLURBEHIND bb = {0};
-	bb.dwFlags = DWM_BB_ENABLE;
-	bb.fEnable = true;
-	bb.hRgnBlur = NULL;
-
-	HMODULE dwm = LoadLibrary(TEXT("dwmapi.dll"));
-	if(dwm)
-	{
-		DwmEnableBlurBehindWindow* debbw = (DwmEnableBlurBehindWindow*)GetProcAddress(dwm, "DwmEnableBlurBehindWindow");
-		if(debbw)
-			debbw(m_hWnd, &bb);
-	}
-
 	ShowWindow(m_hWnd, SW_HIDE);
 	HMENU hMenu = GetSystemMenu(m_hWnd, FALSE);
 	AppendMenu(hMenu, MF_STRING, 1000, TEXT("고급 설정..."));
