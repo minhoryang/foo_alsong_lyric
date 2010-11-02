@@ -525,6 +525,8 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETRANGE32, 0, 200);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_LINEMARGIN), 0);
 			SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_SETPOS32, 0, GetLineMargin());
+			SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
+			SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, fontTransparency);
 
 //			if(Setting->Script)
 //				uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
@@ -532,8 +534,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_transparency);
-				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
-				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, fontTransparency);
 
 				int pos;
 				pos = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
