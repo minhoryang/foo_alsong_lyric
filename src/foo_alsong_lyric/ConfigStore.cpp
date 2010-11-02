@@ -34,10 +34,6 @@ const GUID guid_cfg_outer_transparency = // {05F4DB24-8352-4f22-9901-78AC304FAD8
 { 0x5f4db24, 0x8352, 0x4f22, { 0x99, 0x1, 0x78, 0xac, 0x30, 0x4f, 0xad, 0x8a } };
 cfg_int cfg_outer_transparency(guid_cfg_outer_transparency, 100);
 
-static const GUID guid_cfg_outer_font_transparency= // {4361DF11-DE14-4B5A-A380-967EF2121449}
-{ 0x4361df11, 0xde14, 0x4b5a, { 0xa3, 0x80, 0x96, 0x7e, 0xf2, 0x12, 0x14, 0x49 } };
-cfg_int cfg_outer_font_transparency(guid_cfg_outer_font_transparency, 100);
-
 const GUID guid_cfg_outer_layered = // {F2CC0F3A-735F-46b9-8FA2-6B8313A69B2C}
 { 0xf2cc0f3a, 0x735f, 0x46b9, { 0x8f, 0xa2, 0x6b, 0x83, 0x13, 0xa6, 0x9b, 0x2c } };
 cfg_bool cfg_outer_layered(guid_cfg_outer_layered, false);

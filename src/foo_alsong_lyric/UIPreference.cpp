@@ -500,7 +500,6 @@ static preferences_page_factory_t<preferences_page_alsong_lyric> foo_preferences
 BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent)
 {
 	static int old_transparency;
-	static int old_font_transparency;
 	static bool old_layered;
 	static bool old_nolayered;
 	static bool old_topmost;
@@ -515,7 +514,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			shouldClose = 0;
 			memcpy(&newSetting, this, sizeof(UIPreference));
 			old_transparency = cfg_outer_transparency;
-			old_font_transparency = cfg_outer_font_transparency;
 			old_layered = cfg_outer_layered;
 			old_topmost = cfg_outer_topmost;
 			old_nolayered = cfg_outer_nolayered;
@@ -535,7 +533,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_transparency);
 				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
-				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, cfg_outer_font_transparency);
+				SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, fontTransparency);
 
 				int pos;
 				pos = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
@@ -648,10 +646,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			memcpy(this, &newSetting, sizeof(UIPreference));
 			nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
 			LineMargin = SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_GETPOS32, NULL, NULL);
+			fontTransparency = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
 			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCY), TBM_GETPOS, 0, 0);
-				cfg_outer_font_transparency = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				cfg_outer_topmost = (IsDlgButtonChecked(hWnd, IDC_TOPMOST) ? true : false);
@@ -680,7 +678,6 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			if(GetParent(hParent) == NULL)
 			{
 				cfg_outer_transparency = old_transparency;
-				cfg_outer_font_transparency = old_font_transparency;
 				cfg_outer_layered = old_layered;
 				cfg_outer_nolayered = old_nolayered;
 				cfg_outer_topmost = old_topmost;

@@ -61,9 +61,9 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
 		TEXT("foreach(i, v in lines) {\n")
 		TEXT("if(IsHighlightedLine(v))\n")
-		TEXT("canvas.DrawText(highlightfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);\n")
+		TEXT("canvas.DrawText(highlightfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency());\n")
 		TEXT("else\n")
-		TEXT("canvas.DrawText(normalfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0);}}\n")
+		TEXT("canvas.DrawText(normalfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency());}}\n")
 		);
 	SquirrelVM::RunScript(DrawScript);
 
@@ -75,7 +75,8 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIPreference::GetVerticalAlign, TEXT("GetVAlign")).
 		func(&UIPreference::GetLineMargin, TEXT("GetLineMargin")).
 		func(&UIPreference::GetHighlightFont, TEXT("GetHighlightFont")).
-		func(&UIPreference::GetNormalFont, TEXT("GetNormalFont"));
+		func(&UIPreference::GetNormalFont, TEXT("GetNormalFont")).
+		func(&UIPreference::GetFontTransparency, TEXT("GetFontTransparency"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 

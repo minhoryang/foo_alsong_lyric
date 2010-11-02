@@ -80,6 +80,10 @@ public:
 	{
 		return HorizentalAlign;
 	}
+	int GetFontTransparency()
+	{
+		return fontTransparency;
+	}
 	UIFontDescription OpenFontPopup(HWND hWndFrom, const UIFontDescription &tmpl)
 	{
 		UIFontDescription out;
@@ -221,7 +225,9 @@ private:
 	UIFontDescription normalFont;
 	UIFontDescription highlightFont;
 
-	BYTE bReserved[458]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
+	int fontTransparency;
+
+	BYTE bReserved[454]; //구조체 크기가 변하면 설정이 초기화된다. 나중에 변수 추가할때 여기서 뺄것
 };
 
 DECLARE_INSTANCE_TYPE(UIPreference)

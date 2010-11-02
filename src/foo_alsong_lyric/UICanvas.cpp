@@ -146,7 +146,7 @@ void UICanvas::SetTransparent()
 	}
 }
 
-void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio)
+void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio, int fontTransparency)
 {
 	if(!m_hDC)
 		return;
@@ -156,11 +156,11 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 	g.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-	SolidBrush brush(Gdiplus::Color(0xFF, GetRValue(font.m_Color), GetGValue(font.m_Color), GetBValue(font.m_Color)));
+	SolidBrush brush(Gdiplus::Color((255 * fontTransparency) / 100, GetRValue(font.m_Color), GetGValue(font.m_Color), GetBValue(font.m_Color)));
 	if(GetParent(m_hWnd) == NULL && (GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED))
 	{
 		g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
-		brush.SetColor(Gdiplus::Color((255 * cfg_outer_font_transparency) / 100, GetRValue(font.m_Color), GetGValue(font.m_Color), GetBValue(font.m_Color)));
+		brush.SetColor(Gdiplus::Color((255 * fontTransparency) / 100, GetRValue(font.m_Color), GetGValue(font.m_Color), GetBValue(font.m_Color)));
 	}
 
 	StringFormat strformat;
