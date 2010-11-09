@@ -548,6 +548,21 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				CheckDlgButton(hWnd, IDC_LAYERED, cfg_outer_layered);
 				CheckDlgButton(hWnd, IDC_NOLAYERED, cfg_outer_nolayered);
 				CheckDlgButton(hWnd, IDC_TOPMOST, cfg_outer_topmost);
+				CheckDlgButton(hWnd, IDC_OUTER_BLUR, cfg_outer_blur);
+				HMODULE dwm = LoadLibrary(TEXT("dwmapi.dll"));
+				if(dwm)
+				{
+					typedef HRESULT __stdcall DwmIsCompositionEnabled( __out BOOL* pfEnabled );
+					DwmIsCompositionEnabled *dice = (DwmIsCompositionEnabled*)GetProcAddress(dwm, "DwmIsCompositionEnabled");
+					if(dice)
+					{
+						BOOL b;
+						dice(&b);
+						if(b == FALSE)
+							SendMessage(GetDlgItem(hWnd, IDC_OUTER_BLUR), WM_CLOSE, 0, 0);
+					}
+					FreeLibrary(dwm);
+				}
 			}
 			else
 			{
@@ -557,6 +572,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_LAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_NOLAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TOPMOST), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_OUTER_BLUR), WM_CLOSE, 0, 0);
 			}
 
 			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("위"));
@@ -653,6 +669,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				cfg_outer_layered = (IsDlgButtonChecked(hWnd, IDC_LAYERED) ? true : false);
 				cfg_outer_nolayered = (IsDlgButtonChecked(hWnd, IDC_NOLAYERED) ? true : false);
 				cfg_outer_topmost = (IsDlgButtonChecked(hWnd, IDC_TOPMOST) ? true : false);
+				cfg_outer_blur = (IsDlgButtonChecked(hWnd, IDC_OUTER_BLUR) ? true : false);
 				WndInstance.StyleUpdated();
 			}
 

@@ -27,6 +27,7 @@ private:
 	IPropertyStore *m_Propstore;
 	int AddTaskList(std::wstring command, std::wstring display, std::wstring appid);
 	bool m_isResizing;
+	bool m_isBlur; //determines if windows is blurred by dwm
 public:
 	UIWnd();
 	void Show();
