@@ -58,6 +58,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("if(WndSetting.GetVAlign() == 2)\n")
 		TEXT("starty = (sz.height - h) / 2;\n")
 		TEXT("else if(WndSetting.GetVAlign() == 3) starty = sz.height - h;\n")
+		TEXT("if(starty < 0) starty = 0;")
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
 		TEXT("foreach(i, v in lines) {\n")
 		TEXT("if(IsHighlightedLine(v))\n")
