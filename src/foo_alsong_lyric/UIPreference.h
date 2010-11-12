@@ -185,6 +185,8 @@ public:
 			memcpy(&highlightFont, &normalFont, sizeof(UIFontDescription));
 			highlightFont.bold = 1;
 		}
+		if(fontTransparency == 0)
+			fontTransparency = 100; //migration
 	}
 
 	void OpenConfigPopup(HWND hParent);
