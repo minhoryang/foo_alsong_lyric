@@ -173,7 +173,7 @@ public:
 		//after copied
 		if(nLine == 0 || VerticalAlign == 0 || HorizentalAlign == 0)
 			SetDefault();
-		if(normalFont.face[0] == 0) //migration
+		if(normalFont.face[0] == 0 || normalFont.size == 0) //migration
 		{
 			lstrcpy(normalFont.face, EncodingFunc::ToUTF16(oldFont.m_facename).c_str());
 			normalFont.bold = 0;
