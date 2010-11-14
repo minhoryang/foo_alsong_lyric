@@ -167,6 +167,7 @@ public:
 		normalFont.underline = 0;
 		memcpy(&highlightFont, &normalFont, sizeof(UIFontDescription));
 		highlightFont.bold = 1;
+		memset(bReserved, 0, sizeof(bReserved));
 	}
 	void Ready()
 	{
