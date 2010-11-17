@@ -98,14 +98,14 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				audio_sample *sample = chunk.get_data();
 				int len = chunk.get_data_length();
 				buf.insert(buf.end(), sample, sample + len);
-				if(buf.size() > 0x28000 / sizeof(double))
+				if(buf.size() > 0x70000)
 					break;
 
 				bool decode_done = !helper.run(chunk, abort_callback);
 				if (decode_done) break;
 			}
 
-			md5((unsigned char *)&buf[0], min(buf.size() * sizeof(double), 0x28000), MD5);
+			md5((unsigned char *)&buf[0], min(buf.size(), 0x70000), MD5);
 		}
 		else
 		{
