@@ -573,6 +573,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_NOLAYERED), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_TOPMOST), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_OUTER_BLUR), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_RESETWNDPOS), WM_CLOSE, 0, 0);
 			}
 
 			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("위"));
