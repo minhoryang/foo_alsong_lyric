@@ -47,8 +47,7 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 		bmi.bmiHeader.biClrImportant = 0;
 
 		hBitmap = CreateDIBSection(m_destDC, &bmi, DIB_RGB_COLORS, (void **)&m_bits, NULL, NULL);
-		for(int i = 0; i < m_DrawRect.right * m_DrawRect.bottom; i ++)
-			m_bits[i] = 0x00000000;
+		memset(m_bits, 0, sizeof(int) * m_DrawRect.right * m_DrawRect.bottom);
 	}
 	else
 		hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
