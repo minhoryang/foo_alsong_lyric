@@ -113,7 +113,7 @@ public:
 
 	virtual unsigned int get_num_items() 
 	{
-		return 2;
+		return 1;
 	}
 
 	virtual void get_item_name(unsigned int p_index, pfc::string_base & p_out) 
