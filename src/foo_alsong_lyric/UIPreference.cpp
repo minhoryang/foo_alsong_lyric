@@ -358,6 +358,11 @@ public:
 							LyricSource *res = (LyricSource *)DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCE_ADD), hWnd, &preferences_page_instance_alsong_lyric::LyricSourceAddProc);
 							if(res)
 							{
+								if(cfg_enabledlyricsource.exists(res->GetGUID()))
+								{
+									MessageBox(hWnd, TEXT("이미 있습니다."), TEXT("오류"), MB_OK);
+									break;
+								}
 								cfg_enabledlyricsource.add(res->GetGUID());
 								int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(res->GetName()).c_str());
 								SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)res);
@@ -369,15 +374,39 @@ public:
 						{
 							LyricSource *res;
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
-							if(res != (LyricSource *)-1)
-								OpenLyricSourceConfig(hWnd, res, 1);
+							OpenLyricSourceConfig(hWnd, res, 1);
+							break;
+						}
+					case IDC_LYRICSOURCE_DELETE:
+						{
+							LyricSource *res;
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
+
+							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_DELETESTRING, idx, NULL);
+							cfg_enabledlyricsource.remove(res->GetGUID());
 							break;
 						}
 					case IDC_LYRICSOURCE_UP:
 						{
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
-							if(idx <= 0)
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
+							if(idx == 0)								
 								break;
 							LRESULT data = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
 							TCHAR str[255];
@@ -392,6 +421,11 @@ public:
 					case IDC_LYRICSOURCE_DOWN:
 						{
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
 							int cnt = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCOUNT, NULL, NULL);
 							if(idx >= cnt - 1)
 								break;
@@ -410,6 +444,11 @@ public:
 							LyricSource *res = (LyricSource *)DialogBox(core_api::get_my_instance(), MAKEINTRESOURCE(IDD_LYRICSOURCE_ADD), hWnd, &preferences_page_instance_alsong_lyric::LyricSourceAddProc);
 							if(res)
 							{
+								if(cfg_enabledlyricsource.exists(res->GetGUID()))
+								{
+									MessageBox(hWnd, TEXT("이미 있습니다."), TEXT("오류"), MB_OK);
+									break;
+								}
 								cfg_enabledlyricsave.add(res->GetGUID());
 								int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(res->GetName()).c_str());
 								SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_SETITEMDATA, idx, (LPARAM)res);
@@ -421,15 +460,39 @@ public:
 						{
 							LyricSource *res;
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
-							if(res != (LyricSource *)-1)
-								OpenLyricSourceConfig(hWnd, res, 2);
+							OpenLyricSourceConfig(hWnd, res, 2);
+							break;
+						}
+					case IDC_LYRICSAVE_DELETE:
+						{
+							LyricSource *res;
+							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
+
+							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
+							SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_DELETESTRING, idx, NULL);
+							cfg_enabledlyricsave.remove(res->GetGUID());
 							break;
 						}
 					case IDC_LYRICSAVE_UP:
 						{
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
-							if(idx <= 0)
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
+							if(idx == 0)								
 								break;
 							LRESULT data = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
 							TCHAR str[255];
@@ -444,6 +507,11 @@ public:
 					case IDC_LYRICSAVE_DOWN:
 						{
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
+							if(idx < 0)
+							{
+								MessageBox(hWnd, TEXT("선택해주세요"), TEXT("오류"), MB_OK);
+								break;
+							}
 							int cnt = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCOUNT, NULL, NULL);
 							if(idx >= cnt - 1)
 								break;

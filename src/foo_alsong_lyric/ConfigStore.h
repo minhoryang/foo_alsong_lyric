@@ -50,6 +50,22 @@ public:
 		return m_reallist;
 	}
 
+	void remove(const GUID &guid)
+	{
+		std::vector<GUID>::iterator it = std::find(m_reallist.begin(), m_reallist.end(), guid);
+		if(it == m_reallist.end())
+			return;
+		m_reallist.erase(it);
+	}
+
+	bool exists(const GUID &guid)
+	{
+		std::vector<GUID>::iterator it = std::find(m_reallist.begin(), m_reallist.end(), guid);
+		if(it == m_reallist.end())
+			return false;
+		return true;
+	}
+
 	void remove(int idx)
 	{
 		m_reallist.erase(m_reallist.begin() + idx);
