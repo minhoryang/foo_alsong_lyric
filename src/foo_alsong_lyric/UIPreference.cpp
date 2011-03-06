@@ -361,7 +361,8 @@ public:
 							LyricSource *res;
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETCURSEL, NULL, NULL);
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_GETITEMDATA, idx, NULL);
-							OpenLyricSourceConfig(hWnd, res, 1);
+							if(res != (LyricSource *)-1)
+								OpenLyricSourceConfig(hWnd, res, 1);
 							break;
 						}
 					case IDC_LYRICSOURCE_UP:
@@ -412,7 +413,8 @@ public:
 							LyricSource *res;
 							int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETCURSEL, NULL, NULL);
 							res = (LyricSource *)SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_GETITEMDATA, idx, NULL);
-							OpenLyricSourceConfig(hWnd, res, 2);
+							if(res != (LyricSource *)-1)
+								OpenLyricSourceConfig(hWnd, res, 2);
 							break;
 						}
 					case IDC_LYRICSAVE_UP:
