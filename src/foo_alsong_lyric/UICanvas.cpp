@@ -164,7 +164,12 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 
 	StringFormat strformat;
 	RectF box;
-	strformat.SetAlignment(StringAlignmentCenter);
+	if(align == 2)
+		strformat.SetAlignment(StringAlignmentCenter);
+	else if(align == 1)
+		strformat.SetAlignment(StringAlignmentNear);
+	else
+		strformat.SetAlignment(StringAlignmentFar);
 	
 	g.DrawString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
 	g.MeasureString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
