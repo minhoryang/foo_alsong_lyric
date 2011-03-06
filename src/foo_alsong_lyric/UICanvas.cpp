@@ -224,5 +224,5 @@ UIFont::UIFont(const UIFontDescription & fontdesc)
 		style |= Gdiplus::FontStyleStrikeout;
 	if(fontdesc.underline)
 		style |= Gdiplus::FontStyleUnderline;
-	m_Font = boost::shared_ptr<Gdiplus::Font>(new Gdiplus::Font(fontdesc.face, fontdesc.size * 72 / 480, style));
+	m_Font = boost::shared_ptr<Gdiplus::Font>(new Gdiplus::Font(fontdesc.face, (float)fontdesc.size * 72 / 480, style));
 }
