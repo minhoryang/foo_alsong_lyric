@@ -98,7 +98,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				audio_sample *sample = chunk.get_data();
 				int len = chunk.get_data_length();
 				buf.insert(buf.end(), sample, sample + len);
-				if(buf.size() > 0x70000)
+				if(buf.size() > 0x200000)
 					break;
 
 				bool decode_done = !helper.run(chunk, abort_callback);
