@@ -335,6 +335,15 @@ public:
 					int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(src->GetName()).c_str());
 					SendMessage(GetDlgItem(hWnd, IDC_LYRICSOURCELIST), LB_SETITEMDATA, idx, (LPARAM)src.get());
 				}
+
+				std::vector<GUID> enabledsaves = cfg_enabledlyricsave.get_value();
+				for(std::vector<GUID>::iterator it = enabledsaves.begin(); it != enabledsaves.end(); it ++)
+				{
+					boost::shared_ptr<LyricSource> src = LyricSourceManager::Get(*it);
+					int idx = SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_ADDSTRING, NULL, (LPARAM)EncodingFunc::ToUTF16(src->GetName()).c_str());
+					SendMessage(GetDlgItem(hWnd, IDC_LYRICSAVELIST), LB_SETITEMDATA, idx, (LPARAM)src.get());
+				}
+
 				CheckDlgButton(hWnd, IDC_SKIPEMPTY, cfg_skipempty);
 			}
 			return TRUE;
