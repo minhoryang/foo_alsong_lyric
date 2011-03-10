@@ -246,7 +246,7 @@ void UIManager::on_contextmenu(HWND hWndFrom)
 {//TODO:메뉴 다 지우고 설정만
 	enum 
 	{
-		ID_SETTING,
+		ID_SETTING = 1,
 		ID_RESIZE,
 		ID_CONTEXT_FIRST,
 		ID_CONTEXT_LAST = ID_CONTEXT_FIRST + 1000,
