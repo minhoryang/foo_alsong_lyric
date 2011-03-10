@@ -92,6 +92,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 			t_uint64 length_samples = audio_math::time_to_samples(info.get_length(), chunk.get_sample_rate());
 			//chunk.get_channels();
 			std::vector<double> buf;
+			buf.resize(0x200000);
 			while (true)
 			{
 				// Store the data somewhere.
@@ -105,7 +106,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				if (decode_done) break;
 			}
 
-			md5((unsigned char *)&buf[0], min(buf.size(), 0x70000), MD5);
+			md5((unsigned char *)&buf[0], min(buf.size(), 0x200000), MD5);
 		}
 		else
 		{
