@@ -262,9 +262,13 @@ boost::shared_ptr<Lyric> LyricSourceAlsong::Get(const metadb_handle_ptr &track)
 	}
 }
 
-DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
+DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, const std::string &Artist, const std::string &Title, const std::string &RawLyric, const std::string &Album, const std::string &Registrant, int nInfoID)
 {
-	CHAR strRegisterName[] = "Alsong Lyric Plugin for Foobar2000";//나머지는 생략
+	std::string strRegisterName;
+	if(Registrant.length() == 0)
+		strRegisterName = "Alsong Lyric Plugin for Foobar2000";//나머지는 생략
+	else
+		strRegisterName = Registrant;
 
 	//UploadLyricType - 1:Link 새거 2:Modify 수정 5:ReSetLink 아예 새거
 
@@ -315,30 +319,24 @@ DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 	helper.AddParameter("ns1:nUploadLyricType", "1");
 	helper.AddParameter("ns1:strVersion", ALSONG_VERSION);
 	helper.AddParameter("ns1:strMD5", Hash);
-	helper.AddParameter("ns1:strRegisterFirstName", lyric.GetRegistrant().c_str());
+	helper.AddParameter("ns1:strRegisterFirstName", strRegisterName.c_str());
 	helper.AddParameter("ns1:strRegisterFirstEMail", "");
 	helper.AddParameter("ns1:strRegisterFirstURL", "");
 	helper.AddParameter("ns1:strRegisterFirstPhone", "");
 	helper.AddParameter("ns1:strRegisterFirstComment", "");
-	helper.AddParameter("ns1:strRegisterName", strRegisterName);
+	helper.AddParameter("ns1:strRegisterName", strRegisterName.c_str());
 	helper.AddParameter("ns1:strRegisterEMail", "");
 	helper.AddParameter("ns1:strRegisterURL", "");
 	helper.AddParameter("ns1:strRegisterPhone", "");
 	helper.AddParameter("ns1:strRegisterComment", "");
 	helper.AddParameter("ns1:strFileName", Filename.c_str());
-	helper.AddParameter("ns1:strTitle", lyric.GetTitle().c_str());
-	helper.AddParameter("ns1:strArtist", lyric.GetArtist().c_str());
-	helper.AddParameter("ns1:strAlbum", lyric.GetAlbum().c_str());
-	try
-	{
-		if(typeid(lyric) == typeid(AlsongLyric))
-			helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(lyric.GetInternalID()).c_str());
-	}
-	catch(std::bad_typeid &)
-	{
-
-	}
-	helper.AddParameter("ns1:strLyric", lyric.GetRawLyric().c_str());
+	helper.AddParameter("ns1:strTitle", RawLyric.c_str());
+	helper.AddParameter("ns1:strArtist", Artist.c_str());
+	helper.AddParameter("ns1:strAlbum", Album.c_str());
+	if(nInfoID != 0)
+		helper.AddParameter("ns1:nInfoID", boost::lexical_cast<std::string>(nInfoID).c_str());
+	
+	helper.AddParameter("ns1:strLyric", RawLyric.c_str());
 	helper.AddParameter("ns1:nPlayTime", boost::lexical_cast<std::string>(PlayTime).c_str());
 	helper.AddParameter("ns1:strVersion", ALSONG_VERSION);
 	helper.AddParameter("ns1:strMACAddress", Local_Mac);
@@ -356,6 +354,11 @@ DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
 		return false;
 	}
 	return false;
+}
+
+DWORD LyricSourceAlsong::Save(const metadb_handle_ptr &track, Lyric &lyric)
+{
+	return LyricSourceAlsong::Save(track, lyric.GetArtist(), lyric.GetTitle(), lyric.GetRawLyric(), lyric.GetAlbum(), lyric.GetRegistrant(), dynamic_cast<AlsongLyric &>(lyric).GetInternalID());
 }
 
 boost::shared_ptr<LyricSearchResult> LyricSourceAlsong::SearchLyric(const std::string &Artist, const std::string Title, int nPage)
