@@ -173,6 +173,7 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					uSetDlgItemText(m_hWnd, IDC_STATUS, str.str().c_str());
 
 					LVITEM item;
+					HWND hListView = GetDlgItem(m_hWnd, IDC_LYRICLIST);
 					item.mask = LVIF_TEXT;
 					item.iItem = 0;
 					item.iSubItem = 0;
