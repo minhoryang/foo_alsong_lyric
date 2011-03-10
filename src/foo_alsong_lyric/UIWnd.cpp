@@ -145,7 +145,7 @@ HWND UIWnd::Create()
 	HMODULE shell32 = LoadLibrary(L"shell32.dll");
 	SHGPSFW SHGetPropertyStoreForWindow = reinterpret_cast<SHGPSFW>(GetProcAddress(shell32, "SHGetPropertyStoreForWindow"));
 	m_Propstore = NULL;
-	if(SHGetPropertyStoreForWindow)
+	if(SHGetPropertyStoreForWindow && cfg_use_jumplist)
 	{
 		SHGetPropertyStoreForWindow(m_hWnd, IID_IPropertyStore, (void **)&m_Propstore);
 		wchar_t appid[] = L"dlunch.foo_alsong_lyric";

@@ -152,3 +152,4 @@ extern cfg_lyricsource_var cfg_enabledlyricsource;
 extern cfg_lyricsource_var cfg_enabledlyricsave;
 
 extern cfg_bool cfg_outer_taskbar;
+extern cfg_bool cfg_use_jumplist;

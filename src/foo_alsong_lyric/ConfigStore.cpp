@@ -73,3 +73,7 @@ cfg_bool cfg_outer_taskbar(guid_cfg_outer_taskbar, false);
 static const GUID guid_cfg_outer_blur = // {A018AE44-7F39-45B8-950D-3C7BE2FE766D}
 { 0xa018ae44, 0x7f39, 0x45b8, { 0x95, 0xd, 0x3c, 0x7b, 0xe2, 0xfe, 0x76, 0x6d } };
 extern cfg_bool cfg_outer_blur(guid_cfg_outer_blur, false);
+
+static const GUID guid_cfg_use_jumplist = // {DB912949-95B4-425C-B259-1C515B729576}
+{ 0xdb912949, 0x95b4, 0x425c, { 0xb2, 0x59, 0x1c, 0x51, 0x5b, 0x72, 0x95, 0x76 } };
+extern cfg_bool cfg_use_jumplist(guid_cfg_use_jumplist, true);
