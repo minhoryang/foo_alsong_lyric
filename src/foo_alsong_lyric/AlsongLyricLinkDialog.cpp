@@ -171,6 +171,18 @@ UINT AlsongLyricLinkDialog::DialogProc(UINT iMessage, WPARAM wParam, LPARAM lPar
 					std::stringstream str;
 					str << m_page * 100 + 1 << "~" << min(m_lyriccount, (m_page + 1) * 100) << "/" << m_lyriccount;
 					uSetDlgItemText(m_hWnd, IDC_STATUS, str.str().c_str());
+
+					LVITEM item;
+					item.mask = LVIF_TEXT;
+					item.iItem = 0;
+					item.iSubItem = 0;
+					item.pszText = L"";
+					ListView_InsertItem(hListView, &item);
+					item.iSubItem = 1;
+					item.mask = LVIF_TEXT;
+					item.pszText = L"잠시 기다려 주세요";
+					ListView_SetItem(hListView, &item);
+
 					m_searchresult = LyricSourceAlsong().SearchLyric(artist.toString(), title.toString(), 0);
 					PopulateListView();
 					SetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE, GetWindowLong(GetDlgItem(m_hWnd, IDC_PREV), GWL_STYLE) | WS_DISABLED);
