@@ -57,7 +57,10 @@ DWORD Lyric::Split(const char *Delimiter)
 		int time = StrToIntA(lastpos + 1) * 60 * 100 + StrToIntA(lastpos + 4) * 100 + StrToIntA(lastpos + 7);
 		lastpos += 10; //strlen("[34:56.78]");
 
-		m_LyricLines.push_back(LyricLine(time, std::string(lastpos, nowpos - lastpos - delimlen)));
+		std::string temp = std::string(lastpos, nowpos - lastpos - delimlen);
+		if(temp.length() == 0)
+			temp = " ";
+		m_LyricLines.push_back(LyricLine(time, temp));
 		lastpos = nowpos;
 	}
 
