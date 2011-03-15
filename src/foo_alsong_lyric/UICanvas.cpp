@@ -171,7 +171,17 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	else
 		strformat.SetAlignment(StringAlignmentFar);
 	
-	g.DrawString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
+	GraphicsPath path;
+	FontFamily family;
+	font.m_Font->GetFamily(&family);
+	path.AddString(text + 1, wcslen(text + 1), &family, font.m_Font->GetStyle(), font.m_Font->GetSize(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat);
+	Pen pen(Gdiplus::Color(255, 255, 255), 3);
+	pen.SetLineJoin(LineJoinRound);
+	//path.Widen(&pen);
+
+	g.DrawPath(&pen, &path);
+	g.FillPath(&brush, &path);
+	//g.DrawString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
 	g.MeasureString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 
 	m_TextPos.y += (int)(box.Height * heightratio);
@@ -224,5 +234,5 @@ UIFont::UIFont(const UIFontDescription & fontdesc)
 		style |= Gdiplus::FontStyleStrikeout;
 	if(fontdesc.underline)
 		style |= Gdiplus::FontStyleUnderline;
-	m_Font = boost::shared_ptr<Gdiplus::Font>(new Gdiplus::Font(fontdesc.face, (float)fontdesc.size * 72 / 480, style));
+	m_Font = boost::shared_ptr<Gdiplus::Font>(new Gdiplus::Font(fontdesc.face, (float)fontdesc.size * 100 / 480, style, Gdiplus::UnitWorld));
 }
