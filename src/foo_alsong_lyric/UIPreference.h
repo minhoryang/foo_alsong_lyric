@@ -94,11 +94,11 @@ public:
 		LOGFONT lf = {0,};
 		lstrcpy(lf.lfFaceName, tmpl.face);
 		lf.lfHeight = -(int)((float)tmpl.size * 72 / 480 + 3);
-		lf.lfWeight = out.bold ? FW_BOLD : FW_NORMAL;
+		lf.lfWeight = tmpl.bold ? FW_BOLD : FW_NORMAL;
 		cf.lpLogFont = &lf;
-		cf.nFontType = out.italic ? ITALIC_FONTTYPE : 0;
-		cf.lpLogFont->lfStrikeOut = out.strikeout;
-		cf.lpLogFont->lfUnderline = out.underline;
+		cf.nFontType = tmpl.italic ? ITALIC_FONTTYPE : 0;
+		cf.lpLogFont->lfStrikeOut = tmpl.strikeout;
+		cf.lpLogFont->lfUnderline = tmpl.underline;
 		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
 		cf.rgbColors = tmpl.color;
 		ChooseFont(&cf);
