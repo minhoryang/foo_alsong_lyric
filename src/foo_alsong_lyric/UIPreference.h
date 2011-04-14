@@ -100,7 +100,7 @@ public:
 		ChooseFont(&cf);
 		lstrcpy(out.face, cf.lpLogFont->lfFaceName);
 		out.size = (int)((float)(-cf.lpLogFont->lfHeight - 3) * 480 / 72 + 0.5f);
-		out.bold = (cf.nFontType & BOLD_FONTTYPE) == 1;
+		out.bold = (cf.lpLogFont->lfWeight > FW_NORMAL); 
 		out.italic = (cf.nFontType & ITALIC_FONTTYPE) == 1;
 		out.strikeout = cf.lpLogFont->lfStrikeOut;
 		out.underline = cf.lpLogFont->lfUnderline;
