@@ -76,6 +76,7 @@ private:
 	int *m_bits;
 public:
 	UICanvas::UICanvas(HWND hWnd, HDC hdc);
+	UICanvas::UICanvas(HWND hWnd, HDC hdc, const RECT &drawRect);
 	~UICanvas();
 
 	void DrawText(const UIFont &font, const SQChar *text, int align, float heightratio, int fontTransparency, COLORREF outlineColor, uint32_t outlineSize);

@@ -657,6 +657,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				SendMessage(GetDlgItem(hWnd, IDC_TOPMOST), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_OUTER_BLUR), WM_CLOSE, 0, 0);
 				SendMessage(GetDlgItem(hWnd, IDC_RESETWNDPOS), WM_CLOSE, 0, 0);
+				SendMessage(GetDlgItem(hWnd, IDC_TRANSPARENCYNOTICE), WM_CLOSE, 0, 0);
 			}
 
 			SendMessage(GetDlgItem(hWnd, IDC_VERTICALALIGN), CB_ADDSTRING, NULL, (LPARAM)TEXT("위"));
@@ -680,25 +681,25 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 		}
 
 		break;
-	case WM_CTLCOLORSTATIC:
-		if((HWND)lParam == GetDlgItem(hWnd, IDC_BKINDICATOR))
-			return (INT_PTR)CreateSolidBrush(newSetting.backColor);
-		else if((HWND)lParam == GetDlgItem(hWnd, IDC_OUTLINECOLORINDICATOR))
-			return (INT_PTR)CreateSolidBrush(newSetting.outLineColor);
-		return FALSE;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
-			Gdiplus::Graphics g((HDC)hdc);
-			Gdiplus::Image im(newSetting.bgImage);
-			g.DrawImage(&im, 20, 270, 200, 120);
-			UIFont normal(newSetting.normalFont);
-			SolidBrush normalbrush(Gdiplus::Color(0xFF, GetRValue(normal.m_Color), GetGValue(normal.m_Color), GetBValue(normal.m_Color)));
-			g.DrawString(TEXT("일반 글꼴 abcABC123가나다"), 18, normal.m_Font.get(), Gdiplus::PointF(180.0f, 150.0f), &normalbrush);
-			UIFont highlight(newSetting.highlightFont);
-			SolidBrush highlightbrush(Gdiplus::Color(0xFF, GetRValue(highlight.m_Color), GetGValue(highlight.m_Color), GetBValue(highlight.m_Color)));
-			g.DrawString(TEXT("현재가사 글꼴 abcABC123가나다"), 20, highlight.m_Font.get(), Gdiplus::PointF(180.0f, 170.0f), &highlightbrush);
+			RECT rt;
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
+			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom - 200);
+			{
+				UICanvas canvas(hWnd, hdc, rt);
+				if(bgType == BG_SOLIDCOLOR)
+					canvas.Fill(0, 0, rt.right, rt.bottom, newSetting.backColor);
+				else if(bgType == BG_IMAGE)
+					canvas.DrawImage(0, 0, rt.right, rt.bottom, newSetting.bgImage);
+				else
+					canvas.Fill(0, 0, rt.right, rt.bottom, RGB(255, 255, 255));
+				canvas.DrawText(UIFont(newSetting.normalFont), L"\1일반 글꼴 미리보기 1234abc", 2, 1.f, 100, newSetting.outLineColor, SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_GETPOS32, NULL, NULL));
+				canvas.DrawText(UIFont(newSetting.highlightFont), L"\1현재가사 글꼴 미리보기 1234abc", 2, 1.f, 100, newSetting.outLineColor, SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_GETPOS32, NULL, NULL));
+			}
 			EndPaint(hWnd, &ps);
 		}
 		break;
@@ -715,6 +716,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			wsprintf(temp, TEXT("%d%%"), pos);
 			SetWindowText(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY_LABEL), temp);
 			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
+			InvalidateRect(hWnd, NULL, TRUE);
 		}
 		break;
 	case WM_COMMAND:
@@ -745,6 +747,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 				InvalidateRect(GetDlgItem(hWnd, IDC_OUTLINECOLORINDICATOR), NULL, TRUE);
 			}
 		}
+		InvalidateRect(hWnd, NULL, TRUE);
 		break;
 	case WM_NOTIFY:
 		if(((LPNMHDR)lParam)->code == PSN_APPLY)

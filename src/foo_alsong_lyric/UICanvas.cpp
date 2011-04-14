@@ -56,6 +56,16 @@ UICanvas::UICanvas(HWND hWnd, HDC hdc) : m_hWnd(hWnd), m_destDC(hdc)
 	//FillRect(m_hDC, &m_DrawRect, (HBRUSH)(COLOR_WINDOW + 1));
 }
 
+UICanvas::UICanvas(HWND hWnd, HDC hdc, const RECT &drawRect) : m_hWnd(hWnd), m_destDC(hdc)
+{
+	memcpy(&m_DrawRect, &drawRect, sizeof(RECT));
+
+	m_hDC = CreateCompatibleDC(hdc);
+	HBITMAP hBitmap;
+	hBitmap = CreateCompatibleBitmap(hdc, m_DrawRect.right, m_DrawRect.bottom);
+	m_hOldBitmap = (HBITMAP)SelectObject(m_hDC, hBitmap);
+}
+
 UICanvas::~UICanvas()
 {
 	if(WndInstance.isResizing() && GetParent(m_hWnd) == NULL)
@@ -77,7 +87,7 @@ UICanvas::~UICanvas()
 		UpdateLayeredWindow(m_hWnd, m_destDC, NULL, &sizeWnd, m_hDC, &ptSrc, NULL, &blend, ULW_ALPHA);
 	}
 	else
-		BitBlt(m_destDC, 0, 0, m_DrawRect.right, m_DrawRect.bottom, m_hDC, 0, 0, SRCCOPY);
+		BitBlt(m_destDC, m_DrawRect.left, m_DrawRect.top, m_DrawRect.right - m_DrawRect.left, m_DrawRect.bottom - m_DrawRect.top, m_hDC, 0, 0, SRCCOPY);
 
 	DeleteObject(SelectObject(m_hDC, m_hOldBitmap));
 	DeleteDC(m_hDC);
@@ -171,17 +181,23 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	else
 		strformat.SetAlignment(StringAlignmentFar);
 	
-	GraphicsPath path;
-	FontFamily family;
-	font.m_Font->GetFamily(&family);
-	path.AddString(text + 1, wcslen(text + 1), &family, font.m_Font->GetStyle(), font.m_Font->GetSize(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat);
-	Pen pen(Gdiplus::Color(GetRValue(outlineColor), GetGValue(outlineColor), GetBValue(outlineColor)), outlineSize);
-	pen.SetLineJoin(LineJoinRound);
-	//path.Widen(&pen);
+	if(outlineSize == 0)
+	{ 
+		g.DrawString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
+	}
+	else
+	{
+		GraphicsPath path;
+		FontFamily family;
+		font.m_Font->GetFamily(&family);
+		path.AddString(text + 1, wcslen(text + 1), &family, font.m_Font->GetStyle(), font.m_Font->GetSize(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat);
+		Pen pen(Gdiplus::Color(GetRValue(outlineColor), GetGValue(outlineColor), GetBValue(outlineColor)), (float)outlineSize);
+		pen.SetLineJoin(LineJoinRound);
+		//path.Widen(&pen);
 
-	g.DrawPath(&pen, &path);
-	g.FillPath(&brush, &path);
-	//g.DrawString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &brush);
+		g.DrawPath(&pen, &path);
+		g.FillPath(&brush, &path);
+	}
 	g.MeasureString(text + 1, wcslen(text + 1), font.m_Font.get(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat, &box);
 
 	m_TextPos.y += (int)(box.Height * heightratio);
