@@ -94,6 +94,7 @@ public:
 		LOGFONT lf = {0,};
 		lstrcpy(lf.lfFaceName, tmpl.face);
 		lf.lfHeight = -(int)((float)tmpl.size * 72 / 480 + 3);
+		lf.lfWeight = out.bold ? FW_BOLD : FW_NORMAL;
 		cf.lpLogFont = &lf;
 		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
 		cf.rgbColors = tmpl.color;
