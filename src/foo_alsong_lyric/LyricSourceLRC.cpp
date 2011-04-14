@@ -56,7 +56,10 @@ std::wstring LyricSourceLRC::getSavePath(const metadb_handle_ptr &track)
 		std::wstring filename = wpath.substr(wpath.find_last_of(L"\\") + 1);
 		HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
 		std::string out;
-		service_ptr_t<LRCTitleFormatCallback> p_callback = new service_impl_t<LRCTitleFormatCallback>(event, &out, m_config["lrcsavepath"], track);
+		std::string pathtmp = m_config["lrcsavepath"];
+		if(pathtmp.at(pathtmp.length() - 1) != '\\')
+			pathtmp += '\\';
+		service_ptr_t<LRCTitleFormatCallback> p_callback = new service_impl_t<LRCTitleFormatCallback>(event, &out, pathtmp, track);
 		static_api_ptr_t<main_thread_callback_manager>()->add_callback(p_callback);
 		p_callback.release();
 		WaitForSingleObject(event, INFINITE);
