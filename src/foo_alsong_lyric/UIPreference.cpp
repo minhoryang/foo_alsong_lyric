@@ -688,7 +688,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			RECT rt;
 			RECT clientRect;
 			GetClientRect(hWnd, &clientRect);
-			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom - 200);
+			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom);
 			{
 				UICanvas canvas(hWnd, hdc, rt);
 				if(bgType == BG_SOLIDCOLOR)
