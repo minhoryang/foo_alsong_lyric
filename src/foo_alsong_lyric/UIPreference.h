@@ -96,7 +96,7 @@ public:
 		lf.lfHeight = -(int)((float)tmpl.size * 72 / 480 + 3);
 		lf.lfWeight = tmpl.bold ? FW_BOLD : FW_NORMAL;
 		cf.lpLogFont = &lf;
-		cf.nFontType = tmpl.italic ? ITALIC_FONTTYPE : 0;
+		cf.lpLogFont->lfItalic = tmpl.italic;
 		cf.lpLogFont->lfStrikeOut = tmpl.strikeout;
 		cf.lpLogFont->lfUnderline = tmpl.underline;
 		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
@@ -105,7 +105,7 @@ public:
 		lstrcpy(out.face, cf.lpLogFont->lfFaceName);
 		out.size = (int)((float)(-cf.lpLogFont->lfHeight - 3) * 480 / 72 + 0.5f);
 		out.bold = (cf.lpLogFont->lfWeight > FW_NORMAL); 
-		out.italic = (cf.nFontType & ITALIC_FONTTYPE) == 1;
+		out.italic = cf.lpLogFont->lfItalic;
 		out.strikeout = cf.lpLogFont->lfStrikeOut;
 		out.underline = cf.lpLogFont->lfUnderline;
 		out.color = cf.rgbColors;
