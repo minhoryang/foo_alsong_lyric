@@ -157,6 +157,12 @@ void LyricManager::on_playback_new_track(metadb_handle_ptr p_track)
 
 void LyricManager::on_playback_stop(play_control::t_stop_reason reason)
 {
+	if(m_fetchthread)
+	{
+		m_fetchthread->interrupt();
+		m_fetchthread->detach();
+		m_fetchthread.reset();
+	}
 	if(m_countthread)
 	{
 		m_countthread->interrupt();
