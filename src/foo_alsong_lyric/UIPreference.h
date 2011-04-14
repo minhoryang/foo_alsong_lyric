@@ -93,13 +93,13 @@ public:
 		cf.hwndOwner = hWndFrom;
 		LOGFONT lf = {0,};
 		lstrcpy(lf.lfFaceName, tmpl.face);
-		lf.lfHeight = -(tmpl.size * 72 / 480 + 3);
+		lf.lfHeight = -(int)((float)tmpl.size * 72 / 480 + 3);
 		cf.lpLogFont = &lf;
 		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
 		cf.rgbColors = tmpl.color;
 		ChooseFont(&cf);
 		lstrcpy(out.face, cf.lpLogFont->lfFaceName);
-		out.size = (-cf.lpLogFont->lfHeight - 3) * 480 / 72;
+		out.size = (int)((float)(-cf.lpLogFont->lfHeight - 3) * 480 / 72 + 0.5f);
 		out.bold = (cf.nFontType & BOLD_FONTTYPE) == 1;
 		out.italic = (cf.nFontType & ITALIC_FONTTYPE) == 1;
 		out.strikeout = cf.lpLogFont->lfStrikeOut;
