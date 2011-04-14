@@ -691,9 +691,11 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom);
 			{
 				UICanvas canvas(hWnd, hdc, rt);
-				if(bgType == BG_SOLIDCOLOR)
+				canvas.Fill(0, 0, rt.right, rt.bottom, RGB(255, 255, 255));
+				BgType newBgType = static_cast<BgType>(SendMessage(GetDlgItem(hWnd, IDC_BGTYPE), CB_GETCURSEL, NULL, NULL));
+				if(newBgType == BG_SOLIDCOLOR)
 					canvas.Fill(0, 0, rt.right, rt.bottom, newSetting.backColor);
-				else if(bgType == BG_IMAGE)
+				else if(newBgType == BG_IMAGE)
 					canvas.DrawImage(0, 0, rt.right, rt.bottom, newSetting.bgImage);
 				else
 					canvas.Fill(0, 0, rt.right, rt.bottom, RGB(255, 255, 255));
