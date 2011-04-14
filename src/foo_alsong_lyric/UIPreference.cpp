@@ -607,6 +607,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETRANGE, TRUE, MAKELONG(0, 100));
 			SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_SETPOS, TRUE, fontTransparency);
 
+			SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_SETRANGE32, 0, 20);
+			SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_SETBUDDY, (WPARAM)GetDlgItem(hWnd, IDC_OUTLINEBORDER), 0);
+			SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_SETPOS32, 0, outLineSize);
+
 //			if(Setting->Script)
 //				uSetDlgItemText(hWnd, IDC_UISCRIPT, Setting->Script->get_ptr());
 			if(GetParent(hParent) == NULL)
@@ -679,6 +683,8 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	case WM_CTLCOLORSTATIC:
 		if((HWND)lParam == GetDlgItem(hWnd, IDC_BKINDICATOR))
 			return (INT_PTR)CreateSolidBrush(newSetting.backColor);
+		else if((HWND)lParam == GetDlgItem(hWnd, IDC_OUTLINECOLORINDICATOR))
+			return (INT_PTR)CreateSolidBrush(newSetting.outLineColor);
 		return FALSE;
 	case WM_PAINT:
 		{
@@ -689,10 +695,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			g.DrawImage(&im, 20, 270, 200, 120);
 			UIFont normal(newSetting.normalFont);
 			SolidBrush normalbrush(Gdiplus::Color(0xFF, GetRValue(normal.m_Color), GetGValue(normal.m_Color), GetBValue(normal.m_Color)));
-			g.DrawString(TEXT("일반 글꼴 abcABC123가나다"), 18, normal.m_Font.get(), Gdiplus::PointF(90.0f, 150.0f), &normalbrush);
+			g.DrawString(TEXT("일반 글꼴 abcABC123가나다"), 18, normal.m_Font.get(), Gdiplus::PointF(180.0f, 150.0f), &normalbrush);
 			UIFont highlight(newSetting.highlightFont);
 			SolidBrush highlightbrush(Gdiplus::Color(0xFF, GetRValue(highlight.m_Color), GetGValue(highlight.m_Color), GetBValue(highlight.m_Color)));
-			g.DrawString(TEXT("현재가사 글꼴 abcABC123가나다"), 20, highlight.m_Font.get(), Gdiplus::PointF(90.0f, 180.0f), &highlightbrush);
+			g.DrawString(TEXT("현재가사 글꼴 abcABC123가나다"), 20, highlight.m_Font.get(), Gdiplus::PointF(180.0f, 170.0f), &highlightbrush);
 			EndPaint(hWnd, &ps);
 		}
 		break;
@@ -733,6 +739,10 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			case IDC_HIGHLIGHTFONT_CHANGE:
 				newSetting.highlightFont = OpenFontPopup(hWnd, newSetting.highlightFont);
 				InvalidateRect(hWnd, NULL, TRUE);
+				break;
+			case IDC_OUTLINECOLOR_CHANGE:
+				newSetting.outLineColor = OpenColorPopup(hWnd, newSetting.outLineColor);
+				InvalidateRect(GetDlgItem(hWnd, IDC_OUTLINECOLORINDICATOR), NULL, TRUE);
 			}
 		}
 		break;
@@ -742,6 +752,7 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			memcpy(this, &newSetting, sizeof(UIPreference));
 			nLine = SendMessage(GetDlgItem(hWnd, IDC_NLINESPIN), UDM_GETPOS32, NULL, NULL);
 			LineMargin = SendMessage(GetDlgItem(hWnd, IDC_MARGINSPIN), UDM_GETPOS32, NULL, NULL);
+			outLineSize = SendMessage(GetDlgItem(hWnd, IDC_OUTLINEBORDERSPIN), UDM_GETPOS32, NULL, NULL);
 			fontTransparency = SendMessage(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY), TBM_GETPOS, 0, 0);
 			if(GetParent(hParent) == NULL)
 			{

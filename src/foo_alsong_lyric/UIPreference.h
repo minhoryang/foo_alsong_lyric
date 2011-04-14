@@ -190,6 +190,16 @@ public:
 			fontTransparency = 100; //migration
 	}
 
+	COLORREF GetOutlineColor()
+	{
+		return outLineColor;
+	}
+
+	uint32_t GetOutlineSize()
+	{
+		return outLineSize;
+	}
+
 	void OpenConfigPopup(HWND hParent);
 	static BOOL CALLBACK ConfigProcDispatcher(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 private:

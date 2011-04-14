@@ -48,7 +48,7 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("sz = canvas.EstimateText(highlightfont, v);\n")
 		TEXT("else\n")
 		TEXT("sz = canvas.EstimateText(normalfont, v);\n")
-		TEXT("h += sz.height *  WndSetting.GetLineMargin() / 100.0}\n")
+		TEXT("h += sz.height * WndSetting.GetLineMargin() / 100.0 + WndSetting.GetOutlineSize() / 2}\n")
 		TEXT("local sz = canvas.GetCanvasSize();\n")
 		TEXT("if(WndSetting.GetBgType() == 0)\n")
 		TEXT("canvas.Fill(0, 0, sz.width, sz.height, WndSetting.GetBackColor());\n")
@@ -62,9 +62,9 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		TEXT("canvas.SetDrawTextOrigin(UIPoint(0, starty));\n")
 		TEXT("foreach(i, v in lines) {\n")
 		TEXT("if(IsHighlightedLine(v))\n")
-		TEXT("canvas.DrawText(highlightfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency());\n")
+		TEXT("canvas.DrawText(highlightfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency(), WndSetting.GetOutlineColor(), WndSetting.GetOutlineSize());\n")
 		TEXT("else\n")
-		TEXT("canvas.DrawText(normalfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency());}}\n")
+		TEXT("canvas.DrawText(normalfont, v, WndSetting.GetHAlign(), WndSetting.GetLineMargin() / 100.0, WndSetting.GetFontTransparency(), WndSetting.GetOutlineColor(), WndSetting.GetOutlineSize());}}\n")
 		);
 	SquirrelVM::RunScript(DrawScript);
 
@@ -77,7 +77,9 @@ UIManager::UIManager(UIPreference *Setting, pfc::string8 *Script) : m_Setting(Se
 		func(&UIPreference::GetLineMargin, TEXT("GetLineMargin")).
 		func(&UIPreference::GetHighlightFont, TEXT("GetHighlightFont")).
 		func(&UIPreference::GetNormalFont, TEXT("GetNormalFont")).
-		func(&UIPreference::GetFontTransparency, TEXT("GetFontTransparency"));
+		func(&UIPreference::GetFontTransparency, TEXT("GetFontTransparency")).
+		func(&UIPreference::GetOutlineColor, TEXT("GetOutlineColor")).
+		func(&UIPreference::GetOutlineSize, TEXT("GetOutlineSize"));
 
 	SqPlus::BindVariable(m_Setting, TEXT("WndSetting"));
 

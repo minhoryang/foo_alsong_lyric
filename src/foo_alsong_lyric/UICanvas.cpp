@@ -145,7 +145,7 @@ void UICanvas::SetTransparent()
 	}
 }
 
-void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio, int fontTransparency)
+void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float heightratio, int fontTransparency, COLORREF outlineColor, uint32_t outlineSize)
 {
 	if(!m_hDC)
 		return;
@@ -175,7 +175,7 @@ void UICanvas::DrawText(const UIFont &font, const SQChar *text, int align, float
 	FontFamily family;
 	font.m_Font->GetFamily(&family);
 	path.AddString(text + 1, wcslen(text + 1), &family, font.m_Font->GetStyle(), font.m_Font->GetSize(), Gdiplus::RectF((float)m_TextPos.x, (float)m_TextPos.y, (float)m_DrawRect.right - m_TextPos.x, (float)m_DrawRect.bottom - m_TextPos.y), &strformat);
-	Pen pen(Gdiplus::Color(255, 255, 255), 3);
+	Pen pen(Gdiplus::Color(GetRValue(outlineColor), GetGValue(outlineColor), GetBValue(outlineColor)), outlineSize);
 	pen.SetLineJoin(LineJoinRound);
 	//path.Widen(&pen);
 
