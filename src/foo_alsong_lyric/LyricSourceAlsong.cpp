@@ -85,28 +85,29 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 			helper.open(service_ptr_t<file>(), make_playable_location(realfilename.get_ptr(), 0), input_flag_simpledecode, abort_callback);
 
 			helper.get_info(0, info, abort_callback);
-			helper.seek(m * 60 + s + ms * 0.01, abort_callback);
+			if(helper.can_seek())
+				helper.seek(m * 60 + s + ms * 0.01, abort_callback);
 
 			if (!helper.run(chunk, abort_callback)) return false;		
 
 			t_uint64 length_samples = audio_math::time_to_samples(info.get_length(), chunk.get_sample_rate());
 			//chunk.get_channels();
 			std::vector<double> buf;
-			buf.resize(0x200000);
+			buf.reserve(0x50000);
 			while (true)
 			{
 				// Store the data somewhere.
 				audio_sample *sample = chunk.get_data();
 				int len = chunk.get_data_length();
 				buf.insert(buf.end(), sample, sample + len);
-				if(buf.size() > 0x200000)
+				if(buf.size() > 0x50000)
 					break;
 
 				bool decode_done = !helper.run(chunk, abort_callback);
 				if (decode_done) break;
 			}
 
-			md5((unsigned char *)&buf[0], min(buf.size(), 0x200000), MD5);
+			md5((unsigned char *)&buf[0], min(buf.size(), 0x50000), MD5);
 		}
 		else
 		{
