@@ -718,7 +718,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			wsprintf(temp, TEXT("%d%%"), pos);
 			SetWindowText(GetDlgItem(hWnd, IDC_FONT_TRANSPARENCY_LABEL), temp);
 			SendMessage(GetParent(hWnd), PSM_CHANGED, (WPARAM)hWnd, 0);
-			InvalidateRect(hWnd, NULL, TRUE);
+
+			RECT rt;
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
+			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom);
+			InvalidateRect(hWnd, &rt, TRUE);
 		}
 		break;
 	case WM_COMMAND:
@@ -730,26 +735,32 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 			{
 			case IDC_BKCOLOR:
 				newSetting.backColor = OpenBkColorPopup(hWnd);
-				InvalidateRect(GetDlgItem(hWnd, IDC_BKINDICATOR), NULL, TRUE);
 				break;
 			case IDC_BGIMAGE:
 				lstrcpy(newSetting.bgImage, OpenBgImagePopup(hWnd).c_str());
-				InvalidateRect(hWnd, NULL, TRUE);
 				break;
 			case IDC_NORMALFONT_CHANGE:
 				newSetting.normalFont = OpenFontPopup(hWnd, newSetting.normalFont);
-				InvalidateRect(hWnd, NULL, TRUE);
 				break;
 			case IDC_HIGHLIGHTFONT_CHANGE:
 				newSetting.highlightFont = OpenFontPopup(hWnd, newSetting.highlightFont);
-				InvalidateRect(hWnd, NULL, TRUE);
 				break;
 			case IDC_OUTLINECOLOR_CHANGE:
 				newSetting.outLineColor = OpenColorPopup(hWnd, newSetting.outLineColor);
-				InvalidateRect(GetDlgItem(hWnd, IDC_OUTLINECOLORINDICATOR), NULL, TRUE);
+				break;
+			case IDC_HIGHLIGHTFONTCOLOR_CHANGE:
+				newSetting.highlightFont.color = OpenColorPopup(hWnd, newSetting.highlightFont.color);
+				break;
+			case IDC_FONTCOLOR_CHANGE:
+				newSetting.normalFont.color = OpenColorPopup(hWnd, newSetting.normalFont.color);
+				break;
 			}
 		}
-		InvalidateRect(hWnd, NULL, TRUE);
+		RECT rt;
+		RECT clientRect;
+		GetClientRect(hWnd, &clientRect);
+		SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom);
+		InvalidateRect(hWnd, &rt, TRUE);
 		break;
 	case WM_NOTIFY:
 		if(((LPNMHDR)lParam)->code == PSN_APPLY)
@@ -775,7 +786,12 @@ BOOL UIPreference::UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 //			if(Setting->Script)
 //				uGetDlgItemText(hWnd, IDC_UISCRIPT, *(Setting->Script));
 
-			InvalidateRect(hParent, NULL, TRUE);
+
+			RECT rt;
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
+			SetRect(&rt, 0, 200, clientRect.right, clientRect.bottom);
+			InvalidateRect(hWnd, &rt, TRUE);
 
 			SetWindowLong(hWnd, DWL_MSGRESULT, PSNRET_NOERROR);
 			if(((LPPSHNOTIFY)lParam)->lParam)
