@@ -224,7 +224,7 @@ private:
 		choosecolor.rgbResult = color;
 		if(ChooseColor(&choosecolor))
 			return choosecolor.rgbResult;
-		return -1;
+		return color;
 	}
 	BOOL UIConfigProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam, HWND hParent);
 
