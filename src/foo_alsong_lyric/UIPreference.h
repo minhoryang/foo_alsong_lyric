@@ -99,7 +99,8 @@ public:
 		cf.lpLogFont->lfItalic = tmpl.italic;
 		cf.lpLogFont->lfStrikeOut = tmpl.strikeout;
 		cf.lpLogFont->lfUnderline = tmpl.underline;
-		cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS;
+		cf.Flags = CF_INITTOLOGFONTSTRUCT | CF_NOVERTFONTS | CF_SCREENFONTS;
+		cf.nFontType = BOLD_FONTTYPE | ITALIC_FONTTYPE | REGULAR_FONTTYPE | SCREEN_FONTTYPE;
 		cf.rgbColors = tmpl.color;
 		ChooseFont(&cf);
 		lstrcpy(out.face, cf.lpLogFont->lfFaceName);
