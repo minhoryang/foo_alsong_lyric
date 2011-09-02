@@ -107,7 +107,7 @@ DWORD LyricSourceAlsong::GetFileHash(const metadb_handle_ptr &track, CHAR *Hash)
 				if (decode_done) break;
 			}
 
-			md5((unsigned char *)&buf[0], min(buf.size(), 0x50000), MD5);
+			md5((unsigned char *)&buf[0], min(buf.size(), 0x50000) * sizeof(double), MD5);
 		}
 		else
 		{
